@@ -2,13 +2,13 @@ package models
 
 import "time"
 
-struct ProfessionalInFilm type {
-	ID      		int
-	ProfessioanlID  int
-	FilmID    		int
-	Role      		string
-	Character       string
-	Description		string
-	CreatedAt   	time.Time
-	UpdatedAt   	time.Time
+type ProfessionalInFilm struct {
+	ID            	int       `json:"id"`
+	ProfessionalID 	int       `json:"professionalId"`
+	FilmID        	int       `json:"filmId"`
+	Role          	string    `json:"role"`                    
+	Character     	string    `json:"character,omitempty"`     
+	Description   	string    `json:"description,omitempty"`   
+	CreatedAt     	time.Time `json:"createdAt"`
+	UpdatedAt     	time.Time `json:"updatedAt"`
 }

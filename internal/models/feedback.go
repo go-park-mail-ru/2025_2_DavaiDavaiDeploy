@@ -2,14 +2,14 @@ package models
 
 import "time"
 
-struct Feedback type {
-	ID        int
-	UserID    int
-	FilmID    int
-	Title     string
-	Text      string
-	Rating    int
-	Type      string    // "positive", "negative", "neutral"
-	CreatedAt time.Time
-	UpdatedAt time.Time
+type Feedback struct {
+	ID        int       `json:"id"`
+	UserID    int       `json:"userId"`
+	FilmID    int       `json:"filmId"`
+	Title     string    `json:"title,omitempty"`
+	Text      string    `json:"text"`
+	Rating    int       `json:"rating,omitempty" binding:"min=1,max=10"`
+	Type      string    `json:"type" binding:"oneof=positive negative neutral"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
 }

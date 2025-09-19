@@ -2,19 +2,19 @@ package models
 
 import "time"
 
-struct FilmProfessional type {
-	ID        		int
-	Name      		string
-	Surname   		string
-	Icon      		string 
-	Description		string
-	BirthDate   	time.Time
-	BirthPlace  	string   
-	DeathDate   	time.Time 
-	Nationality 	string    
-	Height       	int      
-	IsActive        bool 
-	WikipediaURL    string
-	CreatedAt   	time.Time
-	UpdatedAt   	time.Time
+type FilmProfessional struct {
+	ID           int       `json:"id"`
+	Name         string    `json:"name"`
+	Surname      string    `json:"surname"`
+	Icon         string    `json:"icon,omitempty"`
+	Description  string    `json:"description,omitempty"`
+	BirthDate    time.Time `json:"birthDate,omitempty"`
+	BirthPlace   string    `json:"birthPlace,omitempty"`
+	DeathDate    time.Time `json:"deathDate,omitempty"`
+	Nationality  string    `json:"nationality,omitempty"`
+	Height       int       `json:"height,omitempty"`
+	IsActive     bool      `json:"isActive"`
+	WikipediaURL string    `json:"wikipediaUrl,omitempty"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
