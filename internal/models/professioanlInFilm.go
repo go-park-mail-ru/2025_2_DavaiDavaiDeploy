@@ -1,11 +1,14 @@
 package models
 
-import "time"
+import (
+	"time"
+	uuid "github.com/satori/go.uuid"
+)
 
 type ProfessionalInFilm struct {
-	ID            	int       `json:"id"`
-	ProfessionalID 	int       `json:"professionalId"`
-	FilmID        	int       `json:"filmId"`
+	ID            	uuid.UUID `json:"id"`
+	ProfessionalID 	uuid.UUID `json:"professionalId"`
+	FilmID        	uuid.UUID  `json:"filmId"`
 	Role          	string    `json:"role"`                    
 	Character     	string    `json:"character,omitempty"`     
 	Description   	string    `json:"description,omitempty"`   

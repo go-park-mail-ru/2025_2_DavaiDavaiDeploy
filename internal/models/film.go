@@ -1,9 +1,12 @@
 package models
 
-import "time"
+import (
+	"time"
+	uuid "github.com/satori/go.uuid"
+)
 
 type Film struct {
-	ID          int         `json:"id"`
+	ID          uuid.UUID   `json:"id"`
 	Title       string      `json:"title"`
 	Genres      []Genre     `json:"genres,omitempty"`
 	Year        int         `json:"year"`

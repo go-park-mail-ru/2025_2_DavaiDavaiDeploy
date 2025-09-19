@@ -1,6 +1,11 @@
 package models
 
+import (
+	uuid "github.com/satori/go.uuid"
+)
+
 type SignInInput struct {
-	Login    string `json:"login" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	ID       uuid.UUID	`json:"id" binding:"required","-"`
+	Login    string 	`json:"login" binding:"required"`
+	Password string 	`json:"password" binding:"required"`
 }
