@@ -1,10 +1,12 @@
 package main
 
 import (
+	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/film"
 	"log"
 	"net/http"
-	"kinopoisk/internal/pkg/film"
 	"os"
+
 	"github.com/gorilla/mux"
 )
 
@@ -16,10 +18,11 @@ func main() {
 	http.Handle("/", r)
 
 	filmHandler := film.NewFilmHandler()
+	authHandler := auth.NewAuthHandler()
 
 	// регистрация/авторизация
-	r.HandleFunc("/auth/signup", filmHandler.SignupUser).Methods("POST")
-	r.HandleFunc("/auth/login", filmHandler.LoginUser).Methods("POST")
+	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
+	r.HandleFunc("/auth/login", authHandler.LoginUser).Methods("POST")
 
 	// пользователи
 	r.HandleFunc("/users/{id}", filmHandler.GetUser).Methods("GET")
@@ -28,7 +31,6 @@ func main() {
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods("GET")
-
 
 	filmSrv := http.Server{
 		Handler: r,

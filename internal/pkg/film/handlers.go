@@ -3,8 +3,6 @@ package film
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth"
-	"kinopoisk/internal/storage"
 	"net/http"
 	"time"
 
@@ -16,64 +14,6 @@ type FilmHandler struct {
 
 func NewFilmHandler() *FilmHandler {
 	return &FilmHandler{}
-}
-
-func (c *FilmHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
-	id := uuid.NewV4()
-
-	password := "password456"
-	if !auth.ValidatePassword(password) {
-		http.Error(w, `{"error": "password is invalid"}`, http.StatusBadRequest)
-		return
-	}
-
-	login := "ivanova"
-	if !auth.ValidateLogin(login) {
-		http.Error(w, `{"error": "login is invalid"}`, http.StatusBadRequest)
-		return
-	}
-
-	passwordHash := auth.HashPassword(password)
-	user := models.User{
-		ID:           id,
-		Login:        login,
-		PasswordHash: passwordHash,
-		Avatar:       "avatar1.jpg",
-		Country:      "Russia",
-		Status:       "active",
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
-	}
-
-	storage.Users[id.String()] = user
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
-}
-
-func (c *FilmHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
-	enteredLogin := "ivanov"
-	enteredPassword := "password123"
-
-	var necessaryUser *models.User
-	for _, user := range storage.Users {
-		if user.Login == enteredLogin {
-			necessaryUser = &user
-		}
-	}
-
-	if necessaryUser == nil {
-		http.Error(w, `{"error": "User not found"}`, http.StatusUnauthorized)
-		return
-	}
-
-	if necessaryUser.PasswordHash != auth.HashPassword(enteredPassword) {
-		http.Error(w, `{"error": "password is wrong"}`, http.StatusUnauthorized)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(necessaryUser)
 }
 
 func (c *FilmHandler) GetUser(w http.ResponseWriter, r *http.Request) {
