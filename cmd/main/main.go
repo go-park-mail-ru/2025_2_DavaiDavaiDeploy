@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"kinopoisk/internal/pkg/film"
 
@@ -37,9 +41,29 @@ func main() {
 		Addr:    ":5458",
 	}
 
-	err := filmSrv.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		log.Printf("Server start error: %v", err)
+	go func() {
+		log.Println("Starting server!")
+		err := filmSrv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Printf("Server start error: %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quitChannel
+	log.Printf("Shutting down gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := filmSrv.Shutdown(ctx)
+	if err != nil {
+		log.Printf("Graceful shutdown failed")
 		os.Exit(1)
 	}
+	log.Printf("Graceful shutdown!")
+	os.Exit(0)
+
 }
