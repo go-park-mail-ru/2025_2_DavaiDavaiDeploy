@@ -4,7 +4,9 @@ import (
 	"log"
 	"net/http"
 
-	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/film"
+
+	"os"
 
 	"github.com/gorilla/mux"
 )
@@ -16,30 +18,28 @@ func main() {
 	})
 	http.Handle("/", r)
 
-	filmController, err := auth.NewFilmController()
-	if err != nil {
-		log.Fatal(err)
-	}
+	filmHandler := film.NewFilmHandler()
 
 	// регистрация/авторизация
-	r.HandleFunc("/auth/signup", filmController.SignupUser).Methods("POST")
-	r.HandleFunc("/auth/login", filmController.LoginUser).Methods("POST")
+	r.HandleFunc("/auth/signup", filmHandler.SignupUser).Methods("POST")
+	r.HandleFunc("/auth/login", filmHandler.LoginUser).Methods("POST")
 
 	// пользователи
-	r.HandleFunc("/users/{id}", filmController.GetUser).Methods("GET")
-	r.HandleFunc("/users/{id}", filmController.CreateUser).Methods("POST")
+	r.HandleFunc("/users/{id}", filmHandler.GetUser).Methods("GET")
+	r.HandleFunc("/users/", filmHandler.CreateUser).Methods("POST")
 
 	// фильмы
-	r.HandleFunc("/films", filmController.GetFilms).Methods("GET")
-	r.HandleFunc("/films/{id}", filmController.GetFilm).Methods("GET")
+	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
+	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods("GET")
 
 	filmSrv := http.Server{
 		Handler: r,
 		Addr:    ":5458",
 	}
 
-	err = filmSrv.ListenAndServe()
+	err := filmSrv.ListenAndServe()
 	if err != nil && err != http.ErrServerClosed {
-		log.Fatalf("Start error: %v", err)
+		log.Printf("Server start error: %v", err)
+		os.Exit(1)
 	}
 }
