@@ -9,13 +9,13 @@ import (
 )
 
 var (
-	Users map[string]models.User
+	Users map[uuid.UUID]models.User
 )
 
 func init() {
-	Users = make(map[string]models.User)
+	Users = make(map[uuid.UUID]models.User)
 	id1 := uuid.NewV4()
-	Users[id1.String()] = models.User{
+	Users[id1] = models.User{
 		ID:           id1,
 		Login:        "ivanov",
 		PasswordHash: source.HashPassword("password123"),

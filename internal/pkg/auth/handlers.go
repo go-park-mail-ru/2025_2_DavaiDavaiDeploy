@@ -45,33 +45,33 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now(),
 	}
 
-	storage.Users[id.String()] = user
+	storage.Users[id] = user
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
 
-func (c *AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	enteredLogin := "ivanov"
 	enteredPassword := "password123"
 
-	var necessaryUser *models.User
+	var neededUser *models.User
 	for _, user := range storage.Users {
 		if user.Login == enteredLogin {
-			necessaryUser = &user
+			neededUser = &user
 		}
 	}
 
-	if necessaryUser == nil {
+	if neededUser == nil {
 		http.Error(w, `{"error": "User not found"}`, http.StatusUnauthorized)
 		return
 	}
 
-	if necessaryUser.PasswordHash != source.HashPassword(enteredPassword) {
+	if neededUser.PasswordHash != source.HashPassword(enteredPassword) {
 		http.Error(w, `{"error": "password is wrong"}`, http.StatusUnauthorized)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(necessaryUser)
+	json.NewEncoder(w).Encode(neededUser)
 }

@@ -1,10 +1,16 @@
 package main
 
 import (
-	"kinopoisk/internal/pkg/auth"
-	"kinopoisk/internal/pkg/film"
+	"context"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/film"
+
 	"os"
 
 	"github.com/gorilla/mux"
@@ -22,11 +28,11 @@ func main() {
 
 	// регистрация/авторизация
 	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
-	r.HandleFunc("/auth/login", authHandler.LoginUser).Methods("POST")
+	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods("POST")
 
 	// пользователи
 	r.HandleFunc("/users/{id}", filmHandler.GetUser).Methods("GET")
-	r.HandleFunc("/users/", filmHandler.CreateUser).Methods("POST")
+	r.HandleFunc("/users", filmHandler.CreateUser).Methods("POST")
 
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
@@ -37,9 +43,29 @@ func main() {
 		Addr:    ":5458",
 	}
 
-	err := filmSrv.ListenAndServe()
-	if err != nil && err != http.ErrServerClosed {
-		log.Printf("Server start error: %v", err)
+	go func() {
+		log.Println("Starting server!")
+		err := filmSrv.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Printf("Server start error: %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
+
+	<-quitChannel
+	log.Printf("Shutting down gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	err := filmSrv.Shutdown(ctx)
+	if err != nil {
+		log.Printf("Graceful shutdown failed")
 		os.Exit(1)
 	}
+	log.Printf("Graceful shutdown!")
+	os.Exit(0)
+
 }
