@@ -1,7 +1,7 @@
 FROM golang:1.24.0-alpine AS builder
 
-COPY .. /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/tree/dev/Elizaveta-Makeeva/
-WORKDIR /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/tree/dev/Elizaveta-Makeeva/
+COPY .. /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/
+WORKDIR /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/
 
 RUN go mod download
 RUN go clean --modcache
@@ -12,7 +12,7 @@ FROM scratch AS runner
 
 WORKDIR /kinopoisk-back/
 
-COPY --from=builder /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/tree/dev/Elizaveta-Makeeva/.bin .
+COPY --from=builder /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/.bin .
 
 COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
 ENV TZ="Europe/Moscow"
