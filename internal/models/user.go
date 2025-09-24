@@ -2,13 +2,14 @@ package models
 
 import (
 	"time"
+
 	uuid "github.com/satori/go.uuid"
 )
 
 type User struct {
 	ID             uuid.UUID          `json:"id"`
 	Login          string             `json:"login"`
-	PasswordHash   string             `json:"-"`
+	PasswordHash   []byte             `json:"-"`
 	Avatar         string             `json:"avatar,omitempty"`
 	Country        string             `json:"country,omitempty"`
 	Status         string             `json:"status" binding:"oneof=active banned deleted"`

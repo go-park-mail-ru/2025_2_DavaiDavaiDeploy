@@ -36,7 +36,10 @@ func main() {
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods("GET")
-	r.HandleFunc("films/{genre-id}", filmHandler.GetFilmsByGenre).Methods("GET")
+	r.HandleFunc("/films/{genre-id}", filmHandler.GetFilmsByGenre).Methods("GET")
+
+	// жанры
+	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
 
 	filmSrv := http.Server{
 		Handler: r,
@@ -66,6 +69,4 @@ func main() {
 		os.Exit(1)
 	}
 	log.Printf("Graceful shutdown!")
-	os.Exit(0)
-
 }

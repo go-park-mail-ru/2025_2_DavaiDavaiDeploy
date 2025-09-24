@@ -1,8 +1,9 @@
 package repo
 
 import (
+	"crypto/rand"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth/source"
+	"kinopoisk/internal/pkg/auth/hash"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -15,10 +16,12 @@ var (
 func init() {
 	Users = make(map[uuid.UUID]models.User)
 	id1 := uuid.NewV4()
+	salt := make([]byte, 8)
+	rand.Read(salt)
 	Users[id1] = models.User{
 		ID:           id1,
 		Login:        "ivanov",
-		PasswordHash: source.HashPassword("password123"),
+		PasswordHash: hash.HashPass(salt, "password123"),
 		Avatar:       "avatar1.jpg",
 		Country:      "Russia",
 		Status:       "active",
