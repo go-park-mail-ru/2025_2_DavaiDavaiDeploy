@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/source"
-	"kinopoisk/internal/storage"
+	"kinopoisk/internal/repo"
 	"net/http"
 	"time"
 
@@ -45,7 +45,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now(),
 	}
 
-	storage.Users[id] = user
+	repo.Users[id] = user
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
@@ -56,9 +56,10 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	enteredPassword := "password123"
 
 	var neededUser *models.User
-	for _, user := range storage.Users {
+	for _, user := range repo.Users {
 		if user.Login == enteredLogin {
 			neededUser = &user
+			break
 		}
 	}
 

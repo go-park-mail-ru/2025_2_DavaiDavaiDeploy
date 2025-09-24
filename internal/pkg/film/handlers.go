@@ -3,8 +3,7 @@ package film
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth/source"
-	"kinopoisk/internal/storage"
+	storage "kinopoisk/internal/repo"
 	"net/http"
 	"strconv"
 	"time"
@@ -43,80 +42,6 @@ func (c *FilmHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(neededUser)
-}
-
-func (c *FilmHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	id := uuid.NewV4()
-
-	user := models.User{
-		ID:           id,
-		Login:        "ivanov",
-		PasswordHash: source.HashPassword("password"),
-		Avatar:       "avatar1.jpg",
-		Country:      "Russia",
-		Status:       "active",
-		SavedFilms: []models.Film{
-			{
-				ID:        uuid.NewV4(),
-				Title:     "Интерстеллар",
-				Year:      2014,
-				Country:   "США, Великобритания",
-				Rating:    8.6,
-				Duration:  169,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			{
-				ID:        uuid.NewV4(),
-				Title:     "Крестный отец",
-				Year:      1972,
-				Country:   "США",
-				Rating:    9.2,
-				Duration:  175,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		},
-		FavoriteGenres: []models.Genre{
-			{
-				ID:        uuid.NewV4(),
-				Title:     "Фантастика",
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			{
-				ID:        uuid.NewV4(),
-				Title:     "Драма",
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		},
-		FavoriteActors: []models.FilmProfessional{
-			{
-				ID:        uuid.NewV4(),
-				Name:      "Леонардо",
-				Surname:   "ДиКаприо",
-				IsActive:  true,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-			{
-				ID:        uuid.NewV4(),
-				Name:      "Ярослав",
-				Surname:   "Михалёв",
-				IsActive:  true,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			},
-		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
-
-	storage.Users[id] = user
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(user)
 }
 
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
@@ -398,6 +323,52 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 			result = &film
 		}
 	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}
+
+func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
+	neededGenre := uuid.NewV4()
+
+	films := []models.Film{
+		{
+			ID:    uuid.NewV4(),
+			Title: "film1",
+			Genres: []models.Genre{
+				{
+					ID:        uuid.NewV4(),
+					Title:     "Фантастика",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				},
+				{
+					ID:        uuid.NewV4(),
+					Title:     "Драма",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				},
+			},
+			Year:        2025,
+			Country:     "Russia",
+			Rating:      10,
+			Budget:      1000000,
+			Fees:        10000000,
+			PremierDate: time.Now().Add(-30 * 24 * time.Hour),
+			Duration:    120,
+			CreatedAt:   time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt:   time.Now(),
+		},
+	}
+
+	var result []models.Film
+	for _, film := range films {
+		for _, genre := range film.Genres {
+			if neededGenre == genre.ID {
+				result = append(result, film)
+			}
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
