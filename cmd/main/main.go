@@ -41,6 +41,7 @@ func main() {
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
 
+
 	filmSrv := http.Server{
 		Handler: r,
 		Addr:    ":5458",

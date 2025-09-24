@@ -38,6 +38,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	login := "ivanova"
+
 	err = validation.ValidateLogin(login)
 	if err != nil {
 		errorResp := models.Error{
@@ -65,6 +66,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
+
 
 	user := models.User{
 		ID:           id,
@@ -116,6 +118,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
+
 		return
 	}
 
