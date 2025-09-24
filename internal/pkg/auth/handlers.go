@@ -1,8 +1,10 @@
 package auth
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth/hash"
 	"kinopoisk/internal/pkg/auth/validation"
 	"kinopoisk/internal/repo"
 	"net/http"
@@ -22,18 +24,50 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	id := uuid.NewV4()
 
 	password := "password456"
-	if !validation.ValidatePassword(password) {
-		http.Error(w, `{"error": "password is invalid"}`, http.StatusBadRequest)
+	err := validation.ValidatePassword(password)
+	if err != nil {
+		errorResp := models.Error{
+			Type:    "VALIDATION_ERROR",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
 	login := "ivanova"
-	if !validation.ValidateLogin(login) {
-		http.Error(w, `{"error": "login is invalid"}`, http.StatusBadRequest)
+
+	err = validation.ValidateLogin(login)
+	if err != nil {
+		errorResp := models.Error{
+			Type:    "VALIDATION_ERROR",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
-	passwordHash := validation.HashPassword(password)
+	salt := make([]byte, 8)
+	rand.Read(salt)
+	passwordHash := hash.HashPass(salt, password)
+	if !hash.CheckPass(passwordHash, password) {
+		errorResp := models.Error{
+			Type:    "VALIDATION_ERROR",
+			Message: "hashing error",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+
 	user := models.User{
 		ID:           id,
 		Login:        login,
@@ -64,12 +98,27 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if neededUser == nil {
-		http.Error(w, `{"error": "User not found"}`, http.StatusUnauthorized)
+		errorResp := models.Error{
+			Type:    "NOT_FOUND",
+			Message: "user not found",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
-	if neededUser.PasswordHash != validation.HashPassword(enteredPassword) {
-		http.Error(w, `{"error": "password is wrong"}`, http.StatusUnauthorized)
+	if !hash.CheckPass(neededUser.PasswordHash, enteredPassword) {
+		errorResp := models.Error{
+			Type:    "VALIDATION_ERROR",
+			Message: "wrong password",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+
 		return
 	}
 

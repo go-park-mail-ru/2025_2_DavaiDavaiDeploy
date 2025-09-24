@@ -372,3 +372,71 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
+
+func (c *FilmHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
+	genres := []models.Genre{
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Фантастика",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Драма",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Комедия",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Триллер",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Мультфильм",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Детектив",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Документальный",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Боевик",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Биография",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+		{
+			ID:        uuid.NewV4(),
+			Title:     "Мелодрама",
+			CreatedAt: time.Now().Add(-30 * 24 * time.Hour),
+			UpdatedAt: time.Now(),
+		},
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(genres)
+}

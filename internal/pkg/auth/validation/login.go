@@ -1,17 +1,20 @@
 package validation
 
 import (
-	"regexp"
+	"errors"
+	"strings"
 )
 
-func ValidateLogin(login string) bool {
+func ValidateLogin(login string) error {
 	if len(login) < 6 || len(login) > 20 {
-		return false
+		return errors.New("validation error")
 	}
 
-	matched, err := regexp.MatchString(`^[a-zA-Z0-9_]+$`, login)
-	if err != nil {
-		return false
+	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	for _, char := range login {
+		if !strings.ContainsRune(validChars, char) {
+			return errors.New("validation error")
+		}
 	}
-	return matched
+	return nil
 }

@@ -1,25 +1,21 @@
 package validation
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"regexp"
+	"errors"
+	"strings"
 )
 
-func HashPassword(password string) string {
-	h := sha256.New()
-	h.Write([]byte(password))
-	return hex.EncodeToString(h.Sum(nil))
-}
-
-func ValidatePassword(password string) bool {
-	if len(password) < 6 || len(password) > 50 {
-		return false
+func ValidatePassword(password string) error {
+	if len(password) < 6 || len(password) > 20 {
+		return errors.New("validation error")
 	}
 
-	matched, err := regexp.MatchString(`^[a-zA-Z0-9!@#$%^&*()_+]+$`, password)
-	if err != nil {
-		return false
+	validChars := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.!?"
+	for _, char := range password {
+		if !strings.ContainsRune(validChars, char) {
+			return errors.New("validation error")
+		}
 	}
-	return matched
+	return nil
+
 }
