@@ -49,13 +49,13 @@ func init() {
 		},
 		FavoriteGenres: []models.Genre{
 			{
-				ID:        uuid.NewV4(),
+				ID:        uuid.Must(uuid.FromString("w3x4y5z6-a7b8-9012-wxyz-345678901234")),
 				Title:     "Фантастика",
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
 			{
-				ID:        uuid.NewV4(),
+				ID:        uuid.Must(uuid.FromString("g7h8i9j0-k1l2-3456-ghij-789012345678")),
 				Title:     "Драма",
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),

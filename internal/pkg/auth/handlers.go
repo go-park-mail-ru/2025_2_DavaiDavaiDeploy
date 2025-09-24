@@ -6,7 +6,7 @@ import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
 	"kinopoisk/internal/pkg/auth/validation"
-	"kinopoisk/internal/repo"
+	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"time"
 
@@ -79,14 +79,24 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	avatar := req.Avatar
+	if avatar == "" {
+		avatar = "avatar1.jpg"
+	}
+
+	country := req.Country
+	if country == "" {
+		country = "Russia"
+	}
+
 	id := uuid.NewV4()
 
 	user := models.User{
 		ID:           id,
 		Login:        login,
 		PasswordHash: passwordHash,
-		Avatar:       "avatar1.jpg",
-		Country:      "Russia",
+		Avatar:       avatar,
+		Country:      country,
 		Status:       "active",
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -95,6 +105,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	repo.Users[login] = user
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 }
 
