@@ -1,4 +1,4 @@
-package source
+package validation
 
 import (
 	"crypto/sha256"

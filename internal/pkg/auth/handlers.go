@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth/source"
+	"kinopoisk/internal/pkg/auth/validation"
 	"kinopoisk/internal/repo"
 	"net/http"
 	"time"
@@ -22,18 +22,18 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	id := uuid.NewV4()
 
 	password := "password456"
-	if !source.ValidatePassword(password) {
+	if !validation.ValidatePassword(password) {
 		http.Error(w, `{"error": "password is invalid"}`, http.StatusBadRequest)
 		return
 	}
 
 	login := "ivanova"
-	if !source.ValidateLogin(login) {
+	if !validation.ValidateLogin(login) {
 		http.Error(w, `{"error": "login is invalid"}`, http.StatusBadRequest)
 		return
 	}
 
-	passwordHash := source.HashPassword(password)
+	passwordHash := validation.HashPassword(password)
 	user := models.User{
 		ID:           id,
 		Login:        login,
@@ -68,7 +68,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if neededUser.PasswordHash != source.HashPassword(enteredPassword) {
+	if neededUser.PasswordHash != validation.HashPassword(enteredPassword) {
 		http.Error(w, `{"error": "password is wrong"}`, http.StatusUnauthorized)
 		return
 	}
