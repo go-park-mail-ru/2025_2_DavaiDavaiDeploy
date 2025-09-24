@@ -2,7 +2,7 @@ package repo
 
 import (
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth/source"
+	"kinopoisk/internal/pkg/auth/validation"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -18,7 +18,7 @@ func init() {
 	Users[id1] = models.User{
 		ID:           id1,
 		Login:        "ivanov",
-		PasswordHash: source.HashPassword("password123"),
+		PasswordHash: validation.HashPassword("password123"),
 		Avatar:       "avatar1.jpg",
 		Country:      "Russia",
 		Status:       "active",
