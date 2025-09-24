@@ -1,4 +1,4 @@
-package storage
+package repo
 
 import (
 	"kinopoisk/internal/models"
