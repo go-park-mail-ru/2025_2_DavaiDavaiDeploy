@@ -328,7 +328,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
-	neededGenre := "template"
+	neededGenre := uuid.NewV4()
 
 	films := []models.Film{
 		{
@@ -363,7 +363,7 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	var result []models.Film
 	for _, film := range films {
 		for _, genre := range film.Genres {
-			if neededGenre == genre.Title {
+			if neededGenre == genre.ID {
 				result = append(result, film)
 			}
 		}
