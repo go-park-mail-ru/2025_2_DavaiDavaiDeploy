@@ -3,7 +3,7 @@ package film
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	storage "kinopoisk/internal/repo"
+	storage "kinopoisk/internal/pkg/repo"
 	"net/http"
 	"strconv"
 	"time"

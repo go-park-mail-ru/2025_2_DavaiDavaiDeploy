@@ -6,7 +6,7 @@ import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
 	"kinopoisk/internal/pkg/auth/validation"
-	"kinopoisk/internal/repo"
+	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"time"
 
