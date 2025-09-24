@@ -10,17 +10,17 @@ import (
 )
 
 var (
-	Users map[uuid.UUID]models.User
+	Users map[string]models.User
 )
 
 func init() {
-	Users = make(map[uuid.UUID]models.User)
-	id1 := uuid.NewV4()
+	Users = make(map[string]models.User)
+	login := "ivanov"
 	salt := make([]byte, 8)
 	rand.Read(salt)
-	Users[id1] = models.User{
-		ID:           id1,
-		Login:        "ivanov",
+	Users[login] = models.User{
+		ID:           uuid.NewV4(),
+		Login:        login,
 		PasswordHash: hash.HashPass(salt, "password123"),
 		Avatar:       "avatar1.jpg",
 		Country:      "Russia",

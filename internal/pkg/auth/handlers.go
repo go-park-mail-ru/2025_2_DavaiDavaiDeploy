@@ -21,10 +21,22 @@ func NewAuthHandler() *AuthHandler {
 }
 
 func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
-	id := uuid.NewV4()
+	var req models.SignUpInput
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
 
-	password := "password456"
-	err := validation.ValidatePassword(password)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	password := req.Password
+	err = validation.ValidatePassword(password)
 	if err != nil {
 		errorResp := models.Error{
 			Type:    "VALIDATION_ERROR",
@@ -37,7 +49,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	login := "ivanova"
+	login := req.Login
 
 	err = validation.ValidateLogin(login)
 	if err != nil {
@@ -67,6 +79,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	id := uuid.NewV4()
 
 	user := models.User{
 		ID:           id,
@@ -79,25 +92,40 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now(),
 	}
 
-	repo.Users[id] = user
+	repo.Users[login] = user
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(user)
 }
 
 func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
-	enteredLogin := "ivanov"
-	enteredPassword := "password123"
+	var req models.SignInInput
+	err := json.NewDecoder(r.Body).Decode(&req)
 
-	var neededUser *models.User
-	for _, user := range repo.Users {
+	if err != nil {
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	enteredLogin := req.Login
+	enteredPassword := req.Password
+
+	var neededUser models.User
+	for i, user := range repo.Users {
 		if user.Login == enteredLogin {
-			neededUser = &user
+			neededUser = repo.Users[i]
 			break
 		}
 	}
 
-	if neededUser == nil {
+	if neededUser.ID == uuid.Nil {
 		errorResp := models.Error{
 			Type:    "NOT_FOUND",
 			Message: "user not found",
