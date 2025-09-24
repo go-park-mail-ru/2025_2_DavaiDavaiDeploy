@@ -3,7 +3,7 @@ package film
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/repo"
+	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"strconv"
 )
@@ -117,7 +117,7 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	var result []models.Film
 	for i, film := range repo.Films {
 		for _, genre := range film.Genres {
-			if neededGenre == genre.ID {
+			if neededGenre == genre {
 				result = append(result, repo.Films[i])
 			}
 		}
