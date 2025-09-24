@@ -2,7 +2,6 @@ package film
 
 import (
 	"encoding/json"
-	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/repo"
 	"net/http"
@@ -32,15 +31,24 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 func (c *FilmHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	var req models.User
 	err := json.NewDecoder(r.Body).Decode(&req)
+
 	if err != nil {
-		fmt.Println("god forbid")
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
+
 	id := req.ID
-	var neededUser *models.User
-	for _, user := range repo.Users {
+	var neededUser models.User
+	for i, user := range repo.Users {
 		if user.ID == id {
-			neededUser = &user
+			neededUser = repo.Users[i]
 		}
 	}
 
@@ -65,18 +73,25 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	var req models.Film
 	err := json.NewDecoder(r.Body).Decode(&req)
+
 	if err != nil {
-		fmt.Println("god forbid")
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
+
 	id := req.ID
 
-	films := repo.Films
-
-	var result *models.Film
-	for _, film := range films {
+	var result models.Film
+	for i, film := range repo.Films {
 		if film.ID == id {
-			result = &film
+			result = repo.Films[i]
 		}
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -84,21 +99,26 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
-	var req models.Film
+	var req models.Genre
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Println("god forbid")
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 	neededGenre := req.ID
 
-	films := repo.Films
-
 	var result []models.Film
-	for _, film := range films {
+	for i, film := range repo.Films {
 		for _, genre := range film.Genres {
 			if neededGenre == genre.ID {
-				result = append(result, film)
+				result = append(result, repo.Films[i])
 			}
 		}
 	}

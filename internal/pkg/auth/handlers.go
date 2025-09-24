@@ -3,7 +3,6 @@ package auth
 import (
 	"crypto/rand"
 	"encoding/json"
-	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
 	"kinopoisk/internal/pkg/auth/validation"
@@ -25,7 +24,14 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Println("god forbid")
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
@@ -95,22 +101,31 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
+
 	if err != nil {
-		fmt.Println("god forbid")
+		errorResp := models.Error{
+			Type:    "BAD_REQUEST",
+			Message: err.Error(),
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
+
 	enteredLogin := req.Login
 	enteredPassword := req.Password
 
-	var neededUser *models.User
-	for _, user := range repo.Users {
+	var neededUser models.User
+	for i, user := range repo.Users {
 		if user.Login == enteredLogin {
-			neededUser = &user
+			neededUser = repo.Users[i]
 			break
 		}
 	}
 
-	if neededUser == nil {
+	if neededUser.ID == uuid.Nil {
 		errorResp := models.Error{
 			Type:    "NOT_FOUND",
 			Message: "user not found",
