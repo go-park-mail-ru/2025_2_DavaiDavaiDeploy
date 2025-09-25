@@ -2,18 +2,21 @@ package hash
 
 import (
 	"bytes"
+	"crypto/rand"
 
 	"golang.org/x/crypto/argon2"
 )
 
-func HashPass(salt []byte, plainPassword string) []byte {
+func HashPass(plainPassword string) []byte {
+	salt := make([]byte, 8)
+	rand.Read(salt)
 	hashedPass := argon2.IDKey([]byte(plainPassword), []byte(salt), 1, 64*1024, 4, 32)
 	return append(salt, hashedPass...)
 }
 
 func CheckPass(passHash []byte, plainPassword string) bool {
-	salt := make([]byte, 8)
-	copy(salt, passHash[:8])
-	userPassHash := HashPass(salt, plainPassword)
-	return bytes.Equal(userPassHash, passHash)
+	salt := passHash[:8]
+	userHash := argon2.IDKey([]byte(plainPassword), salt, 1, 64*1024, 4, 32)
+	userHashedPassword := append(salt, userHash...)
+	return bytes.Equal(userHashedPassword, passHash)
 }

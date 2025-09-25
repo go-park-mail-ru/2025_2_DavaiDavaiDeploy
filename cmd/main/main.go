@@ -31,7 +31,7 @@ func main() {
 	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods("POST")
 
 	// пользователи
-	r.HandleFunc("/users/{id}", filmHandler.GetUser).Methods("GET")
+	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods("GET")
 
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
@@ -40,7 +40,6 @@ func main() {
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
-
 
 	filmSrv := http.Server{
 		Handler: r,
