@@ -2,7 +2,7 @@ package tests
 
 import (
 	"bytes"
-	"kinopoisk/internal/pkg/auth"
+	authHandlers "kinopoisk/internal/pkg/auth/handlers"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestSignUp(t *testing.T) {
-	handler := auth.NewAuthHandler()
+	handler := authHandlers.NewAuthHandler()
 
 	type args struct {
 		w *httptest.ResponseRecorder

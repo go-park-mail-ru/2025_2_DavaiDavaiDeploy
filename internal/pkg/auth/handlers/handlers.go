@@ -1,4 +1,4 @@
-package auth
+package authHandlers
 
 import (
 	"encoding/json"
@@ -67,24 +67,12 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	passwordHash := hash.HashPass(req.Password)
 
-	avatar := req.Avatar
-	if avatar == "" {
-		avatar = "avatar1.jpg"
-	}
-
-	country := req.Country
-	if country == "" {
-		country = "Russia"
-	}
-
 	id := uuid.NewV4()
 
 	user := models.User{
 		ID:           id,
 		Login:        req.Login,
 		PasswordHash: passwordHash,
-		Avatar:       avatar,
-		Country:      country,
 		Status:       "active",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),

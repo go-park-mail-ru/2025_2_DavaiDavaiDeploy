@@ -1,4 +1,4 @@
-package film
+package filmHandlers
 
 import (
 	"encoding/json"

@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	"kinopoisk/internal/pkg/auth"
-	"kinopoisk/internal/pkg/film"
+	authHandlers "kinopoisk/internal/pkg/auth/handlers"
+	filmHandlers "kinopoisk/internal/pkg/film/handlers"
 
 	"os"
 
@@ -23,8 +23,8 @@ func main() {
 	})
 	http.Handle("/", r)
 
-	filmHandler := film.NewFilmHandler()
-	authHandler := auth.NewAuthHandler()
+	filmHandler := filmHandlers.NewFilmHandler()
+	authHandler := authHandlers.NewAuthHandler()
 
 	// регистрация/авторизация
 	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
