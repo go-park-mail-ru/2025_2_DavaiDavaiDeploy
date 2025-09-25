@@ -6,6 +6,9 @@ import (
 	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	uuid "github.com/satori/go.uuid"
 )
 
 type FilmHandler struct {
@@ -28,34 +31,6 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 	return result
 }
 
-func (c *FilmHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	var req models.User
-	err := json.NewDecoder(r.Body).Decode(&req)
-
-	if err != nil {
-		errorResp := models.Error{
-			Type:    "BAD_REQUEST",
-			Message: err.Error(),
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
-		return
-	}
-
-	id := req.ID
-	var neededUser models.User
-	for i, user := range repo.Users {
-		if user.ID == id {
-			neededUser = repo.Users[i]
-		}
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(neededUser)
-}
-
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	films := repo.Films
 	count := GetParameter(r, "count", 10)
@@ -71,12 +46,10 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
-	var req models.Film
-	err := json.NewDecoder(r.Body).Decode(&req)
-
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		errorResp := models.Error{
-			Type:    "BAD_REQUEST",
 			Message: err.Error(),
 		}
 
@@ -85,8 +58,6 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
-
-	id := req.ID
 
 	var result models.Film
 	for i, film := range repo.Films {
@@ -103,7 +74,6 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		errorResp := models.Error{
-			Type:    "BAD_REQUEST",
 			Message: err.Error(),
 		}
 

@@ -21,7 +21,7 @@ func init() {
 	Users[login] = models.User{
 		ID:           uuid.NewV4(),
 		Login:        login,
-		PasswordHash: hash.HashPass(salt, "password123"),
+		PasswordHash: hash.HashPass("password123"),
 		Avatar:       "avatar1.jpg",
 		Country:      "Russia",
 		Status:       "active",
@@ -49,13 +49,13 @@ func init() {
 		},
 		FavoriteGenres: []models.Genre{
 			{
-				ID:        uuid.Must(uuid.FromString("w3x4y5z6-a7b8-9012-wxyz-345678901234")),
+				ID:        uuid.Must(uuid.NewV4(), nil),
 				Title:     "Фантастика",
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
 			},
 			{
-				ID:        uuid.Must(uuid.FromString("g7h8i9j0-k1l2-3456-ghij-789012345678")),
+				ID:        uuid.Must(uuid.NewV4(), nil),
 				Title:     "Драма",
 				CreatedAt: time.Now(),
 				UpdatedAt: time.Now(),
