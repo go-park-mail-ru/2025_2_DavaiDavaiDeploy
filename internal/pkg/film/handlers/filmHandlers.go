@@ -41,8 +41,51 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 
 	paginatedFilms := films[offset:endingIndex]
 
+	if len(paginatedFilms) == 0 {
+		errorResp := models.Error{
+			Message: "bad request",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader((http.StatusBadRequest))
+		json.NewEncoder(w).Encode(errorResp)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(paginatedFilms)
+}
+
+func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader((http.StatusBadRequest))
+		json.NewEncoder(w).Encode(errorResp)
+	}
+
+	var neededGenre models.Genre
+	for i, genre := range repo.Genres {
+		if genre.ID == id {
+			neededGenre = repo.Genres[i]
+		}
+	}
+
+	if neededGenre.ID == uuid.Nil {
+		errorResp := models.Error{
+			Message: "invalid id",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(neededGenre)
 }
 
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
@@ -65,6 +108,18 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 			result = repo.Films[i]
 		}
 	}
+
+	if result.ID == uuid.Nil {
+		errorResp := models.Error{
+			Message: "invalid id",
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 }
