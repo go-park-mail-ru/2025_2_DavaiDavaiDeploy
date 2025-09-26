@@ -16,10 +16,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Интерстеллар",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Фантастика",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Драма",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Приключения",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        2014,
 			Country:     "США",
@@ -34,9 +49,19 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Крестный отец",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Криминал",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Драма",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        1972,
 			Country:     "США",
@@ -51,10 +76,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Темный рыцарь",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Боевик",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Криминал",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Драма",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        2008,
 			Country:     "США",
@@ -69,10 +109,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Брат",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Криминал",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Драма",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Боевик",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        1997,
 			Country:     "Россия",
@@ -87,10 +142,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Назад в будущее",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Фантастика",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Комедия",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Приключения",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        1985,
 			Country:     "США",
@@ -105,10 +175,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Леон",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Боевик",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Криминал",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Драма",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        1994,
 			Country:     "Франция",
@@ -123,10 +208,25 @@ func init() {
 		{
 			ID:    uuid.Must(uuid.NewV4(), nil),
 			Title: "Джентльмены",
-			Genres: []uuid.UUID{
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
-				uuid.Must(uuid.NewV4(), nil),
+			Genres: []models.Genre{
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Криминал",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Комедия",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
+				{
+					ID:        uuid.Must(uuid.NewV4(), nil),
+					Title:     "Боевик",
+					CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
+					UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
+				},
 			},
 			Year:        2019,
 			Country:     "Великобритания",
