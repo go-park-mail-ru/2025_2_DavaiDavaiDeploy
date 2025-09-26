@@ -22,6 +22,8 @@ func main() {
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "I am not giving any films!", http.StatusTeapot)
 	})
+	fs := http.FileServer(http.Dir("/opt/pictures/"))
+	r.PathPrefix("/pictures/").Handler(http.StripPrefix("/pictures/", fs))
 	http.Handle("/", r)
 
 	r.Use(cors.CorsMiddleware)
@@ -43,6 +45,7 @@ func main() {
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
+	r.HandleFunc("/genre", filmHandler.GetGenre).Methods("GET")
 
 	filmSrv := http.Server{
 		Handler: r,
