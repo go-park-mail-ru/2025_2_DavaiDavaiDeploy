@@ -10,6 +10,7 @@ import (
 
 	authHandlers "kinopoisk/internal/pkg/auth/handlers"
 	filmHandlers "kinopoisk/internal/pkg/film/handlers"
+	"kinopoisk/internal/pkg/middleware/cors"
 
 	"os"
 
@@ -22,6 +23,8 @@ func main() {
 		http.Error(w, "I am not giving any films!", http.StatusTeapot)
 	})
 	http.Handle("/", r)
+
+	r.Use(cors.CorsMiddleware)
 
 	filmHandler := filmHandlers.NewFilmHandler()
 	authHandler := authHandlers.NewAuthHandler()
