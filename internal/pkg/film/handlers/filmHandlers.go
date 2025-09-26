@@ -142,7 +142,7 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	var result []models.Film
 	for i, film := range repo.Films {
 		for _, genre := range film.Genres {
-			if neededGenre == genre {
+			if neededGenre == genre.ID {
 				result = append(result, repo.Films[i])
 			}
 		}

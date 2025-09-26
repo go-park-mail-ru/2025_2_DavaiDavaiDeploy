@@ -7,3 +7,5 @@ services:
       dockerfile: ./build/main.Dockerfile 
     ports:
       - 5458:5458 
+    volumes:
+      - ./static/:/opt/static/ 
