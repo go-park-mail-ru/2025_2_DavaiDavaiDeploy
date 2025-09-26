@@ -11,6 +11,7 @@ import (
 	authHandlers "kinopoisk/internal/pkg/auth/handlers"
 	filmHandlers "kinopoisk/internal/pkg/film/handlers"
 	"kinopoisk/internal/pkg/middleware/cors"
+	"kinopoisk/internal/pkg/repo"
 
 	"os"
 
@@ -28,6 +29,7 @@ func main() {
 	})
 
 	r.Use(cors.CorsMiddleware)
+	repo.InitRepo()
 
 	filmHandler := filmHandlers.NewFilmHandler()
 	authHandler := authHandlers.NewAuthHandler()
@@ -46,7 +48,7 @@ func main() {
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
-	r.HandleFunc("/genre", filmHandler.GetGenre).Methods("GET")
+	r.HandleFunc("/genres/{id}", filmHandler.GetGenre).Methods("GET")
 
 	filmSrv := http.Server{
 		Handler: mainRouter,

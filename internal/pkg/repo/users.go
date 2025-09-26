@@ -13,7 +13,7 @@ var (
 	Users map[string]models.User
 )
 
-func init() {
+func InitUsers() {
 	Users = make(map[string]models.User)
 	login := "ivanov"
 	salt := make([]byte, 8)
