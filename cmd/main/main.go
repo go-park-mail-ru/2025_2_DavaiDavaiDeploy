@@ -18,13 +18,14 @@ import (
 )
 
 func main() {
-	r := mux.NewRouter().PathPrefix("/api").Subrouter()
+	mainRouter := mux.NewRouter()
+	fs := http.FileServer(http.Dir("./static/"))
+	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+
+	r := mainRouter.PathPrefix("/api").Subrouter()
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "I am not giving any films!", http.StatusTeapot)
 	})
-	fs := http.FileServer(http.Dir("/opt/pictures/"))
-	r.PathPrefix("/pictures/").Handler(http.StripPrefix("/pictures/", fs))
-	http.Handle("/", r)
 
 	r.Use(cors.CorsMiddleware)
 
@@ -48,7 +49,7 @@ func main() {
 	r.HandleFunc("/genre", filmHandler.GetGenre).Methods("GET")
 
 	filmSrv := http.Server{
-		Handler: r,
+		Handler: mainRouter,
 		Addr:    ":5458",
 	}
 
