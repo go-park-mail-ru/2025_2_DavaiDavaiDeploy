@@ -11,7 +11,7 @@ var (
 	Genres []models.Genre
 )
 
-func init() {
+func InitGenres() {
 	Genres = []models.Genre{
 		{
 			ID:        uuid.Must(uuid.NewV4(), nil),
