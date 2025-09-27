@@ -20,7 +20,7 @@ import (
 
 func main() {
 	mainRouter := mux.NewRouter()
-	fs := http.FileServer(http.Dir("./static/"))
+	fs := http.FileServer(http.Dir("/opt/static/"))
 	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 
 	r := mainRouter.PathPrefix("/api").Subrouter()
