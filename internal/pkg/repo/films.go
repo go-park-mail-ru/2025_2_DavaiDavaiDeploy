@@ -30,6 +30,7 @@ func InitFilms() {
 			Duration:    112,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic1.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -44,6 +45,7 @@ func InitFilms() {
 			Duration:    149,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic2.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -58,6 +60,7 @@ func InitFilms() {
 			Duration:    142,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic3.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -72,6 +75,7 @@ func InitFilms() {
 			Duration:    113,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic4.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -86,6 +90,7 @@ func InitFilms() {
 			Duration:    189,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic5.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -100,6 +105,7 @@ func InitFilms() {
 			Duration:    138,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic6.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -114,6 +120,7 @@ func InitFilms() {
 			Duration:    201,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic7.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -128,6 +135,7 @@ func InitFilms() {
 			Duration:    142,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic8.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -142,6 +150,7 @@ func InitFilms() {
 			Duration:    137,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic9.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -156,6 +165,7 @@ func InitFilms() {
 			Duration:    130,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic10.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -170,6 +180,7 @@ func InitFilms() {
 			Duration:    178,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic11.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -184,6 +195,7 @@ func InitFilms() {
 			Duration:    124,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic12.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -198,6 +210,7 @@ func InitFilms() {
 			Duration:    139,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic13.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -212,6 +225,7 @@ func InitFilms() {
 			Duration:    155,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic14.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -226,6 +240,7 @@ func InitFilms() {
 			Duration:    148,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic15.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -240,6 +255,7 @@ func InitFilms() {
 			Duration:    154,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic16.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -254,6 +270,7 @@ func InitFilms() {
 			Duration:    222,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic17.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -268,6 +285,7 @@ func InitFilms() {
 			Duration:    179,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic18.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -282,6 +300,7 @@ func InitFilms() {
 			Duration:    87,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic19.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -296,6 +315,7 @@ func InitFilms() {
 			Duration:    133,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic20.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -310,6 +330,7 @@ func InitFilms() {
 			Duration:    95,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic21.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -324,6 +345,7 @@ func InitFilms() {
 			Duration:    195,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic22.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -338,6 +360,7 @@ func InitFilms() {
 			Duration:    92,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic23.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -352,6 +375,7 @@ func InitFilms() {
 			Duration:    152,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic24.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -366,6 +390,7 @@ func InitFilms() {
 			Duration:    152,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic25.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -380,6 +405,7 @@ func InitFilms() {
 			Duration:    94,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic26.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -394,6 +420,7 @@ func InitFilms() {
 			Duration:    96,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic27.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -408,6 +435,7 @@ func InitFilms() {
 			Duration:    127,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic28.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -422,6 +450,7 @@ func InitFilms() {
 			Duration:    136,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic29.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -436,6 +465,7 @@ func InitFilms() {
 			Duration:    126,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic30.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -450,6 +480,7 @@ func InitFilms() {
 			Duration:    175,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic31.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -464,6 +495,7 @@ func InitFilms() {
 			Duration:    161,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic32.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -478,6 +510,7 @@ func InitFilms() {
 			Duration:    104,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic33.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -492,6 +525,7 @@ func InitFilms() {
 			Duration:    90,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic34.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -506,6 +540,7 @@ func InitFilms() {
 			Duration:    116,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic35.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -520,6 +555,7 @@ func InitFilms() {
 			Duration:    102,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic36.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -534,6 +570,7 @@ func InitFilms() {
 			Duration:    141,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic37.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -548,6 +585,7 @@ func InitFilms() {
 			Duration:    107,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic38.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -562,6 +600,7 @@ func InitFilms() {
 			Duration:    89,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic39.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -576,6 +615,7 @@ func InitFilms() {
 			Duration:    82,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic40.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -590,6 +630,7 @@ func InitFilms() {
 			Duration:    106,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic41.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -604,6 +645,7 @@ func InitFilms() {
 			Duration:    194,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic42.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -618,6 +660,7 @@ func InitFilms() {
 			Duration:    196,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic43.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -632,6 +675,7 @@ func InitFilms() {
 			Duration:    212,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic44.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -646,6 +690,7 @@ func InitFilms() {
 			Duration:    118,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic45.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -660,6 +705,7 @@ func InitFilms() {
 			Duration:    160,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic46.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -674,6 +720,7 @@ func InitFilms() {
 			Duration:    149,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic47.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -688,6 +735,7 @@ func InitFilms() {
 			Duration:    136,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic48.webp",
 		},
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
@@ -702,6 +750,7 @@ func InitFilms() {
 			Duration:    165,
 			CreatedAt:   time.Now(),
 			UpdatedAt:   time.Now(),
+			Cover:       "/static/films/pic49.webp",
 		},
 	}
 }
