@@ -19,4 +19,5 @@ type Film struct {
 	Duration    int       `json:"duration,omitempty"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+	Cover       string    `json:"icon,omitempty"`
 }
