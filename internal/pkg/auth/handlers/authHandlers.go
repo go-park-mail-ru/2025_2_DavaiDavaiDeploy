@@ -185,7 +185,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	w.Header().Set("Authorization", "Bearer"+token)
+	w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(neededUser)
 }
