@@ -48,7 +48,7 @@ func main() {
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods(http.MethodGet)
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
-	r.HandleFunc("/films/{genre-id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
+	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods(http.MethodGet)

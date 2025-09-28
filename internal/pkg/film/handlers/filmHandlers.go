@@ -111,7 +111,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 	if result.ID == uuid.Nil {
 		errorResp := models.Error{
-			Message: "invalid id",
+			Message: "Invalid id",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -125,25 +125,25 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
-	var req models.Genre
-	err := json.NewDecoder(r.Body).Decode(&req)
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	neededGenre, err := uuid.FromString(idStr)
 	if err != nil {
 		errorResp := models.Error{
-			Message: err.Error(),
+			Message: "Invalid genre id",
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
-	neededGenre := req.ID
 
 	var result []models.Film
-	for i, film := range repo.Films {
+	for _, film := range repo.Films {
 		for _, genre := range film.Genres {
 			if neededGenre == genre.ID {
-				result = append(result, repo.Films[i])
+				result = append(result, film)
 			}
 		}
 	}
