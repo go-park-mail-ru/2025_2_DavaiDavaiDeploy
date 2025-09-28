@@ -18,13 +18,16 @@ import (
 )
 
 type AuthHandler struct {
+	JWTSecret string
 }
 
 func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{}
+	return &AuthHandler{
+		JWTSecret: os.Getenv("JWT_SECRET"),
+	}
 }
 
-func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -45,10 +48,9 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = validation.ValidatePassword(req.Password)
-	if err != nil {
+	if msg, passwordIsValid := validation.ValidatePassword(req.Password); !passwordIsValid {
 		errorResp := models.Error{
-			Message: err.Error(),
+			Message: msg,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -57,10 +59,9 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = validation.ValidateLogin(req.Login)
-	if err != nil {
+	if msg, loginIsValid := validation.ValidateLogin(req.Login); !loginIsValid {
 		errorResp := models.Error{
-			Message: err.Error(),
+			Message: msg,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -82,10 +83,8 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now().UTC(),
 	}
 
-	secret := os.Getenv("JWT_SECRET")
-
 	repo.Users[req.Login] = user
-	authService := service.NewAuthService(secret)
+	authService := service.NewAuthService(a.JWTSecret)
 	token, err := authService.GenerateToken(req.Login)
 	if err != nil {
 		errorResp := models.Error{
@@ -112,7 +111,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(user)
 }
 
-func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 
@@ -140,7 +139,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 	if neededUser.ID == uuid.Nil {
 		errorResp := models.Error{
-			Message: "wrong login or password",
+			Message: "Wrong login or password",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -151,7 +150,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 	if !hash.CheckPass(neededUser.PasswordHash, enteredPassword) {
 		errorResp := models.Error{
-			Message: "wrong login or password",
+			Message: "Wrong login or password",
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -160,8 +159,8 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	secret := os.Getenv("JWT_SECRET")
-	authService := service.NewAuthService(secret)
+
+	authService := service.NewAuthService(a.JWTSecret)
 	token, err := authService.GenerateToken(req.Login)
 	if err != nil {
 		errorResp := models.Error{
@@ -175,7 +174,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "AdminJWT",
+		Name:     "AdminJWT", //const
 		Value:    token,
 		HttpOnly: true,
 		Secure:   false,
@@ -187,7 +186,7 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(neededUser)
 }
 
-func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -223,16 +222,12 @@ func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(neededUser)
 }
 
-func (h *AuthHandler) Middleware(next http.Handler) http.Handler {
+func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
 		if header == "" {
-			errorResp := models.Error{
-				Message: "missing auth header",
-			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errorResp)
 			return
 		}
 
@@ -264,22 +259,14 @@ func (h *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		claims, ok := parsedToken.Claims.(jwt.MapClaims)
 		if !ok {
-			errorResp := models.Error{
-				Message: "invalid claims",
-			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errorResp)
 			return
 		}
 
-		if claims["exp"].(int64) < time.Now().Unix() {
-			errorResp := models.Error{
-				Message: "token expired",
-			}
+		if int64(claims["exp"].(float64)) < time.Now().Unix() {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errorResp)
 			return
 		}
 
@@ -287,11 +274,11 @@ func (h *AuthHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func (c *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
+func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	var token string
 
 	authHeader := r.Header.Get("Authorization")
-	if len(authHeader) > 7 && authHeader[:7] == "Bearer" {
+	if len(authHeader) > 6 && authHeader[:6] == "Bearer" {
 		token = authHeader[7:]
 	}
 
@@ -303,12 +290,10 @@ func (c *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if token == "" {
-		errorResp := models.Error{
-			Message: "token not provided",
-		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+
 		return
 	}
 
