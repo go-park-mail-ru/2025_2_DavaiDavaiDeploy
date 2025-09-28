@@ -223,7 +223,7 @@ func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(neededUser)
 }
 
-func (h *AuthHandler) middleware(next http.Handler) http.Handler {
+func (h *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
 		if header == "" {
