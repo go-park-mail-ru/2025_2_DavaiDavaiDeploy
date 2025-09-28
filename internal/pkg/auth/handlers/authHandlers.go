@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
+	"kinopoisk/internal/pkg/auth/service"
 	"kinopoisk/internal/pkg/auth/validation"
 	"kinopoisk/internal/pkg/repo"
 	"net/http"
@@ -36,7 +37,7 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			Message: "user already exists",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusConflict) // 409, наверное..?
+		w.WriteHeader(http.StatusConflict)
 		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
@@ -79,10 +80,31 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	repo.Users[req.Login] = user
+	authService := service.NewAuthService("sus")
+	token, err := authService.GenerateToken(req.Login)
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(user)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "AdminJWT",
+		Value:    token,
+		HttpOnly: true,
+		Secure:   false,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 }
 
 func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
@@ -133,9 +155,31 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
+	authService := service.NewAuthService("sus")
+	token, err := authService.GenerateToken(req.Login)
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
 
-	w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(neededUser)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "AdminJWT",
+		Value:    token,
+		HttpOnly: true,
+		Secure:   false,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 }
 
 func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
