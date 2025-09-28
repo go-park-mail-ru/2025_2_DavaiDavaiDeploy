@@ -38,21 +38,21 @@ func main() {
 	authHandler := authHandlers.NewAuthHandler()
 
 	// регистрация/авторизация
-	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
-	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods("POST")
-	r.Handle("/auth/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth)))
+	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods(http.MethodPost)
+	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods(http.MethodPost)
+	r.Handle("/auth/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet)
 
 	// пользователи
-	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods("GET")
+	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)
 
 	// фильмы
-	r.HandleFunc("/films", filmHandler.GetFilms).Methods("GET")
-	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods("GET")
-	r.HandleFunc("/films/{genre-id}", filmHandler.GetFilmsByGenre).Methods("GET")
+	r.HandleFunc("/films", filmHandler.GetFilms).Methods(http.MethodGet)
+	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
+	r.HandleFunc("/films/{genre-id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
 
 	// жанры
-	r.HandleFunc("/genres", filmHandler.GetGenres).Methods("GET")
-	r.HandleFunc("/genres/{id}", filmHandler.GetGenre).Methods("GET")
+	r.HandleFunc("/genres", filmHandler.GetGenres).Methods(http.MethodGet)
+	r.HandleFunc("/genres/{id}", filmHandler.GetGenre).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
