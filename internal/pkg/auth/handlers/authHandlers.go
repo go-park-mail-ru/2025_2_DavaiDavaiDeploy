@@ -8,8 +8,10 @@ import (
 	"kinopoisk/internal/pkg/auth/validation"
 	"kinopoisk/internal/pkg/repo"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 )
@@ -79,8 +81,10 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now().UTC(),
 	}
 
+	secret := os.Getenv("JWT_SECRET")
+
 	repo.Users[req.Login] = user
-	authService := service.NewAuthService("sus")
+	authService := service.NewAuthService(secret)
 	token, err := authService.GenerateToken(req.Login)
 	if err != nil {
 		errorResp := models.Error{
@@ -93,10 +97,6 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Authorization", "Bearer "+token)
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     "AdminJWT",
 		Value:    token,
@@ -105,6 +105,10 @@ func (c *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }
 
 func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +159,8 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	authService := service.NewAuthService("sus")
+	secret := os.Getenv("JWT_SECRET")
+	authService := service.NewAuthService(secret)
 	token, err := authService.GenerateToken(req.Login)
 	if err != nil {
 		errorResp := models.Error{
@@ -168,10 +173,6 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Authorization", "Bearer "+token)
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(neededUser)
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     "AdminJWT",
 		Value:    token,
@@ -180,6 +181,9 @@ func (c *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(neededUser)
 }
 
 func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -216,4 +220,82 @@ func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(neededUser)
+}
+
+func (c *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
+	var token string
+
+	authHeader := r.Header.Get("Authorization")
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		token = authHeader[7:]
+	}
+
+	if token == "" {
+		cookie, err := r.Cookie("AdminJWT")
+		if err == nil {
+			token = cookie.Value
+		}
+	}
+
+	if token == "" {
+		errorResp := models.Error{
+			Message: "token not provided",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	secret := os.Getenv("JWT_SECRET")
+	authService := service.NewAuthService(secret)
+
+	parsedToken, err := authService.ParseToken(token)
+
+	if err != nil || !parsedToken.Valid {
+		errorResp := models.Error{
+			Message: "invalid token",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		errorResp := models.Error{
+			Message: "invalid claims",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	login, ok := claims["login"].(string)
+	if !ok {
+		errorResp := models.Error{
+			Message: "invalid login in token",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	user, err := authService.GetUser(login)
+	if err != nil {
+		errorResp := models.Error{
+			Message: "no such user",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(user)
 }

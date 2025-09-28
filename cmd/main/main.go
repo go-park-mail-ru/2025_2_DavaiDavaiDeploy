@@ -12,13 +12,16 @@ import (
 	filmHandlers "kinopoisk/internal/pkg/film/handlers"
 	"kinopoisk/internal/pkg/middleware/cors"
 	"kinopoisk/internal/pkg/repo"
-
 	"os"
+
+	"github.com/joho/godotenv"
 
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	godotenv.Load()
+
 	mainRouter := mux.NewRouter()
 	fs := http.FileServer(http.Dir("/opt/static/"))
 	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
@@ -37,6 +40,7 @@ func main() {
 	// регистрация/авторизация
 	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
 	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods("POST")
+	r.HandleFunc("/auth/check", authHandler.CheckAuth).Methods("GET")
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods("GET")
