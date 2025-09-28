@@ -100,7 +100,7 @@ func InitGenres() {
 		{
 			ID:        uuid.Must(uuid.NewV4(), nil),
 			Title:     "Мелодрамы",
-			Icon:      "/static/genres/Мелодармы.png",
+			Icon:      "/static/genres/Мелодрамы.png",
 			CreatedAt: time.Date(2023, 1, 15, 10, 0, 0, 0, time.UTC),
 			UpdatedAt: time.Date(2024, 1, 15, 10, 0, 0, 0, time.UTC),
 		},
