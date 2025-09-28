@@ -40,7 +40,7 @@ func main() {
 	// регистрация/авторизация
 	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods("POST")
 	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods("POST")
-	r.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth)))
+	r.Handle("auth/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth)))
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods("GET")
