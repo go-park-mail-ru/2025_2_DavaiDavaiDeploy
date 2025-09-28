@@ -17,7 +17,6 @@ type AuthService struct {
 }
 
 func NewAuthService(secret string) *AuthService {
-
 	return &AuthService{
 		repository: repo.Users,
 		secret:     secret,
