@@ -223,7 +223,7 @@ func (c *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(neededUser)
 }
 
-func (h *AuthHandler) middleware(next http.Handler) http.Handler {
+func (h *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
 		if header == "" {
@@ -273,7 +273,7 @@ func (h *AuthHandler) middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		if claims["exp"].(int64) < time.Now().Unix() {
+		if int64(claims["exp"].(float64)) < time.Now().Unix() {
 			errorResp := models.Error{
 				Message: "token expired",
 			}
@@ -291,7 +291,7 @@ func (c *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	var token string
 
 	authHeader := r.Header.Get("Authorization")
-	if len(authHeader) > 7 && authHeader[:7] == "Bearer" {
+	if len(authHeader) > 6 && authHeader[:6] == "Bearer" {
 		token = authHeader[7:]
 	}
 
@@ -300,16 +300,15 @@ func (c *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			token = cookie.Value
 		}
-	}
-
-	if token == "" {
-		errorResp := models.Error{
-			Message: "token not provided",
+		if token == "" {
+			errorResp := models.Error{
+				Message: "token not provided",
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			json.NewEncoder(w).Encode(errorResp)
+			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
-		return
 	}
 
 	secret := os.Getenv("JWT_SECRET")
