@@ -1,8 +1,7 @@
-package tests
+package authHandlers
 
 import (
 	"bytes"
-	authHandlers "kinopoisk/internal/pkg/auth/handlers"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -11,7 +10,7 @@ import (
 )
 
 func TestSignUp(t *testing.T) {
-	handler := authHandlers.NewAuthHandler()
+	handler := NewAuthHandler()
 
 	type args struct {
 		w *httptest.ResponseRecorder
@@ -27,7 +26,7 @@ func TestSignUp(t *testing.T) {
 			name: "OK sign up with all parameters",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "testuser",
 						"password": "testpass123",
@@ -42,7 +41,7 @@ func TestSignUp(t *testing.T) {
 			name: "OK sign up without avatar and country",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "testuser",
 						"password": "testpass123",
@@ -55,7 +54,7 @@ func TestSignUp(t *testing.T) {
 			name: "No sign up because of syntax error",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						'login': 'testuser',
 						"password": "testpass123",
@@ -68,7 +67,7 @@ func TestSignUp(t *testing.T) {
 			name: "No sign up because of invalid password",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "testuser",
 						"password": "пароль",
@@ -81,7 +80,7 @@ func TestSignUp(t *testing.T) {
 			name: "No sign up because of invalid login",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "логин",
 						"password": "testpass123",
@@ -94,7 +93,7 @@ func TestSignUp(t *testing.T) {
 			name: "No sign up because of invalid login",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458//auth/signup",
+					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "логин",
 						"password": "testpass123",

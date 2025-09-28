@@ -17,6 +17,10 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+const (
+	CookieName = "DDFilmsJWT"
+)
+
 type AuthHandler struct {
 	JWTSecret string
 }
@@ -98,7 +102,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "AdminJWT",
+		Name:     CookieName,
 		Value:    token,
 		HttpOnly: true,
 		Secure:   false,
@@ -174,7 +178,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     "AdminJWT", //const
+		Name:     CookieName,
 		Value:    token,
 		HttpOnly: true,
 		Secure:   false,
@@ -208,13 +212,8 @@ func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if neededUser.ID == uuid.Nil {
-		errorResp := models.Error{
-			Message: "user not found",
-		}
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
@@ -233,27 +232,18 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		headerParts := strings.Split(header, " ")
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
-			errorResp := models.Error{
-				Message: "invalid auth header",
-			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errorResp)
 			return
 		}
 
-		secret := os.Getenv("JWT_SECRET")
-		authService := service.NewAuthService(secret)
+		authService := service.NewAuthService(a.JWTSecret)
 		token := headerParts[1]
 		parsedToken, err := authService.ParseToken(token)
 
 		if err != nil || !parsedToken.Valid {
-			errorResp := models.Error{
-				Message: "invalid token",
-			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(errorResp)
 			return
 		}
 
@@ -283,7 +273,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if token == "" {
-		cookie, err := r.Cookie("AdminJWT")
+		cookie, err := r.Cookie(CookieName)
 		if err == nil {
 			token = cookie.Value
 		}
@@ -297,51 +287,34 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	secret := os.Getenv("JWT_SECRET")
-	authService := service.NewAuthService(secret)
+	authService := service.NewAuthService(a.JWTSecret)
 
 	parsedToken, err := authService.ParseToken(token)
 
 	if err != nil || !parsedToken.Valid {
-		errorResp := models.Error{
-			Message: "invalid token",
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
-		errorResp := models.Error{
-			Message: "invalid claims",
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok {
-		errorResp := models.Error{
-			Message: "invalid login in token",
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
 	user, err := authService.GetUser(login)
 	if err != nil {
-		errorResp := models.Error{
-			Message: "no such user",
-		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
