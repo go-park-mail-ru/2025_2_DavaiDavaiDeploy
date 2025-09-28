@@ -1,7 +1,6 @@
 package validation
 
 import (
-	"kinopoisk/internal/pkg/auth/constants"
 	"strings"
 )
 
@@ -10,9 +9,8 @@ func ValidateLogin(login string) (string, bool) {
 		return "Invalid login length", false
 	}
 
-	validChars := constants.ValidChars
 	for _, char := range login {
-		if !strings.ContainsRune(validChars, char) {
+		if !strings.ContainsRune(ValidChars, char) {
 			return "Login contains invalid characters", false
 		}
 	}
