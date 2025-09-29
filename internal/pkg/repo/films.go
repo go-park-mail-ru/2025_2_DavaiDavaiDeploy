@@ -575,7 +575,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Карты, деньги, два ствола",
-			Genres:      []models.Genre{Genres[2]},
+			Genres:      []models.Genre{Genres[2], Genres[21]},
 			Year:        1998,
 			Country:     "Великобритания",
 			Rating:      7.7,
@@ -605,7 +605,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Кавказская пленница, или Новые приключения Шурика",
-			Genres:      []models.Genre{Genres[9]},
+			Genres:      []models.Genre{Genres[9], Genres[19]},
 			Year:        1966,
 			Country:     "СССР",
 			Rating:      7.7,
@@ -620,7 +620,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Трасса 60",
-			Genres:      []models.Genre{Genres[23]},
+			Genres:      []models.Genre{Genres[23], Genres[18]},
 			Year:        2001,
 			Country:     "Канада",
 			Rating:      7.6,
@@ -635,7 +635,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Титаник",
-			Genres:      []models.Genre{Genres[12]},
+			Genres:      []models.Genre{Genres[12], Genres[17]},
 			Year:        1997,
 			Country:     "США",
 			Rating:      7.6,
@@ -650,7 +650,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Матрица",
-			Genres:      []models.Genre{Genres[22]},
+			Genres:      []models.Genre{Genres[22], Genres[16]},
 			Year:        1999,
 			Country:     "США",
 			Rating:      7.6,
@@ -665,7 +665,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Гарри Поттер и философский камень",
-			Genres:      []models.Genre{Genres[23]},
+			Genres:      []models.Genre{Genres[23], Genres[13], Genres[14]},
 			Year:        2001,
 			Country:     "Великобритания",
 			Rating:      7.6,
@@ -710,7 +710,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Пианист",
-			Genres:      []models.Genre{Genres[7]},
+			Genres:      []models.Genre{Genres[7], Genres[10]},
 			Year:        2002,
 			Country:     "Франция",
 			Rating:      7.6,
@@ -740,7 +740,7 @@ func InitFilms() {
 		{
 			ID:          uuid.Must(uuid.NewV4(), nil),
 			Title:       "Джанго освобожденный",
-			Genres:      []models.Genre{Genres[3]},
+			Genres:      []models.Genre{Genres[3], Genres[5]},
 			Year:        2012,
 			Country:     "США",
 			Rating:      7.6,
