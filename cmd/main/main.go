@@ -39,8 +39,8 @@ func main() {
 
 	// регистрация/авторизация
 	authRouter := r.PathPrefix("/auth").Subrouter()
-	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost)
-	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost)
+	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
+	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet)
 
 	// пользователи
