@@ -28,6 +28,7 @@ go.work.sum
 .env
 
 coverprofile.tmp
+coverage.html
 # Editor/IDE
 # .idea/
 # .vscode/
