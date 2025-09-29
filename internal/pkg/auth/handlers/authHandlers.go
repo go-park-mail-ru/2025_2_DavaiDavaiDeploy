@@ -32,10 +32,10 @@ func NewAuthHandler() *AuthHandler {
 }
 
 func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -46,7 +46,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		errorResp := models.Error{
 			Message: "User already exists",
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -57,7 +56,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			Message: msg,
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -68,7 +66,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			Message: msg,
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -95,7 +92,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			Message: err.Error(),
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -116,6 +112,8 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 
@@ -124,7 +122,6 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 			Message: err.Error(),
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -146,7 +143,6 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 			Message: "Wrong login or password",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(errorResp)
 		return
@@ -157,7 +153,6 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 			Message: "Wrong login or password",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(errorResp)
 
@@ -171,7 +166,6 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 			Message: err.Error(),
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
 		json.NewEncoder(w).Encode(errorResp)
 		return
