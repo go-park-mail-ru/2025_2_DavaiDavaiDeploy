@@ -38,9 +38,10 @@ func main() {
 	authHandler := authHandlers.NewAuthHandler()
 
 	// регистрация/авторизация
-	r.HandleFunc("/auth/signup", authHandler.SignupUser).Methods(http.MethodPost)
-	r.HandleFunc("/auth/signin", authHandler.SignInUser).Methods(http.MethodPost)
-	r.Handle("/auth/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet)
+	authRouter := r.PathPrefix("/auth").Subrouter()
+	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost)
+	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost)
+	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet)
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)

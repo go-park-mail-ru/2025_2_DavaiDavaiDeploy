@@ -44,7 +44,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	if exists {
 		errorResp := models.Error{
-			Message: "user already exists",
+			Message: "User already exists",
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
