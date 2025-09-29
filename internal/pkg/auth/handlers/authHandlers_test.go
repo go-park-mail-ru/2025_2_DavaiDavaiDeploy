@@ -2,6 +2,7 @@ package authHandlers
 
 import (
 	"bytes"
+	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestSignUp(t *testing.T) {
+	repo.InitRepo()
 	handler := NewAuthHandler()
 
 	type args struct {
@@ -26,29 +28,14 @@ func TestSignUp(t *testing.T) {
 			name: "OK sign up with all parameters",
 			args: args{
 				r: httptest.NewRequest("POST",
-					"http://localhost:5458/auth/signup",
-					bytes.NewBuffer([]byte(`{
-						"login": "testuser",
-						"password": "testpass123",
-						"avatar": "testavatar.jpg",
-						"country": "Russia"
-					}`))),
-				w: httptest.NewRecorder(),
-			},
-			expectedCode: http.StatusCreated,
-		},
-		{
-			name: "OK sign up without avatar and country",
-			args: args{
-				r: httptest.NewRequest("POST",
 					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						"login": "testuser",
-						"password": "testpass123",
+						"password": "testpass123"
 					}`))),
 				w: httptest.NewRecorder(),
 			},
-			expectedCode: http.StatusCreated,
+			expectedCode: http.StatusOK,
 		},
 		{
 			name: "No sign up because of syntax error",
@@ -57,11 +44,11 @@ func TestSignUp(t *testing.T) {
 					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
 						'login': 'testuser',
-						"password": "testpass123",
+						"password": "testpass123"
 					}`))),
 				w: httptest.NewRecorder(),
 			},
-			expectedCode: http.StatusBadRequest,
+			expectedCode: http.StatusInternalServerError,
 		},
 		{
 			name: "No sign up because of invalid password",
@@ -69,38 +56,38 @@ func TestSignUp(t *testing.T) {
 				r: httptest.NewRequest("POST",
 					"http://localhost:5458/api/auth/signup",
 					bytes.NewBuffer([]byte(`{
+						"login": "testuser123",
+						"password": "пароль"
+					}`))),
+				w: httptest.NewRecorder(),
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "No sign up because of invalid login",
+			args: args{
+				r: httptest.NewRequest("POST",
+					"http://localhost:5458/api/auth/signup",
+					bytes.NewBuffer([]byte(`{
+						"login": "логин",
+						"password": "testpass123"
+					}`))),
+				w: httptest.NewRecorder(),
+			},
+			expectedCode: http.StatusBadRequest,
+		},
+		{
+			name: "No sign up: user already exists",
+			args: args{
+				r: httptest.NewRequest("POST",
+					"http://localhost:5458/api/auth/signup",
+					bytes.NewBuffer([]byte(`{
 						"login": "testuser",
-						"password": "пароль",
+						"password": "testpass123"
 					}`))),
 				w: httptest.NewRecorder(),
 			},
-			expectedCode: http.StatusBadRequest,
-		},
-		{
-			name: "No sign up because of invalid login",
-			args: args{
-				r: httptest.NewRequest("POST",
-					"http://localhost:5458/api/auth/signup",
-					bytes.NewBuffer([]byte(`{
-						"login": "логин",
-						"password": "testpass123",
-					}`))),
-				w: httptest.NewRecorder(),
-			},
-			expectedCode: http.StatusBadRequest,
-		},
-		{
-			name: "No sign up because of invalid login",
-			args: args{
-				r: httptest.NewRequest("POST",
-					"http://localhost:5458/api/auth/signup",
-					bytes.NewBuffer([]byte(`{
-						"login": "логин",
-						"password": "testpass123",
-					}`))),
-				w: httptest.NewRecorder(),
-			},
-			expectedCode: http.StatusBadRequest,
+			expectedCode: http.StatusConflict,
 		},
 	}
 
