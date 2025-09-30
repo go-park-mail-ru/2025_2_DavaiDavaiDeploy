@@ -20,7 +20,7 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	_ = godotenv.Load()
 
 	mainRouter := mux.NewRouter()
 	fs := http.FileServer(http.Dir("/opt/static/"))

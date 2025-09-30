@@ -27,7 +27,7 @@ type AuthHandler struct {
 
 func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{
-		JWTSecret: os.Getenv("JWT_SECRET"),
+		JWTSecret: os.Getenv("JWT_SECRET"), // переменная окружения
 	}
 }
 
@@ -47,7 +47,10 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			Message: "User already exists",
 		}
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -57,7 +60,10 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -67,7 +73,10 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -93,7 +102,10 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -108,7 +120,10 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +138,10 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -144,7 +162,10 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -154,7 +175,10 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 
 		return
 	}
@@ -167,7 +191,10 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		}
 
 		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -181,7 +208,10 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	})
 	w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(neededUser)
+	err = json.NewEncoder(w).Encode(neededUser)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -194,7 +224,10 @@ func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -212,7 +245,10 @@ func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(neededUser)
+	err = json.NewEncoder(w).Encode(neededUser)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
@@ -271,14 +307,11 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			token = cookie.Value
 		}
-	}
-
-	if token == "" {
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-
-		return
+		if token == "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
 	}
 
 	authService := service.NewAuthService(a.JWTSecret)
@@ -314,5 +347,8 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	err = json.NewEncoder(w).Encode(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
