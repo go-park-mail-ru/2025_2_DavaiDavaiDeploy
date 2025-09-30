@@ -9,7 +9,6 @@ import (
 	"kinopoisk/internal/pkg/repo"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -118,7 +117,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	w.Header().Set("Authorization", "Bearer "+token)
+	//w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(user)
 	if err != nil {
@@ -206,7 +205,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	w.Header().Set("Authorization", "Bearer "+token)
+	//w.Header().Set("Authorization", "Bearer "+token)
 	w.WriteHeader(http.StatusOK)
 	err = json.NewEncoder(w).Encode(neededUser)
 	if err != nil {
@@ -253,22 +252,18 @@ func (a *AuthHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header.Get("Authorization")
-		if header == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
 		}
-
-		headerParts := strings.Split(header, " ")
-		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+		if token == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 
 		authService := service.NewAuthService(a.JWTSecret)
-		token := headerParts[1]
 		parsedToken, err := authService.ParseToken(token)
 
 		if err != nil || !parsedToken.Valid {
@@ -297,21 +292,14 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	var token string
 
-	authHeader := r.Header.Get("Authorization")
-	if len(authHeader) > 6 && authHeader[:6] == "Bearer" {
-		token = authHeader[7:]
+	cookie, err := r.Cookie(CookieName)
+	if err == nil {
+		token = cookie.Value
 	}
-
 	if token == "" {
-		cookie, err := r.Cookie(CookieName)
-		if err == nil {
-			token = cookie.Value
-		}
-		if token == "" {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			return
-		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	authService := service.NewAuthService(a.JWTSecret)
