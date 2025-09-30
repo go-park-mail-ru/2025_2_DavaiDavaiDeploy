@@ -47,11 +47,18 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader((http.StatusBadRequest))
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(paginatedFilms)
+	err := json.NewEncoder(w).Encode(paginatedFilms)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +70,10 @@ func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader((http.StatusBadRequest))
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 	}
 
 	var neededGenre models.Genre
@@ -80,12 +90,18 @@ func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(neededGenre)
+	err = json.NewEncoder(w).Encode(neededGenre)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
@@ -98,7 +114,10 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -116,12 +135,18 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
@@ -135,7 +160,10 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -149,12 +177,18 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 func (c *FilmHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	genres := repo.Genres
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(genres)
+	err := json.NewEncoder(w).Encode(genres)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

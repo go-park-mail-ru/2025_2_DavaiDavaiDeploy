@@ -1,7 +1,6 @@
 package repo
 
 import (
-	"crypto/rand"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
 	"time"
@@ -16,8 +15,6 @@ var (
 func InitUsers() {
 	Users = make(map[string]models.User)
 	login := "ivanov"
-	salt := make([]byte, 8)
-	rand.Read(salt)
 	Users[login] = models.User{
 		ID:           uuid.NewV4(),
 		Login:        login,
