@@ -15,6 +15,8 @@ WORKDIR /kinopoisk-back/
 COPY --from=builder /github.com/go-park-mail-ru/2025_2_DavaiDavaiDeploy/.bin .
 
 COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
+
+COPY .env .
 ENV TZ="Europe/Moscow"
 ENV ZONEINFO=/zoneinfo.zip
 
