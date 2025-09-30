@@ -12,8 +12,8 @@ view-coverage:
 	open $(COVERAGE_HTML)
 
 generate-mocks:
-	mockgen -source=internal/pkg/film//handlers/filmHandlers.go -destination=internal/pkg/film/filmHandlers/mocks/mocks.go -package=mocks
-	mockgen -source=internal/pkg/handlers/authHandlers.go -destination=internal/pkg/auth/handlers/mocks/mocks.go -package=mocks
+	mockgen -source=internal/pkg/film/handlers/filmHandlers.go -destination=internal/pkg/film/filmHandlers/mocks/mocks.go -package=mocks
+	mockgen -source=internal/pkg/auth/handlers/authHandlers.go -destination=internal/pkg/auth/handlers/mocks/mocks.go -package=mocks
 
 
 clean:
