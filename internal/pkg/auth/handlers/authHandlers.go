@@ -21,12 +21,28 @@ const (
 )
 
 type AuthHandler struct {
-	JWTSecret string
+	JWTSecret      string
+	CookieSecure   bool
+	CookieSamesite http.SameSite
 }
 
 func NewAuthHandler() *AuthHandler {
+	secure := false
+	cookieValue := os.Getenv("COOKIE_SECURE")
+	if cookieValue == "true" {
+		secure = true
+	}
+
+	samesite := http.SameSiteLaxMode
+	samesiteValue := os.Getenv("COOKIE_SAMESITE")
+	if samesiteValue == "Strict" {
+		samesite = http.SameSiteStrictMode
+	}
+
 	return &AuthHandler{
-		JWTSecret: os.Getenv("JWT_SECRET"), // переменная окружения
+		JWTSecret:      os.Getenv("JWT_SECRET"), // переменная окружения
+		CookieSecure:   secure,
+		CookieSamesite: samesite,
 	}
 }
 
@@ -112,7 +128,8 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Name:     CookieName,
 		Value:    token,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
@@ -201,7 +218,8 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Name:     CookieName,
 		Value:    token,
 		HttpOnly: true,
-		Secure:   false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
