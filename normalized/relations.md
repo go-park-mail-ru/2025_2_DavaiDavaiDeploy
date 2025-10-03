@@ -5,7 +5,7 @@ User: {id} → {version, login, password_hash, avatar, country, status, created_
 
 Genre: {id} → {title, description, icon, created_at, updated_at}
 
-Film: {id} → {title, year, country, rating, budget, fees, premier_date, duration, cover, created_at, updated_at}
+Film: {id} → {title, year, country, rating, budget, fees, premier_date, duration, cover,  age_category, slogan, trailer, created_at, updated_at}
 
 Film_Professional: {id} → {name, surname, icon, description, birth_date, birth_place, death_date, nationality, is_active, wikipedia_url, created_at, updated_at}
 
@@ -64,6 +64,9 @@ Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated
 - fees - сборы
 - premier_date - дата премьеры
 - duration - продолжительность в минутах
+- age_category - возрастная категория фильма
+- slogan - слоган
+- trailer - трейлер фильма
 - cover - обложка фильма
 - created_at - дата создания
 - updated_at - дата обновления
