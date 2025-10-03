@@ -9,13 +9,13 @@ Film: {id} → {title, year, country, rating, budget, fees, premier_date, durati
 
 Film_Professional: {id} → {name, surname, icon, description, birth_date, birth_place, death_date, nationality, is_active, wikipedia_url, created_at, updated_at}
 
-Film_Genre: {id} → {film_id, genre_id}
+Film_Genre: {id} → {film_id, genre_id, created_at, updated_at}
 
-User_Saved_Film: {id} → {user_id, film_id}
+User_Saved_Film: {id} → {user_id, film_id, created_at, updated_at}
 
-User_Favorite_Genre: {id} → {user_id, genre_id}
+User_Favorite_Genre: {id} → {user_id, genre_id, created_at, updated_at}
 
-User_Favorite_Actor: {id} → {user_id, professional_id}
+User_Favorite_Actor: {id} → {user_id, professional_id, created_at, updated_at}
 
 Professional_In_Film:{id} → {professional_id, film_id, role, character, description, created_at, updated_at}
 
@@ -90,21 +90,30 @@ Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated
 - id - уникальный идентификатор связи
 - film_id - идентификатор фильма
 - genre_id - идентификатор жанра
+- created_at - дата создания 
+- updated_at - дата обновления 
+  
 
 **User_Saved_Film - сохраненный фильм пользователя**
 - id - уникальный идентификатор записи
 - user_id - идентификатор пользователя
 - film_id - идентификатор фильма
+- created_at - дата создания 
+- updated_at - дата обновления 
 
 **User_Favorite_Genre - любимый жанр пользователя**
 - id - уникальный идентификатор записи
 - user_id - идентификатор пользователя
 - genre_id - идентификатор жанра
+- created_at - дата создания 
+- updated_at - дата обновления 
 
 **User_Favorite_Actor - любимый актер пользователя**
 - id - уникальный идентификатор записи
 - user_id - идентификатор пользователя
 - professional_id - идентификатор деятеля кино
+- created_at - дата создания 
+- updated_at - дата обновления 
 
 **Professional_In_Film - участие деятеля в фильме**
 - id - уникальный идентификатор участия
