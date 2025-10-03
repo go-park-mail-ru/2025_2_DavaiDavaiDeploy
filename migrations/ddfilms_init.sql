@@ -6,8 +6,8 @@ CREATE TABLE "user" (
     avatar text,
     country text,
     status text NOT NULL DEFAULT 'active',
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_login_unique UNIQUE (login),
     CONSTRAINT user_status_check CHECK (status IN ('active', 'banned', 'deleted'))
@@ -18,9 +18,9 @@ CREATE TABLE genre (
     title text NOT NULL,
     description text,
     icon text,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
+	
     CONSTRAINT genre_title_unique UNIQUE (title)
 );
 
@@ -35,8 +35,11 @@ CREATE TABLE film (
     premier_date date,
     duration integer NOT NULL,
     cover text,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+	age_category text,
+	slogan text,
+	trailer text,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT film_year_check CHECK (year BETWEEN 1895 AND extract(year FROM current_date) + 5),
     CONSTRAINT film_rating_check CHECK (rating BETWEEN 1 AND 10),
@@ -57,8 +60,8 @@ CREATE TABLE film_professional (
     nationality text,
     is_active boolean NOT NULL DEFAULT true,
     wikipedia_url text,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT film_professional_birth_date_check CHECK (birth_date <= current_date),
     CONSTRAINT film_professional_death_date_check CHECK (
@@ -70,7 +73,8 @@ CREATE TABLE film_genre (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     film_id uuid NOT NULL,
     genre_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT film_genre_film_fk FOREIGN KEY (film_id)
         REFERENCES film (id) ON DELETE CASCADE,
@@ -83,7 +87,8 @@ CREATE TABLE user_saved_film (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL,
     film_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_saved_film_user_fk FOREIGN KEY (user_id)
         REFERENCES "user" (id) ON DELETE CASCADE,
@@ -96,7 +101,8 @@ CREATE TABLE user_favorite_genre (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL,
     genre_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_genre_user_fk FOREIGN KEY (user_id)
         REFERENCES "user" (id) ON DELETE CASCADE,
@@ -109,7 +115,8 @@ CREATE TABLE user_favorite_actor (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL,
     professional_id uuid NOT NULL,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_actor_user_fk FOREIGN KEY (user_id)
         REFERENCES "user" (id) ON DELETE CASCADE,
@@ -126,8 +133,8 @@ CREATE TABLE professional_in_film (
     role text NOT NULL,
     character text,
     description text,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT professional_in_film_professional_fk FOREIGN KEY (professional_id)
         REFERENCES film_professional (id) ON DELETE CASCADE,
@@ -142,8 +149,8 @@ CREATE TABLE film_feedback (
     film_id uuid NOT NULL,
     rating integer NOT NULL,
     feedback text,
-    created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    created_at timestamptz NOT NULL DEFAULT current_timestamp,
+    updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT film_feedback_user_fk FOREIGN KEY (user_id)
         REFERENCES "user" (id) ON DELETE CASCADE,
