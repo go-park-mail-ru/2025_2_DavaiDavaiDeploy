@@ -17,14 +17,22 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/gorilla/mux"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title           Kinopoisk API
+// @version         1.0
+// @description     API для авторизации пользователей и получения фильмов/жанров.
+// @host            localhost:5458
+// @BasePath        /api
 func main() {
 	_ = godotenv.Load()
 
 	mainRouter := mux.NewRouter()
 	fs := http.FileServer(http.Dir("/opt/static/"))
 	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	r := mainRouter.PathPrefix("/api").Subrouter()
 	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +50,7 @@ func main() {
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
+	authRouter.HandleFunc("/password", authHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)

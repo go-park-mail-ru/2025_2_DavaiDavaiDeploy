@@ -31,6 +31,15 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 	return result
 }
 
+// GetFilms godoc
+// @Summary      List films
+// @Tags         films
+// @Produce      json
+// @Param        count   query     int  false  "Number of films" default(10)
+// @Param        offset  query     int  false  "Offset" default(0)
+// @Success      200     {array}   models.Film
+// @Failure      400     {object}  models.Error
+// @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	films := repo.Films
 	count := GetParameter(r, "count", 10)
@@ -61,6 +70,14 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetGenre godoc
+// @Summary      Get genre by ID
+// @Tags         genres
+// @Produce      json
+// @Param        id   path      string  true  "Genre ID"
+// @Success      200  {object}  models.Genre
+// @Failure      400  {object}  models.Error
+// @Router       /genres/{id} [get]
 func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
@@ -104,6 +121,14 @@ func (c *FilmHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetFilm godoc
+// @Summary      Get film by ID
+// @Tags         films
+// @Produce      json
+// @Param        id   path      string  true  "Film ID"
+// @Success      200  {object}  models.Film
+// @Failure      400  {object}  models.Error
+// @Router       /films/{id} [get]
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
@@ -149,6 +174,14 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetFilmsByGenre godoc
+// @Summary      Get films by genre ID
+// @Tags         films
+// @Produce      json
+// @Param        id   path      string  true  "Genre ID"
+// @Success      200  {array}   models.Film
+// @Failure      400  {object}  models.Error
+// @Router       /films/genre/{id} [get]
 func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
@@ -183,6 +216,12 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetGenres godoc
+// @Summary      List all genres
+// @Tags         genres
+// @Produce      json
+// @Success      200  {array}  models.Genre
+// @Router       /genres [get]
 func (c *FilmHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	genres := repo.Genres
 
