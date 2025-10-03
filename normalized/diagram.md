@@ -8,8 +8,8 @@ erDiagram
         string avatar
         string country
         string status
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     genre {
@@ -17,8 +17,8 @@ erDiagram
         string title UK
         string description
         string icon
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     film {
@@ -32,8 +32,8 @@ erDiagram
         date premier_date
         integer duration
         string cover
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     film_professional {
@@ -48,32 +48,40 @@ erDiagram
         string nationality
         boolean is_active
         string wikipedia_url
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     film_genre {
         uuid id PK
         uuid film_id FK
         uuid genre_id FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     user_saved_film {
         uuid id PK
         uuid user_id FK
         uuid film_id FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     user_favorite_genre {
         uuid id PK
         uuid user_id FK
         uuid genre_id FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     user_favorite_actor {
         uuid id PK
         uuid user_id FK
         uuid professional_id FK
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     professional_in_film {
@@ -83,8 +91,8 @@ erDiagram
         string role
         string character
         string description
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     film_feedback {
@@ -93,8 +101,8 @@ erDiagram
         uuid film_id FK
         integer rating
         string feedback
-        timestamp created_at
-        timestamp updated_at
+        timestamptz created_at
+        timestamptz updated_at
     }
 
     user ||--o{ user_saved_film : "saves"
