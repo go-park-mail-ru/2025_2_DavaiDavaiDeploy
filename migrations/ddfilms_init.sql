@@ -29,7 +29,7 @@ CREATE TABLE film (
     title text NOT NULL,
     year integer NOT NULL,
     country text NOT NULL,
-    rating integer,
+    rating numeric(2,1),
     budget bigint,
     fees bigint,
     premier_date date,
@@ -151,4 +151,5 @@ CREATE TABLE film_feedback (
         REFERENCES film (id) ON DELETE CASCADE,
     CONSTRAINT film_feedback_rating_check CHECK (rating BETWEEN 1 AND 10),
     CONSTRAINT film_feedback_unique UNIQUE (user_id, film_id)
+
 );
