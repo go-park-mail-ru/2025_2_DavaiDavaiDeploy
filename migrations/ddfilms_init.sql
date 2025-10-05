@@ -2,7 +2,7 @@ CREATE TABLE "user" (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     version integer NOT NULL DEFAULT 1,
     login text NOT NULL,
-    password_hash bytea NOT NULL CHECK (octet_length(password_hash) = 40) // добавил ограничение хэша
+    password_hash bytea NOT NULL CHECK (octet_length(password_hash) = 40), 
     avatar text,
     status text NOT NULL DEFAULT 'active',
     created_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -159,5 +159,4 @@ CREATE TABLE film_feedback (
     CONSTRAINT film_feedback_unique UNIQUE (user_id, film_id)
 
 );
-
 
