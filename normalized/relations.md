@@ -23,7 +23,7 @@ Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated
 
 //новые!!!
 
-User: {login} → {id, version, password_hash, avatar, country, status, created_at, updated_at}
+User: {login} → {id, version, password_hash, avatar, status, created_at, updated_at}
 
 Genre: {title} → {id, description, icon, created_at, updated_at}
 
@@ -61,7 +61,6 @@ Film_Feedback: {user_id, film_id} → {id, rating, feedback, created_at, updated
 - login - логин пользователя
 - password_hash - хэш пароля
 - avatar - ссылка на аватар
-- country - страна пользователя
 - status - статус аккаунта (активный, забаненный, удаленный)
 - created_at - дата создания аккаунта
 - updated_at - дата обновления аккаунта
