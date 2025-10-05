@@ -25,7 +25,7 @@ INSERT INTO genre (id, title, description, icon, created_at, updated_at) VALUES
 ('8f3e4f27-0ff9-fefb-3ffc-2c2f0f6f82f4', 'Фэнтези', 'Волшебные миры, магия и мифические существа!', '/static/genres/Фэнтези.png', '2023-01-15 10:00:00+00', '2024-01-15 10:00:00+00');
 
 INSERT INTO "user" (id, login, password_hash, avatar, country, status, created_at, updated_at) VALUES
-('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ivanov', '\x8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e', 'avatar1.jpg', 'Russia', 'active', current_timestamp, current_timestamp);
+('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ivanov', '\x8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e', 'avatar1.jpg', 'active', current_timestamp, current_timestamp);
 
 INSERT INTO film (id, title, year, country, rating, budget, fees, premier_date, duration, cover, created_at, updated_at) VALUES
 ('11111111-1111-1111-1111-111111111111', '1+1', 2011, 'Франция', 8.3, 43507244, 79676250, '2011-04-07', 112, '/static/films/pic1.png', current_timestamp, current_timestamp),
@@ -142,4 +142,5 @@ INSERT INTO user_favorite_genre (user_id, genre_id) VALUES
 
 INSERT INTO user_favorite_actor (user_id, professional_id) VALUES
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ffffffff-ffff-ffff-ffff-ffffffffffff'), 
+
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'); 
