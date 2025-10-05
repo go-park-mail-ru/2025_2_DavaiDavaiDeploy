@@ -4,7 +4,6 @@ CREATE TABLE "user" (
     login text NOT NULL,
     password_hash bytea NOT NULL CHECK (octet_length(password_hash) = 40) // добавил ограничение хэша
     avatar text,
-    country text,
     status text NOT NULL DEFAULT 'active',
     created_at timestamptz NOT NULL DEFAULT current_timestamp,
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
@@ -160,4 +159,5 @@ CREATE TABLE film_feedback (
     CONSTRAINT film_feedback_unique UNIQUE (user_id, film_id)
 
 );
+
 
