@@ -1,7 +1,7 @@
 ## Функциональные зависимости
 
 
-User: {id} → {version, login, password_hash, avatar, country, status, created_at, updated_at}
+User: {id} → {version, login, password_hash, avatar, status, created_at, updated_at}
 
 Genre: {id} → {title, description, icon, created_at, updated_at}
 
