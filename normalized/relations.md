@@ -1,11 +1,11 @@
 ## Функциональные зависимости
 
 
-User: {id} → {version, login, password_hash, avatar, status, created_at, updated_at}
+User: {id} → {version, login, password_hash, avatar, created_at, updated_at}
 
 Genre: {id} → {title, description, icon, created_at, updated_at}
 
-Film: {id} → {title, year, country, rating, budget, fees, premier_date, duration, cover,  age_category, slogan, trailer, created_at, updated_at}
+Film: {id} → {title, year, country, budget, fees, premier_date, duration, cover,  age_category, slogan, trailer, created_at, updated_at}
 
 Film_Professional: {id} → {name, surname, icon, description, birth_date, birth_place, death_date, nationality, is_active, wikipedia_url, created_at, updated_at}
 
@@ -21,9 +21,9 @@ Professional_In_Film:{id} → {professional_id, film_id, role, character, descri
 
 Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated_at}
 
-//новые!!!
 
-User: {login} → {id, version, password_hash, avatar, status, created_at, updated_at}
+
+User: {login} → {id, version, password_hash, avatar, created_at, updated_at}
 
 Genre: {title} → {id, description, icon, created_at, updated_at}
 
@@ -61,7 +61,6 @@ Film_Feedback: {user_id, film_id} → {id, rating, feedback, created_at, updated
 - login - логин пользователя
 - password_hash - хэш пароля
 - avatar - ссылка на аватар
-- status - статус аккаунта (активный, забаненный, удаленный)
 - created_at - дата создания аккаунта
 - updated_at - дата обновления аккаунта
 
@@ -78,7 +77,6 @@ Film_Feedback: {user_id, film_id} → {id, rating, feedback, created_at, updated
 - title - название фильма
 - year - год выпуска
 - country - страна производства
-- rating - рейтинг фильма
 - budget - бюджет
 - fees - сборы
 - premier_date - дата премьеры
