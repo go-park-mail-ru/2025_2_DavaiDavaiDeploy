@@ -6,7 +6,6 @@ erDiagram
         string login UK
         string password_hash
         string avatar
-        string status
         timestamptz created_at
         timestamptz updated_at
     }
@@ -25,7 +24,6 @@ erDiagram
         string title
         integer year
         string country
-        decimal rating
         decimal budget
         decimal fees
         date premier_date
