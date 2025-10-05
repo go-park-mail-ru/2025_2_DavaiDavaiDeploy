@@ -20,6 +20,24 @@ User_Favorite_Actor: {id} → {user_id, professional_id, created_at, updated_at}
 Professional_In_Film:{id} → {professional_id, film_id, role, character, description, created_at, updated_at}
 
 Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated_at}
+//новые!!!
+User: {login} → {id, version, password_hash, avatar, country, status, created_at, updated_at}
+
+Genre: {title} → {id, description, icon, created_at, updated_at}
+
+Film_Genre: {film_id, genre_id} → {id, created_at, updated_at}
+
+User_Saved_Film: {user_id, film_id} → {id, created_at, updated_at}
+
+User_Favorite_Genre: {user_id, genre_id} → {id, created_at, updated_at}
+
+User_Favorite_Actor: {user_id, professional_id} → {id, created_at, updated_at}
+
+Professional_In_Film: {professional_id, film_id, role, character} → {id, description, created_at, updated_at}
+
+Film_Feedback: {user_id, film_id} → {id, rating, feedback, created_at, updated_at}
+
+
 
 ## Нормальные формы
 
