@@ -6,7 +6,6 @@ erDiagram
         string login UK
         string password_hash
         string avatar
-        string country
         string status
         timestamptz created_at
         timestamptz updated_at
