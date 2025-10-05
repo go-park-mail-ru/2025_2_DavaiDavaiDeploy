@@ -27,7 +27,6 @@ CREATE TABLE film (
     title text NOT NULL,
     year integer NOT NULL,
     country text NOT NULL,
-    rating numeric(2,1),
     budget bigint,
     fees bigint,
     premier_date date,
@@ -158,5 +157,6 @@ CREATE TABLE film_feedback (
     CONSTRAINT film_feedback_unique UNIQUE (user_id, film_id)
 
 );
+
 
 
