@@ -25,7 +25,7 @@ INSERT INTO genre (id, title, description, icon, created_at, updated_at) VALUES
 ('8f3e4f27-0ff9-fefb-3ffc-2c2f0f6f82f4', 'Фэнтези', 'Волшебные миры, магия и мифические существа!', '/static/genres/Фэнтези.png', '2023-01-15 10:00:00+00', '2024-01-15 10:00:00+00');
 
 INSERT INTO "user" (id, login, password_hash, avatar, created_at, updated_at) VALUES
-('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ivanov', '\x8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e', 'avatar1.jpg', current_timestamp, current_timestamp);
+('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ivanov', '\x8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e', '/static/users/avatar1.jpg', current_timestamp, current_timestamp);
 
 INSERT INTO film (id, title, year, country, budget, fees, premier_date, duration, cover, created_at, updated_at) VALUES
 ('11111111-1111-1111-1111-111111111111', '1+1', 2011, 'Франция', 43507244, 79676250, '2011-04-07', 112, '/static/films/pic1.png', current_timestamp, current_timestamp),
@@ -41,10 +41,10 @@ INSERT INTO film (id, title, year, country, budget, fees, premier_date, duration
 ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'Властелин колец: Братство кольца', 2001, 'Новая Зеландия', 21304461, 120089460, '2001-01-16', 178, '/static/films/pic11.jpg', current_timestamp, current_timestamp),
 ('cccccccc-cccc-cccc-cccc-cccccccccccc', 'Унесённые призраками', 2001, 'Япония', 45614172, 105636789, '2001-12-15', 124, '/static/films/pic12.jpg', current_timestamp, current_timestamp),
 ('dddddddd-dddd-dddd-dddd-dddddddddddd', 'Бойцовский клуб', 1999, 'США', 20068472, 101210935, '1999-05-17', 139, '/static/films/pic13.jpg', current_timestamp, current_timestamp),
-('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Гладиатор', 2000, 'США', 19630695, 112893295, '2000-04-25', 155, '/static/films/pic14.jpeg', current_timestamp, current_timestamp),
+('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee', 'Гладиатор', 2000, 'США', 19630695, 112893295, '2000-04-25', 155, '/static/films/pic14.jpg', current_timestamp, current_timestamp),
 ('ffffffff-ffff-ffff-ffff-ffffffffffff', 'Начало', 2010, 'США', 33184440, 102399860, '2010-02-07', 148, '/static/films/pic15.jpg', current_timestamp, current_timestamp),
 ('11111111-1111-1111-1111-111111111112', 'Криминальное чтиво', 1994, 'США', 19143367, 104240521, '1994-06-07', 154, '/static/films/pic16.jpg', current_timestamp, current_timestamp),
-('22222222-2222-2222-2222-222222222223', 'Унесённые ветром', 1993, 'США', 9656999, 75217284, '1993-12-14', 222, '/static/films/pic17.jpeg', current_timestamp, current_timestamp),
+('22222222-2222-2222-2222-222222222223', 'Унесённые ветром', 1993, 'США', 9656999, 75217284, '1993-12-14', 222, '/static/films/pic17.jpg', current_timestamp, current_timestamp),
 ('33333333-3333-3333-3333-333333333334', 'Властелин колец: Две крепости', 2002, 'Новая Зеландия', 26131034, 44216117, '2002-10-15', 179, '/static/films/pic18.png', current_timestamp, current_timestamp),
 ('44444444-4444-4444-4444-444444444445', 'Достучаться до небес', 1997, 'Германия', 37831403, 63489538, '1997-07-05', 87, '/static/films/pic19.jpg', current_timestamp, current_timestamp),
 ('55555555-5555-5555-5555-555555555556', 'Леон', 1994, 'Франция', 4424152, 61716151, '1994-07-06', 133, '/static/films/pic20.jpg', current_timestamp, current_timestamp),
@@ -144,6 +144,3 @@ INSERT INTO user_favorite_actor (user_id, professional_id) VALUES
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ffffffff-ffff-ffff-ffff-ffffffffffff'), 
 
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee'); 
-
-
-
