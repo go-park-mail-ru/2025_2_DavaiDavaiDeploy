@@ -154,61 +154,67 @@ CREATE TABLE film_feedback (
     CONSTRAINT film_feedback_unique UNIQUE (user_id, film_id)
 );
 
-CREATE OR REPLACE FUNCTION update_updated_at()
+
+CREATE OR REPLACE FUNCTION set_timestamps()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    IF TG_OP = 'INSERT' THEN
+        NEW.created_at = CURRENT_TIMESTAMP;
+        NEW.updated_at = CURRENT_TIMESTAMP;
+    ELSIF TG_OP = 'UPDATE' THEN
+        NEW.updated_at = CURRENT_TIMESTAMP;
+    END IF;
     RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
-CREATE TRIGGER update_user_updated_at 
-    BEFORE UPDATE ON userTable 
+
+CREATE TRIGGER set_user_timestamps 
+    BEFORE INSERT OR UPDATE ON userTable 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_genre_updated_at 
-    BEFORE UPDATE ON genre 
+CREATE TRIGGER set_genre_timestamps 
+    BEFORE INSERT OR UPDATE ON genre 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_film_updated_at 
-    BEFORE UPDATE ON film 
+CREATE TRIGGER set_film_timestamps 
+    BEFORE INSERT OR UPDATE ON film 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_film_professional_updated_at 
-    BEFORE UPDATE ON film_professional 
+CREATE TRIGGER set_film_professional_timestamps 
+    BEFORE INSERT OR UPDATE ON film_professional 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_film_genre_updated_at 
-    BEFORE UPDATE ON film_genre 
+CREATE TRIGGER set_film_genre_timestamps 
+    BEFORE INSERT OR UPDATE ON film_genre 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_user_saved_film_updated_at 
-    BEFORE UPDATE ON user_saved_film 
+CREATE TRIGGER set_user_saved_film_timestamps 
+    BEFORE INSERT OR UPDATE ON user_saved_film 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_user_favorite_genre_updated_at 
-    BEFORE UPDATE ON user_favorite_genre 
+CREATE TRIGGER set_user_favorite_genre_timestamps 
+    BEFORE INSERT OR UPDATE ON user_favorite_genre 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_user_favorite_actor_updated_at 
-    BEFORE UPDATE ON user_favorite_actor 
+CREATE TRIGGER set_user_favorite_actor_timestamps 
+    BEFORE INSERT OR UPDATE ON user_favorite_actor 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_professional_in_film_updated_at 
-    BEFORE UPDATE ON professional_in_film 
+CREATE TRIGGER set_professional_in_film_timestamps 
+    BEFORE INSERT OR UPDATE ON professional_in_film 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
+    EXECUTE FUNCTION set_timestamps();
 
-CREATE TRIGGER update_film_feedback_updated_at 
-    BEFORE UPDATE ON film_feedback 
+CREATE TRIGGER set_film_feedback_timestamps 
+    BEFORE INSERT OR UPDATE ON film_feedback 
     FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at();
-
+    EXECUTE FUNCTION set_timestamps();
