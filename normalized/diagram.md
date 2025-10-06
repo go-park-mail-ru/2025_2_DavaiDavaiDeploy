@@ -1,6 +1,6 @@
 ```mermaid
 erDiagram
-    user {
+    userTable {
         uuid id PK
         integer version
         string login UK
