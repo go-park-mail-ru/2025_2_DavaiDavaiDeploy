@@ -1,7 +1,7 @@
 ## Функциональные зависимости
 
 
-UserTable: {id} → {version, login, password_hash, avatar, created_at, updated_at}
+User_table: {id} → {version, login, password_hash, avatar, created_at, updated_at}
 
 Genre: {id} → {title, description, icon, created_at, updated_at}
 
@@ -23,7 +23,7 @@ Film_Feedback: {id} → {user_id, film_id, rating, feedback, created_at, updated
 
 
 
-UserTable: {login} → {id, version, password_hash, avatar, created_at, updated_at}
+User_table: {login} → {id, version, password_hash, avatar, created_at, updated_at}
 
 Genre: {title} → {id, description, icon, created_at, updated_at}
 
@@ -55,7 +55,7 @@ Film_Feedback: {user_id, film_id} → {id, rating, feedback, created_at, updated
 
 ## Описание таблиц
 
-**UserTable - пользователь**
+**User_table - пользователь**
 - id - уникальный идентификатор пользователя
 - версия - версия данных пользователя
 - login - логин пользователя
