@@ -24,7 +24,7 @@ INSERT INTO genre (id, title, description, icon, created_at, updated_at) VALUES
 ('7f2d3f26-fff8-fdfa-2ffb-1b1f9f5f71f3', 'Фантастика', 'Фильмы о будущем и научных открытиях', '/static/genres/Фантастика.png', '2023-01-15 10:00:00+00', '2024-01-15 10:00:00+00'),
 ('8f3e4f27-0ff9-fefb-3ffc-2c2f0f6f82f4', 'Фэнтези', 'Волшебные миры, магия и мифические существа!', '/static/genres/Фэнтези.png', '2023-01-15 10:00:00+00', '2024-01-15 10:00:00+00');
 
-INSERT INTO "user" (id, login, password_hash, avatar, created_at, updated_at) VALUES
+INSERT INTO userTable (id, login, password_hash, avatar, created_at, updated_at) VALUES
 ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'ivanov', '\x8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e8d3e9f1a4b7c2d5e', '/static/users/avatar1.jpg', current_timestamp, current_timestamp);
 
 INSERT INTO film (id, title, year, country, budget, fees, premier_date, duration, cover, created_at, updated_at) VALUES
