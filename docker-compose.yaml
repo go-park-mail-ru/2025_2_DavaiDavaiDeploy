@@ -8,4 +8,4 @@ services:
     ports:
       - 5458:5458 
     volumes:
-      - opt/static/:/opt/static/ 
+      - ./static/:/opt/static/ 
