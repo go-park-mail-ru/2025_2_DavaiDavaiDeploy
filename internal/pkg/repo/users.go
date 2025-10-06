@@ -3,6 +3,7 @@ package repo
 import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
+	"sync"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -10,6 +11,7 @@ import (
 
 var (
 	Users map[string]models.User
+	Mutex sync.RWMutex
 )
 
 func InitUsers() {
