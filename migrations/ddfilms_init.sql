@@ -1,4 +1,4 @@
-CREATE TABLE "user" (
+CREATE TABLE userTable (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     version integer NOT NULL DEFAULT 1,
     login text NOT NULL CHECK (length(login) >= 6 AND length(login) <= 20),
@@ -86,7 +86,7 @@ CREATE TABLE user_saved_film (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_saved_film_user_fk FOREIGN KEY (user_id)
-        REFERENCES "user" (id) ON DELETE CASCADE,
+        REFERENCES userTable (id) ON DELETE CASCADE,
     CONSTRAINT user_saved_film_film_fk FOREIGN KEY (film_id)
         REFERENCES film (id) ON DELETE CASCADE,
     CONSTRAINT user_saved_film_unique UNIQUE (user_id, film_id)
@@ -100,7 +100,7 @@ CREATE TABLE user_favorite_genre (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_genre_user_fk FOREIGN KEY (user_id)
-        REFERENCES "user" (id) ON DELETE CASCADE,
+        REFERENCES userTable (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_genre_genre_fk FOREIGN KEY (genre_id)
         REFERENCES genre (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_genre_unique UNIQUE (user_id, genre_id)
@@ -114,7 +114,7 @@ CREATE TABLE user_favorite_actor (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_actor_user_fk FOREIGN KEY (user_id)
-        REFERENCES "user" (id) ON DELETE CASCADE,
+        REFERENCES userTable (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_actor_professional_fk FOREIGN KEY (professional_id)
         REFERENCES film_professional (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_actor_unique UNIQUE (user_id, professional_id)
@@ -147,7 +147,7 @@ CREATE TABLE film_feedback (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT film_feedback_user_fk FOREIGN KEY (user_id)
-        REFERENCES "user" (id) ON DELETE CASCADE,
+        REFERENCES userTable (id) ON DELETE CASCADE,
     CONSTRAINT film_feedback_film_fk FOREIGN KEY (film_id)
         REFERENCES film (id) ON DELETE CASCADE,
     CONSTRAINT film_feedback_rating_check CHECK (rating BETWEEN 1 AND 10),
@@ -163,7 +163,7 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER update_user_updated_at 
-    BEFORE UPDATE ON "user" 
+    BEFORE UPDATE ON userTable 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at();
 
@@ -211,3 +211,4 @@ CREATE TRIGGER update_film_feedback_updated_at
     BEFORE UPDATE ON film_feedback 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at();
+
