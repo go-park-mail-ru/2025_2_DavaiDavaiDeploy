@@ -91,5 +91,5 @@ func main() {
 		log.Printf("Graceful shutdown failed")
 		os.Exit(1)
 	}
-	log.Printf("Graceful shutdown!")
+	log.Printf("Graceful shutdown!!")
 }
