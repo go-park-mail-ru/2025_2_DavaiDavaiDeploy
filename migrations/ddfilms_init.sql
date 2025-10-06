@@ -1,4 +1,4 @@
-CREATE TABLE userTable (
+CREATE TABLE user_table (
     id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     version integer NOT NULL DEFAULT 1,
     login text NOT NULL CHECK (length(login) >= 6 AND length(login) <= 20),
@@ -86,7 +86,7 @@ CREATE TABLE user_saved_film (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_saved_film_user_fk FOREIGN KEY (user_id)
-        REFERENCES userTable (id) ON DELETE CASCADE,
+        REFERENCES user_table (id) ON DELETE CASCADE,
     CONSTRAINT user_saved_film_film_fk FOREIGN KEY (film_id)
         REFERENCES film (id) ON DELETE CASCADE,
     CONSTRAINT user_saved_film_unique UNIQUE (user_id, film_id)
@@ -100,7 +100,7 @@ CREATE TABLE user_favorite_genre (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_genre_user_fk FOREIGN KEY (user_id)
-        REFERENCES userTable (id) ON DELETE CASCADE,
+        REFERENCES user_table (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_genre_genre_fk FOREIGN KEY (genre_id)
         REFERENCES genre (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_genre_unique UNIQUE (user_id, genre_id)
@@ -114,7 +114,7 @@ CREATE TABLE user_favorite_actor (
     updated_at timestamptz NOT NULL DEFAULT current_timestamp,
     
     CONSTRAINT user_favorite_actor_user_fk FOREIGN KEY (user_id)
-        REFERENCES userTable (id) ON DELETE CASCADE,
+        REFERENCES user_table (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_actor_professional_fk FOREIGN KEY (professional_id)
         REFERENCES film_professional (id) ON DELETE CASCADE,
     CONSTRAINT user_favorite_actor_unique UNIQUE (user_id, professional_id)
@@ -170,7 +170,7 @@ $$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER set_user_timestamps 
-    BEFORE INSERT OR UPDATE ON userTable 
+    BEFORE INSERT OR UPDATE ON user_table 
     FOR EACH ROW 
     EXECUTE FUNCTION set_timestamps();
 
@@ -218,3 +218,4 @@ CREATE TRIGGER set_film_feedback_timestamps
     BEFORE INSERT OR UPDATE ON film_feedback 
     FOR EACH ROW 
     EXECUTE FUNCTION set_timestamps();
+
