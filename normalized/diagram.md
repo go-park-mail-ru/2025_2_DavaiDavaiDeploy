@@ -4,7 +4,7 @@ erDiagram
         uuid id PK
         integer version
         string login UK
-        string password_hash
+        bytea password_hash
         string avatar
         timestamptz created_at
         timestamptz updated_at
