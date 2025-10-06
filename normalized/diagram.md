@@ -102,10 +102,10 @@ erDiagram
         timestamptz updated_at
     }
 
-    user ||--o{ user_saved_film : "saves"
-    user ||--o{ user_favorite_genre : "prefers"
-    user ||--o{ user_favorite_actor : "prefers"
-    user ||--o{ film_feedback : "writes"
+    user_table ||--o{ user_saved_film : "saves"
+    user_table ||--o{ user_favorite_genre : "prefers"
+    user_table ||--o{ user_favorite_actor : "prefers"
+    user_table ||--o{ film_feedback : "writes"
     film ||--o{ user_saved_film : "saved_by"
     film ||--o{ film_feedback : "receives"
     genre ||--o{ user_favorite_genre : "preferred_by"
