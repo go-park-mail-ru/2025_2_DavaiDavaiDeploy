@@ -50,7 +50,8 @@ func main() {
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
-	authRouter.HandleFunc("/password", authHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.HandleFunc("/change/password", authHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.HandleFunc("/change/avatar", authHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)

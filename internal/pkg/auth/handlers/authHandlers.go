@@ -2,6 +2,8 @@ package authHandlers
 
 import (
 	"encoding/json"
+	"errors"
+	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/hash"
 	"kinopoisk/internal/pkg/auth/service"
@@ -119,9 +121,9 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		UpdatedAt:    time.Now().UTC(),
 	}
 
-	repo.Mutex.RLock()
+	repo.Mutex.Lock()
 	repo.Users[req.Login] = user
-	repo.Mutex.RUnlock()
+	repo.Mutex.Unlock()
 	authService := service.NewAuthService(a.JWTSecret)
 	token, err := authService.GenerateToken(req.Login)
 	if err != nil {
@@ -185,12 +187,9 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	enteredLogin := req.Login
-	enteredPassword := req.Password
-
 	var neededUser models.User
 	for i, user := range repo.Users {
-		if user.Login == enteredLogin {
+		if user.Login == req.Login {
 			neededUser = repo.Users[i]
 			break
 		}
@@ -209,7 +208,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !hash.CheckPass(neededUser.PasswordHash, enteredPassword) {
+	if !hash.CheckPass(neededUser.PasswordHash, req.Login) {
 		errorResp := models.Error{
 			Message: "Wrong login or password",
 		}
@@ -431,11 +430,14 @@ func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var neededUser models.User
-	for i, user := range repo.Users {
-		if user.Login == login {
-			neededUser = repo.Users[i]
-			break
-		}
+	repo.Mutex.RLock()
+	neededUser, exists := repo.Users[login]
+	repo.Mutex.RUnlock()
+
+	if !exists {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
 	var req models.ChangePasswordInput
@@ -494,9 +496,7 @@ func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newHash := hash.HashPass(req.NewPassword)
-
-	neededUser.PasswordHash = newHash
+	neededUser.PasswordHash = hash.HashPass(req.NewPassword)
 	neededUser.UpdatedAt = time.Now().UTC()
 
 	token, err = authService.GenerateToken(login)
@@ -513,9 +513,9 @@ func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repo.Mutex.RLock()
+	repo.Mutex.Lock()
 	repo.Users[login] = neededUser
-	repo.Mutex.RUnlock()
+	repo.Mutex.Unlock()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -532,5 +532,125 @@ func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
 
+func (a *AuthHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
+	var token string
+	w.Header().Set("Content-Type", "application/json")
+
+	cookie, err := r.Cookie(CookieName)
+	{
+		if err == nil {
+			token = cookie.Value
+		}
+		if token == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	}
+
+	authService := service.NewAuthService(a.JWTSecret)
+	parsedToken, err := authService.ParseToken(token)
+
+	if err != nil || !parsedToken.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	login, ok := claims["login"].(string)
+	if !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	var neededUser models.User
+	repo.Mutex.RLock()
+	neededUser, exists := repo.Users[login]
+	repo.Mutex.RUnlock()
+
+	if !exists {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	const maxRequestBodySize = 10 * 1024 * 1024
+	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
+	defer limitedReader.Close()
+
+	newReq := *r
+	newReq.Body = limitedReader
+
+	err = newReq.ParseMultipartForm(maxRequestBodySize)
+	if err != nil {
+		if errors.As(err, new(*http.MaxBytesError)) {
+			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := newReq.FormFile("avatar")
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	buffer, err := io.ReadAll(file)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fileFormat := http.DetectContentType(buffer)
+	if fileFormat != "image/jpeg" && fileFormat != "image/png" && fileFormat != "image/webp" {
+		errResp := models.Error{
+			Message: "Wrong format of file",
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		err := json.NewEncoder(w).Encode(errResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	avatarExtension := ""
+	if fileFormat == "image/jpeg" {
+		avatarExtension = ".jpg"
+	} else if fileFormat == "image/png" {
+		avatarExtension = ".png"
+	} else {
+		avatarExtension = ".webp"
+	}
+
+	avatarPath := neededUser.ID.String() + avatarExtension
+	neededUser.Avatar = avatarPath
+
+	avatarsDir := "/opt/static/avatars"
+
+	filePath := avatarsDir + "/" + avatarPath
+
+	err = os.WriteFile(filePath, buffer, 0644)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	repo.Mutex.Lock()
+	repo.Users[login] = neededUser
+	repo.Mutex.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(neededUser)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
