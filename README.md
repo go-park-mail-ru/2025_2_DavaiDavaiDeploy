@@ -17,3 +17,8 @@
 Дарья Ченцова - _UX_
 
 TODO - _СУБД_
+
+## Шаблон .env
+JWT_SECRET=
+COOKIE_SECURE=true
+COOKIE_SAMESITE=Strict

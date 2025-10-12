@@ -116,7 +116,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		ID:           id,
 		Login:        req.Login,
 		PasswordHash: passwordHash,
-		Status:       "active",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -390,6 +389,14 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ChangePassword godoc
+// @Summary      Changing the password
+// @Description  Changing the password by user
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  models.User
+// @Failure      400  {object}  models.Error
+// @Router       /auth/change/password [put]
 func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var token string
 	w.Header().Set("Content-Type", "application/json")
@@ -534,6 +541,14 @@ func (a *AuthHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ChangeAvatar  godoc
+// @Summary      Changing the avatar
+// @Description  Changing the avatar by user
+// @Tags         auth
+// @Produce      json
+// @Success      200  {object}  models.User
+// @Failure      400  {object}  models.Error
+// @Router       /auth/change/avatar [put]
 func (a *AuthHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	var token string
 	w.Header().Set("Content-Type", "application/json")

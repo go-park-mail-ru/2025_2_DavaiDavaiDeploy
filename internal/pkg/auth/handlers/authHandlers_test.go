@@ -114,7 +114,6 @@ func TestGetUser(t *testing.T) {
 		ID:           uuid.NewV4(),
 		Login:        "testuser",
 		PasswordHash: []byte("hash"),
-		Status:       "active",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -172,7 +171,6 @@ func TestSignInUser(t *testing.T) {
 		ID:           uuid.NewV4(),
 		Login:        "existinguser",
 		PasswordHash: hash.HashPass("correctpassword"),
-		Status:       "active",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -182,7 +180,6 @@ func TestSignInUser(t *testing.T) {
 		ID:           uuid.NewV4(),
 		Login:        "wrongpassuser",
 		PasswordHash: hash.HashPass("actualpassword"),
-		Status:       "active",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}

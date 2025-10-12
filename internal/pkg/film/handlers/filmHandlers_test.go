@@ -21,8 +21,8 @@ func setupRepo() {
 	genre2 := models.Genre{ID: uuid.NewV4(), Title: "Drama"}
 	repo.Genres = []models.Genre{genre1, genre2}
 
-	film1 := models.Film{ID: uuid.NewV4(), Title: "Film One", Genres: []models.Genre{genre1}}
-	film2 := models.Film{ID: uuid.NewV4(), Title: "Film Two", Genres: []models.Genre{genre2}}
+	film1 := models.Film{ID: uuid.NewV4(), Title: "Film One", GenreID: genre1.ID}
+	film2 := models.Film{ID: uuid.NewV4(), Title: "Film Two", GenreID: genre2.ID}
 	repo.Films = []models.Film{film1, film2}
 }
 

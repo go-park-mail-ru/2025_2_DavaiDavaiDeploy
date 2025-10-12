@@ -58,12 +58,17 @@ func main() {
 
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods(http.MethodGet)
+	r.HandleFunc("/films/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
+	r.HandleFunc("/films/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods(http.MethodGet)
 	r.HandleFunc("/genres/{id}", filmHandler.GetGenre).Methods(http.MethodGet)
+
+	// актеры
+	r.HandleFunc("/actors/{id}", filmHandler.GetActor).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
