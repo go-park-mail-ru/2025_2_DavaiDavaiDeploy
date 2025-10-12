@@ -16,9 +16,11 @@
 
 Дарья Ченцова - _UX_
 
-TODO - _СУБД_
+[Сергей Антоненко](https://github.com/Ver33d) - _СУБД_
 
 ## Шаблон .env
 JWT_SECRET=
+
 COOKIE_SECURE=true
+
 COOKIE_SAMESITE=Strict
