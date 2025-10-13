@@ -406,9 +406,9 @@ func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 			for _, f := range repo.Films {
 				if aif.FilmID == f.ID {
 					films = append(films, f)
-					break
 				}
 			}
+			break
 		}
 	}
 
@@ -426,6 +426,298 @@ func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(paginatedFilms)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c *FilmHandler) GetFilmsFeedback(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	var filmExists bool
+	for _, film := range repo.Films {
+		if film.ID == id {
+			filmExists = true
+			break
+		}
+	}
+
+	if !filmExists {
+		errorResp := models.Error{
+			Message: "Film not found",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	var filmsFeedback []models.FilmFeedback
+	for _, feedback := range repo.FilmFeedbacks {
+		if feedback.ID == id {
+			filmsFeedback = append(filmsFeedback, feedback)
+		}
+	}
+
+	count := GetParameter(r, "count", 10)
+	offset := GetParameter(r, "offset", 0)
+	if offset >= len(filmsFeedback) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	endingIndex := min(offset+count, len(filmsFeedback))
+
+	paginatedFilms := filmsFeedback[offset:endingIndex]
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(paginatedFilms)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	user, ok := r.Context().Value("user").(models.User)
+	if !ok {
+		errorResp := models.Error{
+			Message: "User not authenticated",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	var neededFilm models.Film
+	for i, film := range repo.Films {
+		if film.ID == filmID {
+			neededFilm = repo.Films[i]
+			break
+		}
+	}
+
+	if neededFilm.ID == uuid.Nil {
+		errorResp := models.Error{
+			Message: "Film Not Found",
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	for _, feedback := range repo.FilmFeedbacks {
+		if feedback.UserID == user.ID && feedback.FilmID == filmID && feedback.Text != "" {
+			errorResp := models.Error{
+				Message: "Feedback already sent",
+			}
+
+			w.WriteHeader(http.StatusConflict)
+			err := json.NewEncoder(w).Encode(errorResp)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+
+	var hasRating bool
+	for _, feedback := range repo.FilmFeedbacks {
+		if feedback.UserID == user.ID && feedback.FilmID == filmID {
+			hasRating = true
+			break
+		}
+	}
+
+	if !hasRating {
+		errorResp := models.Error{
+			Message: "Rating must be set before sending feedback",
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	var req models.FilmFeedbackInput
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if req.Rating < 1 || req.Rating > 10 {
+		errorResp := models.Error{
+			Message: "Rating must be between 1 and 10",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	if len(req.Title) < 1 || len(req.Title) > 100 {
+		errorResp := models.Error{
+			Message: "Title length must be between 1 and 100",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	if len(req.Text) < 1 || len(req.Text) > 1000 {
+		errorResp := models.Error{
+			Message: "Text length must be between 1 and 1000",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	repo.Mutex.Lock()
+	for i, feedback := range repo.FilmFeedbacks {
+		if feedback.UserID == user.ID && feedback.FilmID == filmID {
+			repo.FilmFeedbacks[i].Title = req.Title
+			repo.FilmFeedbacks[i].Text = req.Text
+			repo.FilmFeedbacks[i].Rating = req.Rating
+			repo.FilmFeedbacks[i].UpdatedAt = time.Now().UTC()
+
+			w.Header().Set("Content-Type", "application/json")
+			err = json.NewEncoder(w).Encode(repo.FilmFeedbacks[i])
+			repo.Mutex.Unlock()
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+	repo.Mutex.Unlock()
+}
+
+func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	user, ok := r.Context().Value("user").(models.User)
+	if !ok {
+		errorResp := models.Error{
+			Message: "User not authenticated",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	var neededFilm models.Film
+	for i, film := range repo.Films {
+		if film.ID == filmID {
+			neededFilm = repo.Films[i]
+			break
+		}
+	}
+
+	if neededFilm.ID == uuid.Nil {
+		errorResp := models.Error{
+			Message: "Film Not Found",
+		}
+
+		w.WriteHeader(http.StatusNotFound)
+		err := json.NewEncoder(w).Encode(errorResp)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	for _, feedback := range repo.FilmFeedbacks {
+		if feedback.UserID == user.ID && feedback.FilmID == filmID {
+			errorResp := models.Error{
+				Message: "Rating already set",
+			}
+
+			w.WriteHeader(http.StatusConflict)
+			err := json.NewEncoder(w).Encode(errorResp)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+			}
+			return
+		}
+	}
+
+	var req models.FilmFeedbackInput
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if req.Rating < 1 || req.Rating > 10 {
+		errorResp := models.Error{
+			Message: "Rating must be between 1 and 10",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+
+	newFeedback := models.FilmFeedback{
+		ID:        uuid.NewV4(),
+		UserID:    user.ID,
+		FilmID:    filmID,
+		Title:     "",
+		Text:      "",
+		Rating:    req.Rating,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	repo.Mutex.Lock()
+	repo.FilmFeedbacks = append(repo.FilmFeedbacks, newFeedback)
+	repo.Mutex.Unlock()
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(newFeedback)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}

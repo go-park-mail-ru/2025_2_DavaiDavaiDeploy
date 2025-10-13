@@ -52,6 +52,7 @@ func main() {
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
 	authRouter.HandleFunc("/change/password", authHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 	authRouter.HandleFunc("/change/avatar", authHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodGet, http.MethodOptions)
 
 	// пользователи
 	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)
@@ -62,6 +63,9 @@ func main() {
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
 	r.HandleFunc("/films/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
+	r.HandleFunc("/films/feedback/{id}", filmHandler.GetFilmsFeedback).Methods(http.MethodGet)
+	r.Handle("/films/send-feedback/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SendFeedback))).Methods(http.MethodPost, http.MethodOptions)
+	r.Handle("/films/set-rating/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SetRating))).Methods(http.MethodPost, http.MethodOptions)
 
 	// жанры
 	r.HandleFunc("/genres", filmHandler.GetGenres).Methods(http.MethodGet)

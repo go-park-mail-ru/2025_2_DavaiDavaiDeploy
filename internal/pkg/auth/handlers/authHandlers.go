@@ -1,6 +1,7 @@
 package authHandlers
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"io"
@@ -325,7 +326,23 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		login, ok := claims["login"].(string)
+		if !ok {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		user, err := authService.GetUser(login)
+		if err != nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), "user", user)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
@@ -338,52 +355,20 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 // @Failure      401  {object}  models.Error
 // @Router       /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
-	var token string
-
-	cookie, err := r.Cookie(CookieName)
-	if err == nil {
-		token = cookie.Value
-	}
-	if token == "" {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	authService := service.NewAuthService(a.JWTSecret)
-
-	parsedToken, err := authService.ParseToken(token)
-
-	if err != nil || !parsedToken.Valid {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	user, ok := r.Context().Value("user").(models.User)
 	if !ok {
+		errorResp := models.Error{
+			Message: "User not authenticated",
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	login, ok := claims["login"].(string)
-	if !ok {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	user, err := authService.GetUser(login)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
+	err := json.NewEncoder(w).Encode(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -668,4 +653,25 @@ func (a *AuthHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	user, ok := r.Context().Value("user").(models.User)
+	if !ok {
+		errorResp := models.Error{
+			Message: "User not authenticated",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
+	user.Version++
+	repo.Mutex.Lock()
+	repo.Users[user.Login] = user
+	repo.Mutex.Unlock()
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully logged out"})
 }

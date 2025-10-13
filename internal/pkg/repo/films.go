@@ -16,6 +16,7 @@ func InitRepo() {
 	InitFilms()
 	InitActorsInFilms()
 	InitUsers()
+	InitFilmFeedbacks()
 }
 
 func InitFilms() {
