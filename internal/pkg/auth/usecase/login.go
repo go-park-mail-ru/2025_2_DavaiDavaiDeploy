@@ -1,4 +1,4 @@
-package validation
+package usecase
 
 import (
 	"strings"

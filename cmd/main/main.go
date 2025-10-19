@@ -2,24 +2,47 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os/signal"
 	"syscall"
 	"time"
 
-	authHandlers "kinopoisk/internal/pkg/auth/handlers"
-	filmHandlers "kinopoisk/internal/pkg/film/handlers"
+	"kinopoisk/dsn"
+	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
+	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
+	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
+	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
 	"kinopoisk/internal/pkg/middleware/cors"
-	"kinopoisk/internal/pkg/repo"
+	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	"os"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 
 	"github.com/gorilla/mux"
 
 	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+func initDB(ctx context.Context) (*pgxpool.Pool, error) {
+	postgresString := dsn.FromEnv()
+
+	config, err := pgxpool.ParseConfig(postgresString)
+	if err != nil {
+		fmt.Println("bug")
+		return nil, err
+	}
+
+	pool, err := pgxpool.ConnectConfig(ctx, config)
+	if err != nil {
+		fmt.Println("bug")
+		return nil, err
+	}
+
+	return pool, nil
+}
 
 // @title           Kinopoisk API
 // @version         1.0
@@ -28,6 +51,8 @@ import (
 // @BasePath        /api
 func main() {
 	_ = godotenv.Load()
+	ctx := context.Background()
+	dbpool, err := initDB(ctx)
 
 	mainRouter := mux.NewRouter()
 	fs := http.FileServer(http.Dir("/opt/static/"))
@@ -40,22 +65,24 @@ func main() {
 	})
 
 	r.Use(cors.CorsMiddleware)
-	repo.InitRepo()
 
-	filmHandler := filmHandlers.NewFilmHandler()
-	authHandler := authHandlers.NewAuthHandler()
+	filmHandler := filmHandlers.NewFilmHandler(dbpool)
+	authHandler := authHandlers.NewAuthHandler(dbpool)
+	userHandler := userHandlers.NewUserHandler(dbpool)
+	genreHandler := genreHandlers.NewGenreHandler(dbpool)
+	actorHandler := actorHandlers.NewActorHandler(dbpool)
 
 	// регистрация/авторизация
 	authRouter := r.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
-	authRouter.HandleFunc("/change/password", authHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
-	authRouter.HandleFunc("/change/avatar", authHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
-	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodGet, http.MethodOptions)
+	authRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodPost, http.MethodOptions)
 
 	// пользователи
-	r.HandleFunc("/users/{id}", authHandler.GetUser).Methods(http.MethodGet)
+	r.HandleFunc("/users/{id}", userHandler.GetUser).Methods(http.MethodGet)
 
 	// фильмы
 	r.HandleFunc("/films", filmHandler.GetFilms).Methods(http.MethodGet)
@@ -68,11 +95,11 @@ func main() {
 	r.Handle("/films/set-rating/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SetRating))).Methods(http.MethodPost, http.MethodOptions)
 
 	// жанры
-	r.HandleFunc("/genres", filmHandler.GetGenres).Methods(http.MethodGet)
-	r.HandleFunc("/genres/{id}", filmHandler.GetGenre).Methods(http.MethodGet)
+	r.HandleFunc("/genres", genreHandler.GetGenres).Methods(http.MethodGet)
+	r.HandleFunc("/genres/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
 
 	// актеры
-	r.HandleFunc("/actors/{id}", filmHandler.GetActor).Methods(http.MethodGet)
+	r.HandleFunc("/actors/{id}", actorHandler.GetActor).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
@@ -96,7 +123,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	err := filmSrv.Shutdown(ctx)
+	err = filmSrv.Shutdown(ctx)
 	if err != nil {
 		log.Printf("Graceful shutdown failed")
 		os.Exit(1)

@@ -1,46 +1,39 @@
-package service
+package usecase
 
 import (
-	"errors"
+	"context"
 	"fmt"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/repo"
+	"kinopoisk/internal/pkg/auth/repo"
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	uuid "github.com/satori/go.uuid"
 )
 
 type AuthService struct {
-	repository map[string]models.User
-	secret     string
+	secret   string
+	authRepo *repo.AuthRepository
 }
 
-func NewAuthService(secret string) *AuthService {
+func NewAuthService(secret string, authRepo *repo.AuthRepository) *AuthService {
 	return &AuthService{
-		repository: repo.Users,
-		secret:     secret,
+		secret:   secret,
+		authRepo: authRepo,
 	}
 }
 
 func (s *AuthService) GetUser(login string) (models.User, error) {
-	var neededUser models.User
-	for i, user := range repo.Users {
-		if user.Login == login {
-			neededUser = repo.Users[i]
-			break
-		}
+	user, err := s.authRepo.GetUserByLogin(context.Background(), login)
+	if err != nil {
+		return models.User{}, err
 	}
-	if neededUser.ID == uuid.Nil {
-		return models.User{}, errors.New("no such user")
-	}
-	return neededUser, nil
+	return *user, nil
 }
 
 func (s *AuthService) GenerateToken(login string) (string, error) {
 	user, err := s.GetUser(login)
 	if err != nil {
-		return "", err
+		return "suslik", nil
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    user.ID,
