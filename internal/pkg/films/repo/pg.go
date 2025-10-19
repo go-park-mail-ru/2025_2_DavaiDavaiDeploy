@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
+	"strconv"
 
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -68,7 +69,8 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 		"SELECT COALESCE(AVG(rating), 0) FROM film_feedback WHERE film_id = $1",
 		filmID,
 	).Scan(&avgRating)
-	return avgRating, err
+	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+	return roundedRating, err
 }
 
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
@@ -115,7 +117,6 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
             f.worldwide_fees, f.trailer_url, f.year, 
             f.slogan, f.duration, f.image1, f.image2, f.image3,
             g.title as genre, c.name as country,
-            COALESCE(AVG(ff.rating), 0) as rating,
             COUNT(ff.id) as number_of_ratings
         FROM film f
         JOIN genre g ON f.genre_id = g.id
@@ -130,8 +131,9 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
 		&result.Slogan, &result.Duration, &result.Image1, &result.Image2, &result.Image3,
-		&result.Genre, &result.Country, &result.Rating, &result.NumberOfRatings,
+		&result.Genre, &result.Country, &result.NumberOfRatings,
 	)
+
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -141,6 +143,11 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
 
 		fmt.Printf("Error getting film by ID %s: %v\n", filmID, err)
 		return nil, fmt.Errorf("failed to get film: %w", err)
+	}
+
+	result.Rating, err = r.GetFilmAvgRating(ctx, filmID)
+	if err != nil {
+		result.Rating = 0
 	}
 
 	actorsQuery := `
@@ -282,7 +289,7 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 		&feedback.Text, &feedback.Rating, &feedback.CreatedAt, &feedback.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return &models.FilmFeedback{}, err
 	}
 	return &feedback, nil
 }
@@ -302,6 +309,16 @@ func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback *models.Fi
 		"INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES ($1, $2, $3, $4, $5, $6)",
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Title, feedback.Text, feedback.Rating,
 	)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
+				pgErr.Message, pgErr.Code, pgErr.Detail)
+		}
+
+		fmt.Printf("Error getting film by ID %v\n", err)
+		return fmt.Errorf("failed to get film: %w", err)
+	}
 	return err
 }
 
