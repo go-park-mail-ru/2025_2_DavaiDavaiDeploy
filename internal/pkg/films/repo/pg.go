@@ -20,7 +20,7 @@ func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
 	return &FilmRepository{db: db}
 }
 
-func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (*models.Film, error) {
+func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error) {
 	var film models.Film
 	err := r.db.QueryRow(
 		ctx,
@@ -47,9 +47,9 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (*models
 		}
 
 		fmt.Printf("Error getting film by ID %s: %v\n", id, err)
-		return nil, fmt.Errorf("failed to get film: %w", err)
+		return models.Film{}, fmt.Errorf("failed to get film: %w", err)
 	}
-	return &film, nil
+	return film, nil
 }
 
 func (r *FilmRepository) GetGenreTitle(ctx context.Context, genreID uuid.UUID) (string, error) {
@@ -109,7 +109,7 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 	return films, nil
 }
 
-func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*models.FilmPage, error) {
+func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error) {
 	filmsQuery := `
         SELECT 
             f.id, f.title, f.original_title, f.cover, f.poster,
@@ -142,7 +142,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
 		}
 
 		fmt.Printf("Error getting film by ID %s: %v\n", filmID, err)
-		return nil, fmt.Errorf("failed to get film: %w", err)
+		return models.FilmPage{}, fmt.Errorf("failed to get film: %w", err)
 	}
 
 	result.Rating, err = r.GetFilmAvgRating(ctx, filmID)
@@ -159,7 +159,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
 
 	rows, err := r.db.Query(ctx, actorsQuery, filmID)
 	if err != nil {
-		return &result, nil
+		return result, nil
 	}
 	defer rows.Close()
 
@@ -173,7 +173,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (*mo
 		}
 	}
 
-	return &result, nil
+	return result, nil
 }
 
 func (r *FilmRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.Film, error) {
@@ -278,7 +278,7 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
 	return feedbacks, nil
 }
 
-func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (*models.FilmFeedback, error) {
+func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error) {
 	var feedback models.FilmFeedback
 	err := r.db.QueryRow(
 		ctx,
@@ -289,12 +289,12 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 		&feedback.Text, &feedback.Rating, &feedback.CreatedAt, &feedback.UpdatedAt,
 	)
 	if err != nil {
-		return &models.FilmFeedback{}, err
+		return models.FilmFeedback{}, err
 	}
-	return &feedback, nil
+	return feedback, nil
 }
 
-func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback *models.FilmFeedback) error {
+func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
 		"UPDATE film_feedback SET title = $1, text = $2, rating = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
@@ -303,7 +303,7 @@ func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback *models.Fi
 	return err
 }
 
-func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback *models.FilmFeedback) error {
+func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
 		"INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES ($1, $2, $3, $4, $5, $6)",
@@ -322,7 +322,7 @@ func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback *models.Fi
 	return err
 }
 
-func (r *FilmRepository) SetRating(ctx context.Context, feedback *models.FilmFeedback) error {
+func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
 		"INSERT INTO film_feedback (id, user_id, film_id, rating) VALUES ($1, $2, $3, $4)",

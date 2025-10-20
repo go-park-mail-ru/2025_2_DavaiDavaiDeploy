@@ -29,7 +29,7 @@ func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (boo
 	return exists, err
 }
 
-func (r *AuthRepository) CreateUser(ctx context.Context, user *models.User) error {
+func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error {
 	_, err := r.db.Exec(
 		ctx,
 		"INSERT INTO user_table (id, login, password_hash, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)",
@@ -38,7 +38,7 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user *models.User) erro
 	return err
 }
 
-func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (*models.User, error) {
+func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (models.User, error) {
 	var user models.User
 	err := r.db.QueryRow(ctx,
 		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE login = $1",
@@ -51,9 +51,9 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (*mod
 		&user.CreatedAt,
 		&user.UpdatedAt)
 	if err != nil {
-		return nil, err
+		return models.User{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.UUID) error {
@@ -65,7 +65,7 @@ func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.U
 	return err
 }
 
-func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (*models.User, error) {
+func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	var user models.User
 	err := r.db.QueryRow(
 		ctx,
@@ -82,8 +82,8 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (*mod
 				pgErr.Message, pgErr.Code, pgErr.Detail)
 		}
 
-		fmt.Printf("Error getting film by ID %s: %v\n", user, err)
-		return nil, fmt.Errorf("failed to get film: %w", err)
+		fmt.Printf("Error getting user by ID %v: %v\n", user, err)
+		return models.User{}, fmt.Errorf("failed to get user: %w", err)
 	}
-	return &user, nil
+	return user, nil
 }

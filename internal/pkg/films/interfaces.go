@@ -1,1 +1,34 @@
 package films
+
+import (
+	"context"
+	"kinopoisk/internal/models"
+
+	uuid "github.com/satori/go.uuid"
+)
+
+type FilmUsecase interface {
+	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
+	GetFilms(ctx context.Context, count int, offset int) ([]models.MainPageFilm, error)
+	GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error)
+	GetFilmsByGenre(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error)
+	GetFilmsByActor(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error)
+	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.FilmFeedback, error)
+	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
+	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
+}
+
+type FilmRepo interface {
+	GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error)
+	GetGenreTitle(ctx context.Context, genreID uuid.UUID) (string, error)
+	GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error)
+	GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error)
+	GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error)
+	GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.Film, error)
+	GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.Film, error)
+	GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error)
+	CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
+	UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error
+	CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error
+	SetRating(ctx context.Context, feedback models.FilmFeedback) error
+}

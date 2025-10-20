@@ -11,8 +11,14 @@ import (
 
 	"kinopoisk/dsn"
 	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
+	actorRepo "kinopoisk/internal/pkg/actors/repo"
+	actorUsecase "kinopoisk/internal/pkg/actors/usecase"
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
+	authRepo "kinopoisk/internal/pkg/auth/repo"
+	authUsecase "kinopoisk/internal/pkg/auth/usecase"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
+	filmRepo "kinopoisk/internal/pkg/films/repo"
+	filmUsecase "kinopoisk/internal/pkg/films/usecase"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
 	"kinopoisk/internal/pkg/middleware/cors"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
@@ -27,6 +33,7 @@ import (
 )
 
 func initDB(ctx context.Context) (*pgxpool.Pool, error) {
+	// убрать
 	postgresString := dsn.FromEnv()
 
 	config, err := pgxpool.ParseConfig(postgresString)
@@ -66,11 +73,20 @@ func main() {
 
 	r.Use(cors.CorsMiddleware)
 
-	filmHandler := filmHandlers.NewFilmHandler(dbpool)
-	authHandler := authHandlers.NewAuthHandler(dbpool)
+	filmRepo := filmRepo.NewFilmRepository(dbpool)
+	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
+	filmHandler := filmHandlers.NewFilmHandler(filmUsecase)
+
+	authRepo := authRepo.NewAuthRepository(dbpool)
+	authUsecase := authUsecase.NewAuthUsecase(authRepo)
+	authHandler := authHandlers.NewAuthHandler(authUsecase)
+
 	userHandler := userHandlers.NewUserHandler(dbpool)
 	genreHandler := genreHandlers.NewGenreHandler(dbpool)
-	actorHandler := actorHandlers.NewActorHandler(dbpool)
+
+	actorRepo := actorRepo.NewActorRepository(dbpool)
+	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
+	actorHandler := actorHandlers.NewActorHandler(actorUsecase)
 
 	// регистрация/авторизация
 	authRouter := r.PathPrefix("/auth").Subrouter()
@@ -90,7 +106,7 @@ func main() {
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
 	r.HandleFunc("/films/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
-	r.HandleFunc("/films/feedback/{id}", filmHandler.GetFilmsFeedback).Methods(http.MethodGet)
+	r.HandleFunc("/films/feedback/{id}", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 	r.Handle("/films/send-feedback/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SendFeedback))).Methods(http.MethodPost, http.MethodOptions)
 	r.Handle("/films/set-rating/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SetRating))).Methods(http.MethodPost, http.MethodOptions)
 

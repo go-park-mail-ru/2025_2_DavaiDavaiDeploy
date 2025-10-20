@@ -43,13 +43,13 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 // @Failure      400  {object}  models.Error
 // @Router       /genres/{id} [get]
 func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		errorResp := models.Error{
 			Message: err.Error(),
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader((http.StatusBadRequest))
 		err := json.NewEncoder(w).Encode(errorResp)
 		if err != nil {
@@ -64,7 +64,6 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 			Message: "invalid id",
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(errorResp)
 		if err != nil {

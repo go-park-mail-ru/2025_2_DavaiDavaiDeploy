@@ -16,7 +16,7 @@ func NewActorRepository(db *pgxpool.Pool) *ActorRepository {
 	return &ActorRepository{db: db}
 }
 
-func (r *ActorRepository) GetActorByID(ctx context.Context, id uuid.UUID) (*models.Actor, error) {
+func (r *ActorRepository) GetActorByID(ctx context.Context, id uuid.UUID) (models.Actor, error) {
 	var actor models.Actor
 	err := r.db.QueryRow(
 		ctx,
@@ -27,16 +27,16 @@ func (r *ActorRepository) GetActorByID(ctx context.Context, id uuid.UUID) (*mode
 		&actor.BirthDate, &actor.DeathDate, &actor.ZodiacSign, &actor.BirthPlace, &actor.MaritalStatus,
 	)
 	if err != nil {
-		return nil, err
+		return models.Actor{}, err
 	}
-	return &actor, nil
+	return actor, nil
 }
 
 func (r *ActorRepository) GetActorFilmsCount(ctx context.Context, actorID uuid.UUID) (int, error) {
 	var count int
 	err := r.db.QueryRow(
 		ctx,
-		"SELECT COUNT(*) FROM actor_in_film WHERE actor_id = $1",
+		"SELECT COUNT(1) FROM actor_in_film WHERE actor_id = $1",
 		actorID,
 	).Scan(&count)
 	return count, err
