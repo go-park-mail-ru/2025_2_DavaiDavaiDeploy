@@ -182,7 +182,6 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	fileFormat := http.DetectContentType(buffer)
 	if fileFormat != "image/jpeg" && fileFormat != "image/png" && fileFormat != "image/webp" {
-		fmt.Println("suslik1")
 		return models.User{}, "", err
 	}
 
@@ -204,19 +203,16 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	err = os.WriteFile(filePath, buffer, 0644)
 	if err != nil {
-		fmt.Println("suslik2")
 		return models.User{}, "", err
 	}
 
 	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.ID, filePath)
 	if err != nil {
-		fmt.Println("suslik3")
 		return models.User{}, "", err
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
 	if err != nil {
-		fmt.Println("suslik4")
 		return models.User{}, "", err
 	}
 
