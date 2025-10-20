@@ -19,7 +19,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
@@ -37,12 +37,12 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models
 		}
 
 		fmt.Printf("Error %s: %v\n", id, err)
-		return nil, fmt.Errorf("failed to: %w", err)
+		return models.User{}, fmt.Errorf("failed to: %w", err)
 	}
-	return &user, nil
+	return user, nil
 }
 
-func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (*models.User, error) {
+func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
@@ -53,9 +53,9 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (*mod
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return models.User{}, err
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (u *UserRepository) UpdateUserPassword(ctx context.Context, userID uuid.UUID, passwordHash []byte) error {

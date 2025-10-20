@@ -16,7 +16,7 @@ func NewGenreRepository(db *pgxpool.Pool) *GenreRepository {
 	return &GenreRepository{db: db}
 }
 
-func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (*models.Genre, error) {
+func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (models.Genre, error) {
 	var genre models.Genre
 	err := g.db.QueryRow(
 		ctx,
@@ -27,9 +27,9 @@ func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (*mode
 		&genre.CreatedAt, &genre.UpdatedAt,
 	)
 	if err != nil {
-		return nil, err
+		return models.Genre{}, err
 	}
-	return &genre, nil
+	return genre, nil
 }
 
 func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, offset int) ([]models.Genre, error) {

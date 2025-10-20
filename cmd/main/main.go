@@ -20,8 +20,12 @@ import (
 	filmRepo "kinopoisk/internal/pkg/films/repo"
 	filmUsecase "kinopoisk/internal/pkg/films/usecase"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
+	genreRepo "kinopoisk/internal/pkg/genres/repo"
+	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
 	"kinopoisk/internal/pkg/middleware/cors"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
+	userRepo "kinopoisk/internal/pkg/users/repo"
+	userUsecase "kinopoisk/internal/pkg/users/usecase"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -81,12 +85,17 @@ func main() {
 	authUsecase := authUsecase.NewAuthUsecase(authRepo)
 	authHandler := authHandlers.NewAuthHandler(authUsecase)
 
-	userHandler := userHandlers.NewUserHandler(dbpool)
-	genreHandler := genreHandlers.NewGenreHandler(dbpool)
+	genreRepo := genreRepo.NewGenreRepository(dbpool)
+	genreUsecase := genreUsecase.NewGenreUsecase(genreRepo)
+	genreHandler := genreHandlers.NewGenreHandler(genreUsecase)
 
 	actorRepo := actorRepo.NewActorRepository(dbpool)
 	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
 	actorHandler := actorHandlers.NewActorHandler(actorUsecase)
+
+	userRepo := userRepo.NewUserRepository(dbpool)
+	userUsecase := userUsecase.NewUserUsecase(userRepo)
+	userHandler := userHandlers.NewUserHandler(userUsecase)
 
 	// регистрация/авторизация
 	authRouter := r.PathPrefix("/auth").Subrouter()

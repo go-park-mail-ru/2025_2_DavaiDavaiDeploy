@@ -3,22 +3,20 @@ package http
 import (
 	"encoding/json"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/genres/repo"
+	"kinopoisk/internal/pkg/genres"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/jackc/pgx/v4/pgxpool"
 	uuid "github.com/satori/go.uuid"
 )
 
 type GenreHandler struct {
-	genreRepo *repo.GenreRepository
+	uc genres.GenreUsecase
 }
 
-func NewGenreHandler(db *pgxpool.Pool) *GenreHandler {
-	genreRepo := repo.NewGenreRepository(db)
-	return &GenreHandler{genreRepo: genreRepo}
+func NewGenreHandler(uc genres.GenreUsecase) *GenreHandler {
+	return &GenreHandler{uc: uc}
 }
 
 func GetParameter(r *http.Request, s string, defaultValue int) int {
@@ -57,8 +55,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	neededGenre, err := g.genreRepo.GetGenreByID(r.Context(), id)
-
+	neededGenre, err := g.uc.GetGenre(r.Context(), id)
 	if err != nil {
 		errorResp := models.Error{
 			Message: "invalid id",
@@ -71,6 +68,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
 	err = json.NewEncoder(w).Encode(neededGenre)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -83,11 +81,11 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Success      200  {array}  models.Genre
 // @Router       /genres [get]
-func (c *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
+func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	count := GetParameter(r, "count", 10)
 	offset := GetParameter(r, "offset", 0)
 
-	genres, err := c.genreRepo.GetGenresWithPagination(r.Context(), count, offset)
+	genres, err := g.uc.GetGenres(r.Context(), count, offset)
 	if err != nil {
 		return
 	}
