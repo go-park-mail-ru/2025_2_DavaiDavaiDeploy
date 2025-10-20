@@ -4,10 +4,9 @@ on:
   push:
     branches:
       - main  
-      - develop # текущая ветка разработки
+      - develop 
 jobs:
-  #ШАГ 1: прогон линтеров
-  linters-act: #имя шага
+  linters-act: 
     name: linters
     runs-on: ubuntu-latest
     steps:
@@ -17,10 +16,9 @@ jobs:
       - uses: actions/checkout@v3 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
-  #ШАГ 2: прогон тестов
   tests-act:
     name: tests 
-    needs: linters-act #если линтеры упали, дальше тесты не запускаются
+    needs: linters-act 
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -33,20 +31,19 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-  #ШАГ 3: деплой 
   deploy:
     name: Deploy MyApp
-    needs: tests-act #только после тестов и линитера
+    needs: tests-act 
     runs-on: ubuntu-latest
     steps:
-      - name: Pull code #обновляем код
+      - name: Pull code 
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.HOST }} #все данные лежат в секретах в репозитории
+          host: ${{ secrets.HOST }} 
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && git pull 
-      - name: Build containers #собираем код
+      - name: Build containers 
         uses: appleboy/ssh-action@master
         with:
           timeout: 10m
@@ -54,10 +51,10 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && sudo docker compose build
-      - name: Restart service #рестартим код
+      - name: Restart service 
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && sudo docker compose down && sudo docker compose up -d #-d освобождает консоль
+          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && sudo docker compose down && sudo docker compose up -d 

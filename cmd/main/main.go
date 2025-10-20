@@ -70,13 +70,14 @@ func main() {
 	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
-	r := mainRouter.PathPrefix("/api").Subrouter()
-	r.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	apiRouter := mainRouter.PathPrefix("/api").Subrouter()
+	apiRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "I am not giving any films!", http.StatusTeapot)
 	})
 
-	r.Use(cors.CorsMiddleware)
+	apiRouter.Use(cors.CorsMiddleware)
 
+	// Инициализация репозиториев, usecases и handlers
 	filmRepo := filmRepo.NewFilmRepository(dbpool)
 	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
 	filmHandler := filmHandlers.NewFilmHandler(filmUsecase)
@@ -97,34 +98,49 @@ func main() {
 	userUsecase := userUsecase.NewUserUsecase(userRepo)
 	userHandler := userHandlers.NewUserHandler(userUsecase)
 
-	// регистрация/авторизация
-	authRouter := r.PathPrefix("/auth").Subrouter()
+	// Auth routes
+	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
-	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
-	authRouter.Handle("/change/password", userHandler.Middleware(http.HandlerFunc(userHandler.ChangePassword))).Methods(http.MethodPut, http.MethodOptions)
-	authRouter.Handle("/change/avatar", userHandler.Middleware(http.HandlerFunc(userHandler.ChangeAvatar))).Methods(http.MethodPut, http.MethodOptions)
-	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodPost, http.MethodOptions)
 
-	// пользователи
-	r.HandleFunc("/users/{id}", userHandler.GetUser).Methods(http.MethodGet)
+	protectedAuthRouter := authRouter.PathPrefix("").Subrouter()
+	protectedAuthRouter.Use(authHandler.Middleware)
+	protectedAuthRouter.HandleFunc("/check", authHandler.CheckAuth).Methods(http.MethodGet, http.MethodOptions)
+	protectedAuthRouter.HandleFunc("/logout", authHandler.LogOutUser).Methods(http.MethodPost, http.MethodOptions)
 
-	// фильмы
-	r.HandleFunc("/films", filmHandler.GetFilms).Methods(http.MethodGet)
-	r.HandleFunc("/films/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
-	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
-	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
-	r.HandleFunc("/films/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
-	r.HandleFunc("/film/feedbacks/{id}", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
-	r.Handle("/films/send-feedback/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SendFeedback))).Methods(http.MethodPost, http.MethodOptions)
-	r.Handle("/films/set-rating/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SetRating))).Methods(http.MethodPost, http.MethodOptions)
+	// User routes
+	userRouter := apiRouter.PathPrefix("/users").Subrouter()
+	userRouter.HandleFunc("/{id}", userHandler.GetUser).Methods(http.MethodGet)
 
-	// жанры
-	r.HandleFunc("/genres", genreHandler.GetGenres).Methods(http.MethodGet)
-	r.HandleFunc("/genres/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
+	// Protected user routes
+	protectedUserRouter := userRouter.PathPrefix("").Subrouter()
+	protectedUserRouter.Use(authHandler.Middleware)
+	protectedUserRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	protectedUserRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 
-	// актеры
-	r.HandleFunc("/actors/{id}", actorHandler.GetActor).Methods(http.MethodGet)
+	// Film routes
+	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
+	filmRouter.HandleFunc("", filmHandler.GetFilms).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
+
+	// Protected film routes
+	protectedFilmRouter := filmRouter.PathPrefix("").Subrouter()
+	protectedFilmRouter.Use(authHandler.Middleware)
+	protectedFilmRouter.HandleFunc("/{id}/feedback", filmHandler.SendFeedback).Methods(http.MethodPost, http.MethodOptions)
+	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
+
+	// Genre routes
+	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
+	genreRouter.HandleFunc("", genreHandler.GetGenres).Methods(http.MethodGet)
+	genreRouter.HandleFunc("/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
+
+	// Actor routes
+	actorRouter := apiRouter.PathPrefix("/actors").Subrouter()
+	actorRouter.HandleFunc("/{id}", actorHandler.GetActor).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
