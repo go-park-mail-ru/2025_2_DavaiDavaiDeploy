@@ -162,6 +162,7 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	}
 
 	neededUser.PasswordHash = HashPass(newPassword)
+	neededUser.Version += 1
 	neededUser.UpdatedAt = time.Now().UTC()
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)

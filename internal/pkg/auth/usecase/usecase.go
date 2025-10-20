@@ -58,7 +58,9 @@ func HashPass(plainPassword string) []byte {
 }
 
 func CheckPass(passHash []byte, plainPassword string) bool {
-	salt := passHash[:8]
+	//salt := passHash[:8] - раньше было так
+	salt := make([]byte, 8)
+	copy(salt, passHash[:8])
 	userHash := argon2.IDKey([]byte(plainPassword), salt, 1, 64*1024, 4, 32)
 	userHashedPassword := append(salt, userHash...)
 	return bytes.Equal(userHashedPassword, passHash)
