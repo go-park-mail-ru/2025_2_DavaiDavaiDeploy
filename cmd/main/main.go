@@ -104,7 +104,6 @@ func main() {
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
 	authRouter.Handle("/change/password", userHandler.Middleware(http.HandlerFunc(userHandler.ChangePassword))).Methods(http.MethodPut, http.MethodOptions)
 	authRouter.Handle("/change/avatar", userHandler.Middleware(http.HandlerFunc(userHandler.ChangeAvatar))).Methods(http.MethodPut, http.MethodOptions)
-	authRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodPost, http.MethodOptions)
 
 	// пользователи

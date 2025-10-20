@@ -167,21 +167,6 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.ChangePasswordInput
-	err := json.NewDecoder(r.Body).Decode(&req)
-	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		return
-	}
-
 	const maxRequestBodySize = 10 * 1024 * 1024
 	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
 	defer limitedReader.Close()
@@ -189,7 +174,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	newReq := *r
 	newReq.Body = limitedReader
 
-	err = newReq.ParseMultipartForm(maxRequestBodySize)
+	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			w.WriteHeader(http.StatusRequestEntityTooLarge)

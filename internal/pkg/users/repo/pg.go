@@ -58,11 +58,11 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	return user, nil
 }
 
-func (u *UserRepository) UpdateUserPassword(ctx context.Context, userID uuid.UUID, passwordHash []byte) error {
+func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error {
 	_, err := u.db.Exec(
 		ctx,
-		"UPDATE user_table SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
-		passwordHash, userID,
+		"UPDATE user_table SET password_hash = $1, version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+		passwordHash, version, userID,
 	)
 	return err
 }
@@ -73,5 +73,15 @@ func (u *UserRepository) UpdateUserAvatar(ctx context.Context, userID uuid.UUID,
 		"UPDATE user_table SET avatar = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
 		avatarPath, userID,
 	)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
+				pgErr.Message, pgErr.Code, pgErr.Detail)
+		}
+
+		fmt.Printf("Error %s:\n", err)
+		return fmt.Errorf("failed to: %w", err)
+	}
 	return err
 }

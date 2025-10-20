@@ -156,13 +156,14 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 		return models.User{}, "", errors.New("The passwords should be different")
 	}
 
-	err = uc.userRepo.UpdateUserPassword(ctx, neededUser.ID, HashPass(newPassword))
+	neededUser.Version += 1
+
+	err = uc.userRepo.UpdateUserPassword(ctx, neededUser.Version, neededUser.ID, HashPass(newPassword))
 	if err != nil {
 		return models.User{}, "", errors.New("Failed to update the password")
 	}
 
 	neededUser.PasswordHash = HashPass(newPassword)
-	neededUser.Version += 1
 	neededUser.UpdatedAt = time.Now().UTC()
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
@@ -181,6 +182,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	fileFormat := http.DetectContentType(buffer)
 	if fileFormat != "image/jpeg" && fileFormat != "image/png" && fileFormat != "image/webp" {
+		fmt.Println("suslik1")
 		return models.User{}, "", err
 	}
 
@@ -196,22 +198,25 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	avatarPath := neededUser.ID.String() + avatarExtension
 	neededUser.Avatar = &avatarPath
 
-	avatarsDir := "/opt/static/avatars"
+	avatarsDir := "./static/avatars"
 
 	filePath := avatarsDir + "/" + avatarPath
 
 	err = os.WriteFile(filePath, buffer, 0644)
 	if err != nil {
+		fmt.Println("suslik2")
 		return models.User{}, "", err
 	}
 
 	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.ID, filePath)
 	if err != nil {
+		fmt.Println("suslik3")
 		return models.User{}, "", err
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
 	if err != nil {
+		fmt.Println("suslik4")
 		return models.User{}, "", err
 	}
 
