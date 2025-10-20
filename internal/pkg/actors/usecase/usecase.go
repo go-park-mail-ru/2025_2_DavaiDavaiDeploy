@@ -21,16 +21,19 @@ func NewActorUsecase(repo actors.ActorRepo) *ActorUsecase {
 }
 
 func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.ActorPage, error) {
-
 	actor, err := uc.actorRepo.GetActorByID(ctx, id)
 	if err != nil {
 		return models.ActorPage{}, errors.New("actor not exists")
 	}
 
-	endDate := actor.DeathDate
-	if actor.DeathDate.IsZero() {
+	var endDate time.Time
+
+	if actor.DeathDate == nil || actor.DeathDate.IsZero() {
 		endDate = time.Now()
+	} else {
+		endDate = *actor.DeathDate
 	}
+
 	age := endDate.Year() - actor.BirthDate.Year()
 	if endDate.YearDay() < actor.BirthDate.YearDay() {
 		age--

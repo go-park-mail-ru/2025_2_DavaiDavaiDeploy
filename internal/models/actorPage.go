@@ -9,7 +9,7 @@ import (
 type ActorPage struct {
 	ID            uuid.UUID `json:"id"`
 	RussianName   string    `json:"russian_name"`
-	OriginalName  string    `json:"original_name,omitempty"`
+	OriginalName  *string   `json:"original_name,omitempty"`
 	Photo         string    `json:"photo,omitempty"`
 	Height        int       `json:"height,omitempty"`
 	BirthDate     time.Time `json:"birth_date,omitempty"`

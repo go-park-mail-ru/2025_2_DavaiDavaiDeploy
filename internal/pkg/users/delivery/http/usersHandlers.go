@@ -66,6 +66,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 }
 
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -73,7 +74,6 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			Message: err.Error(),
 		}
 
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		err := json.NewEncoder(w).Encode(errorResp)
 		if err != nil {
@@ -95,6 +95,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {
 		errorResp := models.Error{
@@ -121,6 +122,14 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		errorResp := models.Error{
+			Message: err.Error(),
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(errorResp)
+		return
+	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,

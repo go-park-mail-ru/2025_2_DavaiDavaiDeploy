@@ -130,8 +130,8 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
 	if err == nil {
 		// отзыв существует - обновляем
-		existingFeedback.Title = req.Title
-		existingFeedback.Text = req.Text
+		existingFeedback.Title = &req.Title
+		existingFeedback.Text = &req.Text
 		existingFeedback.Rating = req.Rating
 
 		err := uc.filmRepo.UpdateFeedback(ctx, existingFeedback)
@@ -147,8 +147,8 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 		ID:        uuid.NewV4(),
 		UserID:    user.ID,
 		FilmID:    filmID,
-		Title:     req.Title,
-		Text:      req.Text,
+		Title:     &req.Title,
+		Text:      &req.Text,
 		Rating:    req.Rating,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -182,8 +182,6 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 		ID:        uuid.NewV4(),
 		UserID:    user.ID,
 		FilmID:    filmID,
-		Title:     "",
-		Text:      "",
 		Rating:    req.Rating,
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),

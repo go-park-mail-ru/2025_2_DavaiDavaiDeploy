@@ -156,14 +156,12 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 		return models.User{}, "", errors.New("The passwords should be different")
 	}
 
-	newHashPassword := HashPass(newPassword)
-
 	err = uc.userRepo.UpdateUserPassword(ctx, neededUser.ID, HashPass(newPassword))
 	if err != nil {
 		return models.User{}, "", errors.New("Failed to update the password")
 	}
 
-	neededUser.PasswordHash = newHashPassword
+	neededUser.PasswordHash = HashPass(newPassword)
 	neededUser.UpdatedAt = time.Now().UTC()
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)

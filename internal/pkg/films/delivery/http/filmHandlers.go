@@ -39,6 +39,7 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 // @Success      200  {object}  models.PromoFilm
 // @Router       /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -209,11 +210,11 @@ func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
+	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		errorResp := models.Error{
 			Message: err.Error(),
 		}
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(errorResp)
 		return

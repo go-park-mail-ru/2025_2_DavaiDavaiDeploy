@@ -275,6 +275,18 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
 		}
 		feedbacks = append(feedbacks, feedback)
 	}
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
+				pgErr.Message, pgErr.Code, pgErr.Detail)
+		}
+
+		fmt.Printf("Error getting feedbacks by film %v\n", err)
+		return []models.FilmFeedback{}, fmt.Errorf("failed to get film: %w", err)
+	}
+
 	return feedbacks, nil
 }
 

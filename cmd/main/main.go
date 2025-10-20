@@ -102,7 +102,8 @@ func main() {
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.Handle("/check", authHandler.Middleware(http.HandlerFunc(authHandler.CheckAuth))).Methods(http.MethodGet, http.MethodOptions)
-	authRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.Handle("/change/password", userHandler.Middleware(http.HandlerFunc(userHandler.ChangePassword))).Methods(http.MethodPut, http.MethodOptions)
+	authRouter.Handle("/change/avatar", userHandler.Middleware(http.HandlerFunc(userHandler.ChangeAvatar))).Methods(http.MethodPut, http.MethodOptions)
 	authRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 	authRouter.Handle("/logout", authHandler.Middleware(http.HandlerFunc(authHandler.LogOutUser))).Methods(http.MethodPost, http.MethodOptions)
 
@@ -115,7 +116,7 @@ func main() {
 	r.HandleFunc("/films/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	r.HandleFunc("/films/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
 	r.HandleFunc("/films/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
-	r.HandleFunc("/films/feedback/{id}", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
+	r.HandleFunc("/film/feedbacks/{id}", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 	r.Handle("/films/send-feedback/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SendFeedback))).Methods(http.MethodPost, http.MethodOptions)
 	r.Handle("/films/set-rating/{id}", authHandler.Middleware(http.HandlerFunc(filmHandler.SetRating))).Methods(http.MethodPost, http.MethodOptions)
 

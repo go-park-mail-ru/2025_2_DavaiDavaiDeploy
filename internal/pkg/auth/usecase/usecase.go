@@ -119,6 +119,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 		ID:           id,
 		Login:        req.Login,
 		PasswordHash: passwordHash,
+		Version:      1,
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
