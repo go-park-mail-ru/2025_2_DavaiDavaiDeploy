@@ -31,7 +31,7 @@ func ValidateLogin(login string) (string, bool) {
 }
 
 const (
-	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?`~"
 )
 
 func ValidatePassword(password string) (string, bool) {
