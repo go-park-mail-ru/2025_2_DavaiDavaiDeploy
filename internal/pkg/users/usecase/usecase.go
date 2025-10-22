@@ -200,6 +200,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	avatarsDir := os.Getenv("AVATARS_DIR")
 
 	filePath := filepath.Join(avatarsDir, avatarPath)
+	filePath = filepath.ToSlash(filePath)
 
 	err = os.WriteFile(filePath, buffer, 0644)
 	if err != nil {

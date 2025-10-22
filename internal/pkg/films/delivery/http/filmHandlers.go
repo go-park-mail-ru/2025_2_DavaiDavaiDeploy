@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/films"
+	"kinopoisk/internal/pkg/helpers"
 	"net/http"
 	"strconv"
 
@@ -42,14 +43,11 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		helpers.WriteError(w, 500, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(film)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, film)
 }
 
 // GetFilms godoc
@@ -62,21 +60,16 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Failure      400     {object}  models.Error
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	count := GetParameter(r, "count", 10)
 	offset := GetParameter(r, "offset", 0)
 
 	films, err := c.uc.GetFilms(r.Context(), count, offset)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(films)
+	helpers.WriteJSON(w, films)
 }
 
 // GetFilm godoc
@@ -92,28 +85,17 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	result, err := c.uc.GetFilm(r.Context(), id)
+	film, err := c.uc.GetFilm(r.Context(), id)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(result)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, film)
 }
 
 // GetFilmsByGenre godoc
@@ -130,15 +112,7 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 
 	neededGenre, err := uuid.FromString(idStr)
 	if err != nil {
-		errorResp := models.Error{
-			Message: "Invalid genre id",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -147,19 +121,11 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 
 	films, err := c.uc.GetFilmsByGenre(r.Context(), neededGenre, count, offset)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(films)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, films)
 }
 
 // GetFilmsByActor godoc
@@ -171,20 +137,12 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  models.Error
 // @Router       /films/actor/{id} [get]
 func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 
 	neededActor, err := uuid.FromString(idStr)
 	if err != nil {
-		errorResp := models.Error{
-			Message: "Invalid actor id",
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -193,30 +151,18 @@ func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, count, offset)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(films)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, films)
 }
 
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
-	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -225,32 +171,18 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	films, err := c.uc.GetFilmFeedbacks(r.Context(), id, count, offset)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(films)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, films)
 }
 
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -264,37 +196,23 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
 
 	if err != nil {
-		errorResp := models.Error{
-			Message: "Failed to create feedback: " + err.Error(),
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(feedback)
-
+	helpers.WriteJSON(w, feedback)
 }
 
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
 	// if err != nil {
-	// 	fmt.Println("suslik")
 	// 	w.WriteHeader(http.StatusInternalServerError)
 	// 	json.NewEncoder(w).Encode(feedback)
 	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
@@ -307,18 +225,11 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feedback, err := c.uc.SetRating(r.Context(), req, filmID)
+	rating, err := c.uc.SetRating(r.Context(), req, filmID)
 	if err != nil {
-		errorResp := models.Error{
-			Message: "Failed to set rating: " + err.Error(),
-		}
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(feedback)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, rating)
 }

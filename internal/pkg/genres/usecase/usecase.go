@@ -20,15 +20,19 @@ func NewGenreUsecase(genreRepo genres.GenreRepo) *GenreUsecase {
 func (uc *GenreUsecase) GetGenre(ctx context.Context, id uuid.UUID) (models.Genre, error) {
 	neededGenre, err := uc.genreRepo.GetGenreByID(ctx, id)
 	if err != nil {
-		return models.Genre{}, errors.New("No such genre")
+		return models.Genre{}, errors.New("no such genre")
 	}
 	return neededGenre, nil
 }
 
 func (uc *GenreUsecase) GetGenres(ctx context.Context, limit, offset int) ([]models.Genre, error) {
-	neededGenre, err := uc.genreRepo.GetGenresWithPagination(ctx, limit, offset)
+	genres, err := uc.genreRepo.GetGenresWithPagination(ctx, limit, offset)
 	if err != nil {
-		return []models.Genre{}, errors.New("No genres")
+		return []models.Genre{}, errors.New("no genres")
 	}
-	return neededGenre, nil
+
+	if len(genres) == 0 {
+		return []models.Genre{}, errors.New("no genres")
+	}
+	return genres, nil
 }

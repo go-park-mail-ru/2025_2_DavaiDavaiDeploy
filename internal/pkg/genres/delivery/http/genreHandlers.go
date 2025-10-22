@@ -1,9 +1,8 @@
 package http
 
 import (
-	"encoding/json"
-	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/genres"
+	"kinopoisk/internal/pkg/helpers"
 	"net/http"
 	"strconv"
 
@@ -41,38 +40,20 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 // @Failure      400  {object}  models.Error
 // @Router       /genres/{id} [get]
 func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader((http.StatusBadRequest))
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
+		return
 	}
 
 	neededGenre, err := g.uc.GetGenre(r.Context(), id)
 	if err != nil {
-		errorResp := models.Error{
-			Message: "invalid id",
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(neededGenre)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, neededGenre)
 }
 
 // GetGenres godoc
@@ -87,12 +68,9 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 
 	genres, err := g.uc.GetGenres(r.Context(), count, offset)
 	if err != nil {
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(genres)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, genres)
 }

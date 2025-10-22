@@ -36,17 +36,24 @@ import (
 )
 
 func initDB(ctx context.Context) (*pgxpool.Pool, error) {
-	postgresString := "host=localhost port=5433 user=postgres password=qwerty dbname=kinopoisk sslmode=disable"
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASS")
+	dbname := os.Getenv("DB_NAME")
+
+	postgresString := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		host, port, user, password, dbname,
+	)
 
 	config, err := pgxpool.ParseConfig(postgresString)
 	if err != nil {
-		fmt.Println("bug")
 		return nil, err
 	}
 
 	pool, err := pgxpool.ConnectConfig(ctx, config)
 	if err != nil {
-		fmt.Println("bug")
 		return nil, err
 	}
 

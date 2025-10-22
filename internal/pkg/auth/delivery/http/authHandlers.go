@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/helpers"
 	"net/http"
 	"os"
 	"time"
@@ -54,34 +55,17 @@ func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
 // @Failure      409    {object}  models.Error
 // @Router       /auth/signup [post]
 func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
 
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -96,11 +80,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	//w.Header().Set("Authorization", "Bearer "+token)
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, user)
 }
 
 // SignInUser godoc
@@ -121,30 +101,14 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	user, token, err := a.uc.SignInUser(r.Context(), req)
 
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusUnauthorized)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -157,12 +121,9 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
+
 	//w.Header().Set("Authorization", "Bearer "+token)
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, user)
 }
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
@@ -175,8 +136,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
+			helpers.WriteError(w, 401, err)
 			return
 		}
 
@@ -197,33 +157,17 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
-		errorResp := models.Error{
-			Message: "User not authenticated",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
-		return
+		helpers.WriteError(w, 401, err)
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, user)
 }
 
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
-		errorResp := models.Error{
-			Message: "User not authenticated",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 401, err)
 		return
 	}
 
@@ -237,6 +181,5 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Successfully logged out"})
+	helpers.WriteJSON(w, map[string]string{"message": "Successfully logged out"})
 }

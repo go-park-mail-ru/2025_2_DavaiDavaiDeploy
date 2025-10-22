@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/users"
 	"net/http"
 	"os"
@@ -54,8 +55,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
+			helpers.WriteError(w, 401, err)
 			return
 		}
 
@@ -66,68 +66,39 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 }
 
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	neededUser, err := u.uc.GetUser(r.Context(), id)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		helpers.WriteError(w, 500, err)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(neededUser)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+
+	helpers.WriteJSON(w, neededUser)
 }
 
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {
-		errorResp := models.Error{
-			Message: "User not authenticated",
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 401, errors.New("user not authenticated"))
 		return
 	}
 
 	var req models.ChangePasswordInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		err := json.NewEncoder(w).Encode(errorResp)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
-		errorResp := models.Error{
-			Message: err.Error(),
-		}
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
@@ -141,11 +112,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, user)
 }
 
 // ChangeAvatar  godoc
@@ -159,11 +126,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {
-		errorResp := models.Error{
-			Message: "User not authenticated",
-		}
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(errorResp)
+		helpers.WriteError(w, 401, errors.New("user not authenticated"))
 		return
 	}
 
@@ -177,27 +140,31 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
-			w.WriteHeader(http.StatusRequestEntityTooLarge)
+			helpers.WriteError(w, 413, err)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 	defer file.Close()
 
 	buffer, err := io.ReadAll(file)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		helpers.WriteError(w, 400, err)
 		return
 	}
 
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
+	if err != nil {
+		helpers.WriteError(w, 500, err)
+		return
+	}
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -209,9 +176,5 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	w.WriteHeader(http.StatusOK)
-	err = json.NewEncoder(w).Encode(user)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	helpers.WriteJSON(w, user)
 }
