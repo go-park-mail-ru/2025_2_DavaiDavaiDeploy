@@ -64,8 +64,8 @@ func main() {
 	dbpool, err := initDB(ctx)
 
 	mainRouter := mux.NewRouter()
-	fs := http.FileServer(http.Dir("/opt/static/"))
-	mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
+	//fs := http.FileServer(http.Dir("/opt/static/"))
+	//mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	apiRouter := mainRouter.PathPrefix("/api").Subrouter()

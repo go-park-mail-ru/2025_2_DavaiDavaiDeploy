@@ -197,7 +197,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	avatarPath := neededUser.ID.String() + avatarExtension
 	neededUser.Avatar = &avatarPath
 
-	avatarsDir := "./static/avatars"
+	avatarsDir := os.Getenv("AVATARS_DIR")
 
 	filePath := filepath.Join(avatarsDir, avatarPath)
 
@@ -208,11 +208,13 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.ID, filePath)
 	if err != nil {
+		os.Remove(filePath)
 		return models.User{}, "", err
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
 	if err != nil {
+		os.Remove(filePath)
 		return models.User{}, "", err
 	}
 
