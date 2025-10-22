@@ -178,7 +178,7 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffer []byte) (models.User, string, error) {
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", errors.New("User not authenticated")
+		return models.User{}, "", errors.New("user not authenticated")
 	}
 
 	fileFormat := http.DetectContentType(buffer)

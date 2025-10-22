@@ -146,6 +146,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
+	defer newReq.MultipartForm.RemoveAll()
 
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
