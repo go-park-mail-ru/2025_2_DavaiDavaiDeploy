@@ -10,6 +10,7 @@ import (
 	"kinopoisk/internal/pkg/users"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -199,7 +200,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	avatarsDir := "./static/avatars"
 
-	filePath := avatarsDir + "/" + avatarPath
+	filePath := filepath.Join(avatarsDir, avatarPath)
 
 	err = os.WriteFile(filePath, buffer, 0644)
 	if err != nil {
