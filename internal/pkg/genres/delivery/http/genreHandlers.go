@@ -4,7 +4,6 @@ import (
 	"kinopoisk/internal/pkg/genres"
 	"kinopoisk/internal/pkg/helpers"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
@@ -16,19 +15,6 @@ type GenreHandler struct {
 
 func NewGenreHandler(uc genres.GenreUsecase) *GenreHandler {
 	return &GenreHandler{uc: uc}
-}
-
-func GetParameter(r *http.Request, s string, defaultValue int) int {
-	strValue := r.URL.Query().Get(s)
-	if strValue == "" {
-		return defaultValue
-	}
-
-	result, err := strconv.Atoi(strValue)
-	if err != nil || result <= 0 {
-		return defaultValue
-	}
-	return result
 }
 
 // GetGenre godoc
@@ -63,10 +49,9 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {array}  models.Genre
 // @Router       /genres [get]
 func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
-	count := GetParameter(r, "count", 10)
-	offset := GetParameter(r, "offset", 0)
+	pager := helpers.GetPagerFromRequest(r)
 
-	genres, err := g.uc.GetGenres(r.Context(), count, offset)
+	genres, err := g.uc.GetGenres(r.Context(), pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return

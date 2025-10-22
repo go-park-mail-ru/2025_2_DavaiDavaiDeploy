@@ -25,8 +25,8 @@ func (uc *GenreUsecase) GetGenre(ctx context.Context, id uuid.UUID) (models.Genr
 	return neededGenre, nil
 }
 
-func (uc *GenreUsecase) GetGenres(ctx context.Context, limit, offset int) ([]models.Genre, error) {
-	genres, err := uc.genreRepo.GetGenresWithPagination(ctx, limit, offset)
+func (uc *GenreUsecase) GetGenres(ctx context.Context, pager models.Pager) ([]models.Genre, error) {
+	genres, err := uc.genreRepo.GetGenresWithPagination(ctx, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.Genre{}, errors.New("no genres")
 	}

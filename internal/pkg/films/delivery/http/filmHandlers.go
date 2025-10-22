@@ -6,7 +6,6 @@ import (
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/helpers"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
@@ -20,19 +19,6 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 	return &FilmHandler{uc: uc}
 }
 
-func GetParameter(r *http.Request, s string, defaultValue int) int {
-	strValue := r.URL.Query().Get(s)
-	if strValue == "" {
-		return defaultValue
-	}
-
-	result, err := strconv.Atoi(strValue)
-	if err != nil || result <= 0 {
-		return defaultValue
-	}
-	return result
-}
-
 // GetPromoFilm godoc
 // @Summary      Get the film to the main page
 // @Tags         films
@@ -40,7 +26,6 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 // @Success      200  {object}  models.PromoFilm
 // @Router       /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
 		helpers.WriteError(w, 500, err)
@@ -60,10 +45,9 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Failure      400     {object}  models.Error
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
-	count := GetParameter(r, "count", 10)
-	offset := GetParameter(r, "offset", 0)
+	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilms(r.Context(), count, offset)
+	films, err := c.uc.GetFilms(r.Context(), pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
@@ -81,7 +65,6 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  models.Error
 // @Router       /films/{id} [get]
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -116,10 +99,9 @@ func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count := GetParameter(r, "count", 10)
-	offset := GetParameter(r, "offset", 0)
+	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilmsByGenre(r.Context(), neededGenre, count, offset)
+	films, err := c.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
@@ -146,10 +128,9 @@ func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count := GetParameter(r, "count", 10)
-	offset := GetParameter(r, "offset", 0)
+	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, count, offset)
+	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
@@ -166,10 +147,9 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	count := GetParameter(r, "count", 10)
-	offset := GetParameter(r, "offset", 0)
+	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilmFeedbacks(r.Context(), id, count, offset)
+	films, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return

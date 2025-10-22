@@ -9,11 +9,11 @@ import (
 
 type FilmUsecase interface {
 	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
-	GetFilms(ctx context.Context, count int, offset int) ([]models.MainPageFilm, error)
+	GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error)
 	GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error)
-	GetFilmsByGenre(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error)
-	GetFilmsByActor(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error)
-	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.FilmFeedback, error)
+	GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error)
+	GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error)
+	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 }

@@ -50,9 +50,9 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 	return promoFilm, nil
 }
 
-func (uc *FilmUsecase) GetFilms(ctx context.Context, count int, offset int) ([]models.MainPageFilm, error) {
+func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error) {
 
-	films, err := uc.filmRepo.GetFilmsWithPagination(ctx, count, offset)
+	films, err := uc.filmRepo.GetFilmsWithPagination(ctx, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.MainPageFilm{}, errors.New("no films")
 	}
@@ -73,8 +73,8 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 	return film, nil
 }
 
-func (uc *FilmUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error) {
-	films, err := uc.filmRepo.GetFilmsByGenre(ctx, id, count, offset)
+func (uc *FilmUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
+	films, err := uc.filmRepo.GetFilmsByGenre(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.Film{}, errors.New("no films")
 	}
@@ -85,8 +85,8 @@ func (uc *FilmUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, count 
 	return films, nil
 }
 
-func (uc *FilmUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.Film, error) {
-	films, err := uc.filmRepo.GetFilmsByActor(ctx, id, count, offset)
+func (uc *FilmUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
+	films, err := uc.filmRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.Film{}, errors.New("no films")
 	}
@@ -97,8 +97,8 @@ func (uc *FilmUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, count 
 	return films, nil
 }
 
-func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, count int, offset int) ([]models.FilmFeedback, error) {
-	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, count, offset)
+func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
+	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.FilmFeedback{}, errors.New("no feedbacks")
 	}
