@@ -73,30 +73,6 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 	return film, nil
 }
 
-func (uc *FilmUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
-	films, err := uc.filmRepo.GetFilmsByGenre(ctx, id, pager.Count, pager.Offset)
-	if err != nil {
-		return []models.Film{}, errors.New("no films")
-	}
-
-	if len(films) == 0 {
-		return []models.Film{}, errors.New("no films")
-	}
-	return films, nil
-}
-
-func (uc *FilmUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
-	films, err := uc.filmRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
-	if err != nil {
-		return []models.Film{}, errors.New("no films")
-	}
-
-	if len(films) == 0 {
-		return []models.Film{}, errors.New("no films")
-	}
-	return films, nil
-}
-
 func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
 	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {

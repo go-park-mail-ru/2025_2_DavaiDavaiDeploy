@@ -9,9 +9,11 @@ import (
 
 type ActorUsecase interface {
 	GetActor(ctx context.Context, id uuid.UUID) (models.ActorPage, error)
+	GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error)
 }
 
 type ActorRepo interface {
 	GetActorByID(ctx context.Context, id uuid.UUID) (models.Actor, error)
 	GetActorFilmsCount(ctx context.Context, actorID uuid.UUID) (int, error)
+	GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.Film, error)
 }

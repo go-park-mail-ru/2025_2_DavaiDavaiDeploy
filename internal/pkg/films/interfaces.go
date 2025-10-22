@@ -11,8 +11,6 @@ type FilmUsecase interface {
 	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
 	GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error)
 	GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error)
-	GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error)
-	GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error)
 	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
@@ -24,8 +22,6 @@ type FilmRepo interface {
 	GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error)
 	GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error)
 	GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error)
-	GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.Film, error)
-	GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.Film, error)
 	GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error)
 	CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
 	UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error

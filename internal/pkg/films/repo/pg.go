@@ -76,8 +76,7 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
 	query := `
         SELECT 
-            f.id, f.cover, f.title, f.year, g.title as genre_title,
-            COALESCE(AVG(ff.rating), 0) as avg_rating
+            f.id, f.cover, f.title, f.year, g.title as genre_title
         FROM film f
         JOIN genre g ON f.genre_id = g.id
         LEFT JOIN film_feedback ff ON f.id = ff.film_id
@@ -100,9 +99,13 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 			&film.Title,
 			&film.Year,
 			&film.Genre,
-			&film.Rating,
 		); err != nil {
 			continue
+		}
+		film.Rating, err = r.GetFilmAvgRating(ctx, film.ID)
+		if err != nil {
+			film.Rating = 0
+
 		}
 		films = append(films, film)
 	}
@@ -174,79 +177,6 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 	}
 
 	return result, nil
-}
-
-func (r *FilmRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.Film, error) {
-	query := `
-        SELECT 
-            id, title, original_title, cover, poster,
-            short_description, description, age_category, budget,
-            worldwide_fees, trailer_url, year, country_id,
-            genre_id, slogan, duration, image1, image2,
-            image3, created_at, updated_at
-        FROM film 
-        WHERE genre_id = $1
-        ORDER BY created_at DESC
-        LIMIT $2 OFFSET $3`
-
-	rows, err := r.db.Query(ctx, query, genreID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var films []models.Film
-	for rows.Next() {
-		var film models.Film
-		if err := rows.Scan(
-			&film.ID, &film.Title, &film.OriginalTitle, &film.Cover, &film.Poster,
-			&film.ShortDescription, &film.Description, &film.AgeCategory, &film.Budget,
-			&film.WorldwideFees, &film.TrailerURL, &film.Year, &film.CountryID,
-			&film.GenreID, &film.Slogan, &film.Duration, &film.Image1, &film.Image2,
-			&film.Image3, &film.CreatedAt, &film.UpdatedAt,
-		); err != nil {
-			continue
-		}
-		films = append(films, film)
-	}
-	return films, nil
-}
-
-func (r *FilmRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.Film, error) {
-	query := `
-        SELECT 
-            f.id, f.title, f.original_title, f.cover, f.poster,
-            f.short_description, f.description, f.age_category, f.budget,
-            f.worldwide_fees, f.trailer_url, f.year, f.country_id,
-            f.genre_id, f.slogan, f.duration, f.image1, f.image2,
-            f.image3, f.created_at, f.updated_at
-        FROM film f
-        JOIN actor_in_film aif ON f.id = aif.film_id
-        WHERE aif.actor_id = $1
-        ORDER BY f.created_at DESC
-        LIMIT $2 OFFSET $3`
-
-	rows, err := r.db.Query(ctx, query, actorID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var films []models.Film
-	for rows.Next() {
-		var film models.Film
-		if err := rows.Scan(
-			&film.ID, &film.Title, &film.OriginalTitle, &film.Cover, &film.Poster,
-			&film.ShortDescription, &film.Description, &film.AgeCategory, &film.Budget,
-			&film.WorldwideFees, &film.TrailerURL, &film.Year, &film.CountryID,
-			&film.GenreID, &film.Slogan, &film.Duration, &film.Image1, &film.Image2,
-			&film.Image3, &film.CreatedAt, &film.UpdatedAt,
-		); err != nil {
-			continue
-		}
-		films = append(films, film)
-	}
-	return films, nil
 }
 
 func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error) {

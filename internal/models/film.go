@@ -19,7 +19,6 @@ type Film struct {
 	Budget           *int      `json:"budget,omitempty"`
 	WorldwideFees    *int      `json:"worldwide_fees,omitempty"`
 	TrailerURL       *string   `json:"trailer_url,omitempty"`
-	NumerOfRatings   int       `json:"number_of_ratings"`
 	Year             int       `json:"year,omitempty"`
 	Rating           float64   `json:"rating,omitempty"`
 	CountryID        uuid.UUID `json:"country_id,omitempty"`

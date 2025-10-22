@@ -41,3 +41,32 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 
 	helpers.WriteJSON(w, actor)
 }
+
+// GetFilmsByActor godoc
+// @Summary      Get films by actor ID
+// @Tags         actors
+// @Produce      json
+// @Param        id   path      string  true  "Actor ID"
+// @Success      200  {array}   models.Film
+// @Failure      400  {object}  models.Error
+// @Router       /actors/{id}/films [get]
+func (c *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	neededActor, err := uuid.FromString(idStr)
+	if err != nil {
+		helpers.WriteError(w, 400, err)
+		return
+	}
+
+	pager := helpers.GetPagerFromRequest(r)
+
+	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, pager)
+	if err != nil {
+		helpers.WriteError(w, 400, err)
+		return
+	}
+
+	helpers.WriteJSON(w, films)
+}

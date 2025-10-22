@@ -59,3 +59,32 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 
 	helpers.WriteJSON(w, genres)
 }
+
+// GetFilmsByGenre godoc
+// @Summary      Get films by genre ID
+// @Tags         genre
+// @Produce      json
+// @Param        id   path      string  true  "Genre ID"
+// @Success      200  {array}   models.Film
+// @Failure      400  {object}  models.Error
+// @Router       /genre/{id}/films [get]
+func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+
+	neededGenre, err := uuid.FromString(idStr)
+	if err != nil {
+		helpers.WriteError(w, 400, err)
+		return
+	}
+
+	pager := helpers.GetPagerFromRequest(r)
+
+	films, err := g.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
+	if err != nil {
+		helpers.WriteError(w, 400, err)
+		return
+	}
+
+	helpers.WriteJSON(w, films)
+}

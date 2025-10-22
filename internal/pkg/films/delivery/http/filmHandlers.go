@@ -81,64 +81,6 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, film)
 }
 
-// GetFilmsByGenre godoc
-// @Summary      Get films by genre ID
-// @Tags         films
-// @Produce      json
-// @Param        id   path      string  true  "Genre ID"
-// @Success      200  {array}   models.Film
-// @Failure      400  {object}  models.Error
-// @Router       /films/genre/{id} [get]
-func (c *FilmHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr := vars["id"]
-
-	neededGenre, err := uuid.FromString(idStr)
-	if err != nil {
-		helpers.WriteError(w, 400, err)
-		return
-	}
-
-	pager := helpers.GetPagerFromRequest(r)
-
-	films, err := c.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
-	if err != nil {
-		helpers.WriteError(w, 400, err)
-		return
-	}
-
-	helpers.WriteJSON(w, films)
-}
-
-// GetFilmsByActor godoc
-// @Summary      Get films by actor ID
-// @Tags         films
-// @Produce      json
-// @Param        id   path      string  true  "Actor ID"
-// @Success      200  {array}   models.Film
-// @Failure      400  {object}  models.Error
-// @Router       /films/actor/{id} [get]
-func (c *FilmHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	idStr := vars["id"]
-
-	neededActor, err := uuid.FromString(idStr)
-	if err != nil {
-		helpers.WriteError(w, 400, err)
-		return
-	}
-
-	pager := helpers.GetPagerFromRequest(r)
-
-	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, pager)
-	if err != nil {
-		helpers.WriteError(w, 400, err)
-		return
-	}
-
-	helpers.WriteJSON(w, films)
-}
-
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])

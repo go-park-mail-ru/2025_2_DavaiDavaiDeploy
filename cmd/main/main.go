@@ -128,8 +128,6 @@ func main() {
 	filmRouter.HandleFunc("", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
-	filmRouter.HandleFunc("/genre/{id}", filmHandler.GetFilmsByGenre).Methods(http.MethodGet)
-	filmRouter.HandleFunc("/actor/{id}", filmHandler.GetFilmsByActor).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 
 	// Protected film routes
@@ -142,10 +140,12 @@ func main() {
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
 	genreRouter.HandleFunc("", genreHandler.GetGenres).Methods(http.MethodGet)
 	genreRouter.HandleFunc("/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
+	genreRouter.HandleFunc("/{id}/films", genreHandler.GetFilmsByGenre).Methods(http.MethodGet)
 
 	// Actor routes
 	actorRouter := apiRouter.PathPrefix("/actors").Subrouter()
 	actorRouter.HandleFunc("/{id}", actorHandler.GetActor).Methods(http.MethodGet)
+	actorRouter.HandleFunc("/{id}/films", actorHandler.GetFilmsByActor).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
