@@ -182,17 +182,16 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	}
 
 	fileFormat := http.DetectContentType(buffer)
-	if fileFormat != "image/jpeg" && fileFormat != "image/png" && fileFormat != "image/webp" {
-		return models.User{}, "", err
-	}
-
-	avatarExtension := ""
-	if fileFormat == "image/jpeg" {
+	var avatarExtension string
+	switch fileFormat {
+	case "image/jpeg":
 		avatarExtension = ".jpg"
-	} else if fileFormat == "image/png" {
+	case "image/png":
 		avatarExtension = ".png"
-	} else {
+	case "image/webp":
 		avatarExtension = ".webp"
+	default:
+		return models.User{}, "", errors.New("unsupported image format")
 	}
 
 	avatarPath := neededUser.ID.String() + avatarExtension
