@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"kinopoisk/dsn"
 	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
 	actorRepo "kinopoisk/internal/pkg/actors/repo"
 	actorUsecase "kinopoisk/internal/pkg/actors/usecase"
@@ -37,8 +36,7 @@ import (
 )
 
 func initDB(ctx context.Context) (*pgxpool.Pool, error) {
-	// убрать
-	postgresString := dsn.FromEnv()
+	postgresString := "host=localhost port=5433 user=postgres password=qwerty dbname=kinopoisk sslmode=disable"
 
 	config, err := pgxpool.ParseConfig(postgresString)
 	if err != nil {
