@@ -12,7 +12,7 @@ type ActorPage struct {
 	OriginalName  *string   `json:"original_name,omitempty"`
 	Photo         string    `json:"photo,omitempty"`
 	Height        int       `json:"height,omitempty"`
-	BirthDate     time.Time `json:"birth_date,omitempty"`
+	BirthDate     time.Time `json:"birth_date"`
 	Age           int       `json:"age,omitempty"`
 	ZodiacSign    string    `json:"zodiac_sign,omitempty"`
 	BirthPlace    string    `json:"birth_place,omitempty"`
