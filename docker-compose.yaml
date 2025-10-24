@@ -8,4 +8,34 @@ services:
     ports:
       - 5458:5458 
     volumes:
-      - ./static/:/opt/static/ 
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17.0
+    env_file:
+      - .env
+    container_name: postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./build/sql/:/docker-entrypoint-initdb.d/
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
