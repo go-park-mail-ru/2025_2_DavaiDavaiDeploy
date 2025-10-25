@@ -102,10 +102,12 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 		); err != nil {
 			continue
 		}
-		film.Rating, err = r.GetFilmAvgRating(ctx, film.ID)
+		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
-			film.Rating = 0
-
+			zeroRating := 0.0
+			film.Rating = &zeroRating
+		} else {
+			film.Rating = &rating
 		}
 		films = append(films, film)
 	}
@@ -182,10 +184,14 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error) {
 	query := `
         SELECT 
-            id, user_id, film_id, title, text, rating, created_at, updated_at
-        FROM film_feedback 
-        WHERE film_id = $1
-        ORDER BY created_at DESC
+            ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
+            ff.created_at, ff.updated_at,
+            u.login as user_login,
+            u.avatar as user_avatar
+        FROM film_feedback ff
+        JOIN user_table u ON ff.user_id = u.id
+        WHERE ff.film_id = $1
+        ORDER BY ff.created_at DESC
         LIMIT $2 OFFSET $3`
 
 	rows, err := r.db.Query(ctx, query, filmID, limit, offset)
@@ -197,9 +203,11 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
 	var feedbacks []models.FilmFeedback
 	for rows.Next() {
 		var feedback models.FilmFeedback
+
 		if err := rows.Scan(
 			&feedback.ID, &feedback.UserID, &feedback.FilmID, &feedback.Title,
 			&feedback.Text, &feedback.Rating, &feedback.CreatedAt, &feedback.UpdatedAt,
+			&feedback.UserLogin, &feedback.UserAvatar,
 		); err != nil {
 			continue
 		}
@@ -224,11 +232,19 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 	var feedback models.FilmFeedback
 	err := r.db.QueryRow(
 		ctx,
-		"SELECT id, user_id, film_id, title, text, rating, created_at, updated_at FROM film_feedback WHERE user_id = $1 AND film_id = $2",
+		`SELECT 
+            ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
+            ff.created_at, ff.updated_at,
+            u.login as user_login,
+            u.avatar as user_avatar
+        FROM film_feedback ff
+        JOIN user_table u ON ff.user_id = u.id
+        WHERE ff.user_id = $1 AND ff.film_id = $2`,
 		userID, filmID,
 	).Scan(
 		&feedback.ID, &feedback.UserID, &feedback.FilmID, &feedback.Title,
 		&feedback.Text, &feedback.Rating, &feedback.CreatedAt, &feedback.UpdatedAt,
+		&feedback.UserLogin, &feedback.UserAvatar,
 	)
 	if err != nil {
 		return models.FilmFeedback{}, err

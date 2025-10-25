@@ -6,9 +6,9 @@ import (
 
 type MainPageFilm struct {
 	ID     uuid.UUID `json:"id"`
-	Cover  string    `json:"cover"` // будет не обложка, а другая картинка
+	Cover  string    `json:"cover"`
 	Title  string    `json:"title"`
-	Rating float64   `json:"rating"`
+	Rating *float64  `json:"rating,omitempty"`
 	Year   int       `json:"year"`
 	Genre  string    `json:"genre"`
 }

@@ -42,16 +42,17 @@ func (r *ActorRepository) GetActorFilmsCount(ctx context.Context, actorID uuid.U
 	return count, err
 }
 
-func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.Film, error) {
+func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
 	query := `
         SELECT 
-            f.id, f.title, f.original_title, f.cover, f.poster,
-            f.short_description, f.description, f.age_category, f.budget,
-            f.worldwide_fees, f.trailer_url, f.year, f.country_id,
-            f.genre_id, f.slogan, f.duration, f.image1, f.image2,
-            f.image3, f.created_at, f.updated_at
+            f.id, 
+            COALESCE(f.cover, ''), 
+            f.title, 
+            f.year,
+            g.title as genre
         FROM film f
         JOIN actor_in_film aif ON f.id = aif.film_id
+        JOIN genre g ON f.genre_id = g.id
         WHERE aif.actor_id = $1
         ORDER BY f.created_at DESC
         LIMIT $2 OFFSET $3`
@@ -62,15 +63,15 @@ func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID
 	}
 	defer rows.Close()
 
-	var films []models.Film
+	var films []models.MainPageFilm
 	for rows.Next() {
-		var film models.Film
+		var film models.MainPageFilm
 		if err := rows.Scan(
-			&film.ID, &film.Title, &film.OriginalTitle, &film.Cover, &film.Poster,
-			&film.ShortDescription, &film.Description, &film.AgeCategory, &film.Budget,
-			&film.WorldwideFees, &film.TrailerURL, &film.Year, &film.CountryID,
-			&film.GenreID, &film.Slogan, &film.Duration, &film.Image1, &film.Image2,
-			&film.Image3, &film.CreatedAt, &film.UpdatedAt,
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.Year,
+			&film.Genre,
 		); err != nil {
 			continue
 		}

@@ -60,14 +60,14 @@ func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.Acto
 	return result, nil
 }
 
-func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
+func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.MainPageFilm, error) {
 	films, err := uc.actorRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.Film{}, errors.New("no films")
+		return []models.MainPageFilm{}, errors.New("no films")
 	}
 
 	if len(films) == 0 {
-		return []models.Film{}, errors.New("no films")
+		return []models.MainPageFilm{}, errors.New("no films")
 	}
 	return films, nil
 }

@@ -50,7 +50,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 // @Success      200  {array}   models.Film
 // @Failure      400  {object}  models.Error
 // @Router       /actors/{id}/films [get]
-func (c *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
+func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 
@@ -62,7 +62,7 @@ func (c *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilmsByActor(r.Context(), neededActor, pager)
+	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
