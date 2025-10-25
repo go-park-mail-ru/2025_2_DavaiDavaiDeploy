@@ -156,8 +156,12 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	const maxRequestBodySize = 10 * 1024 * 1024
 	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
-	defer limitedReader.Close()
+	defer func() {
+		if limitedReader.Close() != nil {
+			_ = limitedReader.Close()
 
+		}
+	}()
 	newReq := *r
 	newReq.Body = limitedReader
 
@@ -181,7 +185,12 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if file.Close() != nil {
+			_ = file.Close()
+
+		}
+	}()
 
 	buffer, err := io.ReadAll(file)
 	if err != nil {
