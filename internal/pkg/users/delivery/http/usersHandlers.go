@@ -59,7 +59,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user_id", user.ID)
+		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
@@ -103,7 +103,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		helpers.WriteError(w, 401, errors.New("user not authenticated"))
 		return
@@ -148,7 +148,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("user_id").(uuid.UUID)
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		helpers.WriteError(w, 401, errors.New("user not authenticated"))
 		return
@@ -170,7 +170,11 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-	defer newReq.MultipartForm.RemoveAll()
+	defer func() {
+		if newReq.MultipartForm != nil {
+			_ = newReq.MultipartForm.RemoveAll()
+		}
+	}()
 
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
