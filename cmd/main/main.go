@@ -71,6 +71,9 @@ func main() {
 	_ = godotenv.Load()
 	ctx := context.Background()
 	dbpool, err := initDB(ctx)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
 
 	mainRouter := mux.NewRouter()
 	//fs := http.FileServer(http.Dir("/opt/static/"))

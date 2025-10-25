@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 )
 
 type FilmUsecase struct {
-	secret   string
 	filmRepo films.FilmRepo
 }
 
@@ -86,7 +86,7 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 }
 
 func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
-	user, ok := ctx.Value("user").(models.User)
+	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		return models.FilmFeedback{}, errors.New("user not authenticated")
 	}
@@ -137,7 +137,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 }
 
 func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
-	user, ok := ctx.Value("user").(models.User)
+	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		return models.FilmFeedback{}, errors.New("user not authenticated")
 	}

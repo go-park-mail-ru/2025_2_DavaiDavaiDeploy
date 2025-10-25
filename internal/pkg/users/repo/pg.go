@@ -67,11 +67,11 @@ func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, us
 	return err
 }
 
-func (u *UserRepository) UpdateUserAvatar(ctx context.Context, userID uuid.UUID, avatarPath string) error {
+func (u *UserRepository) UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error {
 	_, err := u.db.Exec(
 		ctx,
-		"UPDATE user_table SET avatar = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
-		avatarPath, userID,
+		"UPDATE user_table SET avatar = $1, version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+		avatarPath, version, userID,
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -79,9 +79,7 @@ func (u *UserRepository) UpdateUserAvatar(ctx context.Context, userID uuid.UUID,
 			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
 				pgErr.Message, pgErr.Code, pgErr.Detail)
 		}
-
-		fmt.Printf("Error %s:\n", err)
-		return fmt.Errorf("failed to: %w", err)
+		return fmt.Errorf("failed to update avatar: %w", err)
 	}
-	return err
+	return nil
 }

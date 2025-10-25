@@ -141,7 +141,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), "user", user)
+		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

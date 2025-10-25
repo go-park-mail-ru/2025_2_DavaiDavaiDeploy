@@ -163,7 +163,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 }
 
 func (uc *AuthUsecase) CheckAuth(ctx context.Context) (models.User, error) {
-	user, ok := ctx.Value("user").(models.User)
+	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		return models.User{}, errors.New("user not authenticated")
 	}
@@ -172,7 +172,7 @@ func (uc *AuthUsecase) CheckAuth(ctx context.Context) (models.User, error) {
 }
 
 func (uc *AuthUsecase) LogOutUser(ctx context.Context) error {
-	user, ok := ctx.Value("user").(models.User)
+	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		return errors.New("user not authenticated")
 	}

@@ -21,5 +21,5 @@ type UsersRepo interface {
 	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 	UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error
-	UpdateUserAvatar(ctx context.Context, userID uuid.UUID, avatarPath string) error
+	UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error
 }
