@@ -15,16 +15,87 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/actors/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actors"
+                ],
+                "summary": "Get actor by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Actor"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/actors/{id}/films": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "actors"
+                ],
+                "summary": "Get films by actor ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Actor ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.MainPageFilm"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/check": {
             "get": {
-                "description": "Verify JWT token in cookie",
+                "description": "Verify if user is authenticated and return user data",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Check authentication",
+                "summary": "Check authentication status",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -37,13 +108,48 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "description": "Clear authentication cookie and log out user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "User logout",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
                     }
                 }
             }
         },
         "/auth/signin": {
             "post": {
-                "description": "Authenticate existing user",
+                "description": "Authenticate user",
                 "consumes": [
                     "application/json"
                 ],
@@ -56,7 +162,7 @@ const docTemplate = `{
                 "summary": "User login",
                 "parameters": [
                     {
-                        "description": "User credentials",
+                        "description": "User data",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -83,13 +189,19 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
                     }
                 }
             }
         },
         "/auth/signup": {
             "post": {
-                "description": "Register a new user",
+                "description": "Register a new user account",
                 "consumes": [
                     "application/json"
                 ],
@@ -99,10 +211,10 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "User signup",
+                "summary": "User registration",
                 "parameters": [
                     {
-                        "description": "User credentials",
+                        "description": "User registration data",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -124,8 +236,8 @@ const docTemplate = `{
                             "$ref": "#/definitions/models.Error"
                         }
                     },
-                    "409": {
-                        "description": "Conflict",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
@@ -164,7 +276,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Film"
+                                "$ref": "#/definitions/models.MainPageFilm"
                             }
                         }
                     },
@@ -177,36 +289,25 @@ const docTemplate = `{
                 }
             }
         },
-        "/films/genre/{id}": {
+        "/films/promo": {
             "get": {
+                "description": "Get the promo film",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "films"
                 ],
-                "summary": "Get films by genre ID",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Genre ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Get promotional film",
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.Film"
-                            }
+                            "$ref": "#/definitions/models.PromoFilm"
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
@@ -236,11 +337,159 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Film"
+                            "$ref": "#/definitions/models.FilmPage"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/films/{id}/feedbacks": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Get film reviews",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FilmFeedback"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Add film review",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.FilmFeedback"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/films/{id}/rating": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Rate a film",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Rating data (rating 1-10 is required)",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.FilmFeedbackInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.FilmFeedback"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
@@ -256,7 +505,7 @@ const docTemplate = `{
                 "tags": [
                     "genres"
                 ],
-                "summary": "List all genres",
+                "summary": "Get list of all genres",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -265,6 +514,12 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/models.Genre"
                             }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
                         }
                     }
                 }
@@ -300,12 +555,267 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.Error"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/genres/{id}/films": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "genres"
+                ],
+                "summary": "Get films by genre",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Film"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/avatar": {
+            "put": {
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user avatar",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "Avatar image file (required, max 10MB, formats: jpg, png, webp)",
+                        "name": "avatar",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "413": {
+                        "description": "Request Entity Too Large",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/password": {
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Change user password",
+                "parameters": [
+                    {
+                        "description": "Password data (old_password and new_password are required)",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ChangePasswordInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "User not authenticated",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Genre ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/models.Error"
+                        }
                     }
                 }
             }
         }
     },
     "definitions": {
+        "models.Actor": {
+            "type": "object",
+            "required": [
+                "birth_date",
+                "russian_name"
+            ],
+            "properties": {
+                "birth_date": {
+                    "type": "string"
+                },
+                "birth_place": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "death_date": {
+                    "type": "string"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "marital_status": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "russian_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "zodiac_sign": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ChangePasswordInput": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string"
+                },
+                "old_password": {
+                    "type": "string"
+                }
+            }
+        },
         "models.Error": {
             "type": "object",
             "properties": {
@@ -316,27 +826,226 @@ const docTemplate = `{
         },
         "models.Film": {
             "type": "object",
+            "required": [
+                "genre_id",
+                "title"
+            ],
             "properties": {
+                "age_category": {
+                    "type": "string"
+                },
+                "budget": {
+                    "type": "integer"
+                },
+                "country_id": {
+                    "type": "string"
+                },
+                "cover": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "genre_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image1": {
+                    "type": "string"
+                },
+                "image2": {
+                    "type": "string"
+                },
+                "image3": {
+                    "type": "string"
+                },
+                "original_title": {
+                    "type": "string"
+                },
+                "poster": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "slogan": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "trailer_url": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "worldwide_fees": {
+                    "type": "integer"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.FilmFeedback": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "film_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer",
+                    "maximum": 10,
+                    "minimum": 1
+                },
+                "text": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user_avatar": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                },
+                "user_login": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.FilmFeedbackInput": {
+            "type": "object",
+            "required": [
+                "rating",
+                "text",
+                "title"
+            ],
+            "properties": {
+                "rating": {
+                    "type": "integer",
+                    "maximum": 10,
+                    "minimum": 1
+                },
+                "text": {
+                    "type": "string",
+                    "maxLength": 1000,
+                    "minLength": 1
+                },
+                "title": {
+                    "type": "string",
+                    "maxLength": 100,
+                    "minLength": 1
+                }
+            }
+        },
+        "models.FilmPage": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Actor"
+                    }
+                },
+                "age_category": {
+                    "type": "string"
+                },
                 "budget": {
                     "type": "integer"
                 },
                 "country": {
                     "type": "string"
                 },
-                "createdAt": {
+                "cover": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "duration": {
                     "type": "integer"
                 },
-                "fees": {
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image1": {
+                    "type": "string"
+                },
+                "image2": {
+                    "type": "string"
+                },
+                "image3": {
+                    "type": "string"
+                },
+                "number_of_ratings": {
                     "type": "integer"
                 },
-                "genres": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Genre"
-                    }
+                "original_title": {
+                    "type": "string"
+                },
+                "poster": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "slogan": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "trailer_url": {
+                    "type": "string"
+                },
+                "worldwide_fees": {
+                    "type": "integer"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Genre": {
+            "type": "object",
+            "required": [
+                "title"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
                 },
                 "icon": {
                     "type": "string"
@@ -344,7 +1053,30 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "premierDate": {
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MainPageFilm": {
+            "type": "object",
+            "required": [
+                "cover",
+                "genre",
+                "title",
+                "year"
+            ],
+            "properties": {
+                "cover": {
+                    "type": "string"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "string"
                 },
                 "rating": {
@@ -353,78 +1085,49 @@ const docTemplate = `{
                 "title": {
                     "type": "string"
                 },
-                "updatedAt": {
-                    "type": "string"
-                },
                 "year": {
                     "type": "integer"
                 }
             }
         },
-        "models.FilmProfessional": {
+        "models.PromoFilm": {
             "type": "object",
+            "required": [
+                "duration",
+                "genre",
+                "title",
+                "year"
+            ],
             "properties": {
-                "birthDate": {
+                "created_at": {
                     "type": "string"
                 },
-                "birthPlace": {
-                    "type": "string"
+                "duration": {
+                    "type": "integer"
                 },
-                "createdAt": {
-                    "type": "string"
-                },
-                "deathDate": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "icon": {
+                "genre": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "isActive": {
-                    "type": "boolean"
-                },
-                "name": {
+                "image": {
                     "type": "string"
                 },
-                "nationality": {
-                    "type": "string"
+                "rating": {
+                    "type": "number"
                 },
-                "surname": {
-                    "type": "string"
-                },
-                "updatedAt": {
-                    "type": "string"
-                },
-                "wikipediaUrl": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Genre": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "id": {
+                "short_description": {
                     "type": "string"
                 },
                 "title": {
                     "type": "string"
                 },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
+                },
+                "year": {
+                    "type": "integer"
                 }
             }
         },
@@ -445,6 +1148,10 @@ const docTemplate = `{
         },
         "models.SignUpInput": {
             "type": "object",
+            "required": [
+                "login",
+                "password"
+            ],
             "properties": {
                 "login": {
                     "type": "string"
@@ -456,27 +1163,15 @@ const docTemplate = `{
         },
         "models.User": {
             "type": "object",
+            "required": [
+                "login"
+            ],
             "properties": {
                 "avatar": {
                     "type": "string"
                 },
-                "country": {
+                "created_at": {
                     "type": "string"
-                },
-                "createdAt": {
-                    "type": "string"
-                },
-                "favoriteActors": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.FilmProfessional"
-                    }
-                },
-                "favoriteGenres": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Genre"
-                    }
                 },
                 "id": {
                     "type": "string"
@@ -484,22 +1179,11 @@ const docTemplate = `{
                 "login": {
                     "type": "string"
                 },
-                "savedFilms": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Film"
-                    }
-                },
-                "status": {
-                    "type": "string",
-                    "enum": [
-                        "active",
-                        "banned",
-                        "deleted"
-                    ]
-                },
-                "updatedAt": {
+                "updated_at": {
                     "type": "string"
+                },
+                "version": {
+                    "type": "integer"
                 }
             }
         }
@@ -513,7 +1197,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Kinopoisk API",
-	Description:      "API для авторизации пользователей и получения фильмов/жанров.",
+	Description:      "API для авторизации пользователей и получения фильмов/жанров/актеров.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
