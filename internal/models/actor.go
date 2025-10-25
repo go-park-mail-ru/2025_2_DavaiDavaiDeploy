@@ -8,11 +8,11 @@ import (
 
 type Actor struct {
 	ID            uuid.UUID  `json:"id"`
-	RussianName   string     `json:"russian_name"`
+	RussianName   string     `json:"russian_name" binding:"required"`
 	OriginalName  *string    `json:"original_name,omitempty"`
 	Photo         string     `json:"photo,omitempty"`
 	Height        int        `json:"height,omitempty"`
-	BirthDate     time.Time  `json:"birth_date"`
+	BirthDate     time.Time  `json:"birth_date" binding:"required"`
 	DeathDate     *time.Time `json:"death_date,omitempty"`
 	ZodiacSign    string     `json:"zodiac_sign,omitempty"`
 	BirthPlace    string     `json:"birth_place,omitempty"`

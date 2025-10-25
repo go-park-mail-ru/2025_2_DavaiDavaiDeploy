@@ -47,7 +47,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 // @Tags         actors
 // @Produce      json
 // @Param        id   path      string  true  "Actor ID"
-// @Success      200  {array}   models.Film
+// @Success      200  {array}   models.MainPageFilm
 // @Failure      400  {object}  models.Error
 // @Router       /actors/{id}/films [get]
 func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {

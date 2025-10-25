@@ -1,3 +1,8 @@
+// @title           Kinopoisk API
+// @version         1.0
+// @description     API для авторизации пользователей и получения фильмов/жанров/актеров.
+// @host            localhost:5458
+// @BasePath        /api
 package main
 
 import (
@@ -32,6 +37,8 @@ import (
 
 	"github.com/gorilla/mux"
 
+	_ "kinopoisk/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -60,11 +67,6 @@ func initDB(ctx context.Context) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-// @title           Kinopoisk API
-// @version         1.0
-// @description     API для авторизации пользователей и получения фильмов/жанров.
-// @host            localhost:5458
-// @BasePath        /api
 func main() {
 	_ = godotenv.Load()
 	ctx := context.Background()

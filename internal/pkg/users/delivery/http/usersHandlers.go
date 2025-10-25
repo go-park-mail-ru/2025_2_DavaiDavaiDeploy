@@ -65,6 +65,15 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
+// GetUser godoc
+// @Summary Get user by ID
+// @Tags users
+// @Produce json
+// @Param        id   path      string  true  "Genre ID"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /users/{id} [get]
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
@@ -82,6 +91,17 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, neededUser)
 }
 
+// ChangePassword godoc
+// @Summary Change user password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param input body models.ChangePasswordInput true "Password data (old_password and new_password are required)"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Error
+// @Failure 401 {object} models.Error "User not authenticated"
+// @Failure 500 {object} models.Error
+// @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {
@@ -115,14 +135,18 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, user)
 }
 
-// ChangeAvatar  godoc
-// @Summary      Changing the avatar
-// @Description  Changing the avatar by user
-// @Tags         auth
-// @Produce      json
-// @Success      200  {object}  models.User
-// @Failure      400  {object}  models.Error
-// @Router       /auth/change/avatar [put]
+// ChangeAvatar godoc
+// @Summary Change user avatar
+// @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param avatar formData file true "Avatar image file (required, max 10MB, formats: jpg, png, webp)"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Error
+// @Failure 401 {object} models.Error
+// @Failure 413 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("user_id").(uuid.UUID)
 	if !ok {

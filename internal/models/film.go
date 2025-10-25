@@ -8,11 +8,11 @@ import (
 
 type Film struct {
 	ID               uuid.UUID `json:"id"`
-	Title            string    `json:"title"`
+	Title            string    `json:"title" binding:"required"`
 	OriginalTitle    *string   `json:"original_title,omitempty"`
 	Cover            *string   `json:"cover,omitempty"`
 	Poster           *string   `json:"poster,omitempty"`
-	GenreID          uuid.UUID `json:"genre_id"`
+	GenreID          uuid.UUID `json:"genre_id" binding:"required"`
 	ShortDescription *string   `json:"short_description,omitempty"`
 	Description      *string   `json:"description,omitempty"`
 	AgeCategory      *string   `json:"age_category,omitempty"`

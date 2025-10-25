@@ -20,11 +20,13 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 }
 
 // GetPromoFilm godoc
-// @Summary      Get the film to the main page
-// @Tags         films
-// @Produce      json
-// @Success      200  {object}  models.PromoFilm
-// @Router       /films/promo [get]
+// @Summary Get promotional film
+// @Description Get the promo film
+// @Tags films
+// @Produce json
+// @Success 200 {object} models.PromoFilm
+// @Failure 500 {object} models.Error
+// @Router /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
@@ -41,7 +43,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        count   query     int  false  "Number of films" default(10)
 // @Param        offset  query     int  false  "Offset" default(0)
-// @Success      200     {array}   models.Film
+// @Success      200     {array}   models.MainPageFilm
 // @Failure      400     {object}  models.Error
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
@@ -81,6 +83,15 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, film)
 }
 
+// GetFilmFeedbacks godoc
+// @Summary Get film reviews
+// @Tags films
+// @Produce json
+// @Param        id   path      string  true  "Film ID"
+// @Success 200 {array} models.FilmFeedback
+// @Failure 400 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /films/{id}/feedbacks [get]
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
@@ -100,6 +111,17 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, films)
 }
 
+// SendFeedback godoc
+// @Summary Add film review
+// @Tags films
+// @Accept json
+// @Produce json
+// @Param        id   path      string  true  "Film ID"
+// @Success 201 {object} models.FilmFeedback
+// @Failure 400 {object} models.Error
+// @Failure 401 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
@@ -125,6 +147,18 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, feedback)
 }
 
+// SetRating godoc
+// @Summary Rate a film
+// @Tags films
+// @Accept json
+// @Produce json
+// @Param        id   path      string  true  "Film ID"
+// @Param input body models.FilmFeedbackInput true "Rating data (rating 1-10 is required)"
+// @Success 200 {object} models.FilmFeedback
+// @Failure 400 {object} models.Error
+// @Failure 401 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])

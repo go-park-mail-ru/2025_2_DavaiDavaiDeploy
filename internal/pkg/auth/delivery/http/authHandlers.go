@@ -44,16 +44,16 @@ func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
 }
 
 // SignupUser godoc
-// @Summary      User signup
-// @Description  Register a new user
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        input  body      models.SignUpInput  true  "User credentials"
-// @Success      200    {object}  models.User
-// @Failure      400    {object}  models.Error
-// @Failure      409    {object}  models.Error
-// @Router       /auth/signup [post]
+// @Summary User registration
+// @Description Register a new user account
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body models.SignUpInput true "User registration data"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /auth/signup [post]
 func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -84,16 +84,17 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // SignInUser godoc
-// @Summary      User login
-// @Description  Authenticate existing user
-// @Tags         auth
-// @Accept       json
-// @Produce      json
-// @Param        input  body      models.SignInInput  true  "User credentials"
-// @Success      200    {object}  models.User
-// @Failure      400    {object}  models.Error
-// @Failure      401    {object}  models.Error
-// @Router       /auth/signin [post]
+// @Summary User login
+// @Description Authenticate user
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param input body models.SignInInput true "User data"
+// @Success 200 {object} models.User
+// @Failure 400 {object} models.Error
+// @Failure 401 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
@@ -147,13 +148,14 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 }
 
 // CheckAuth godoc
-// @Summary      Check authentication
-// @Description  Verify JWT token in cookie
-// @Tags         auth
-// @Produce      json
-// @Success      200  {object}  models.User
-// @Failure      401  {object}  models.Error
-// @Router       /auth/check [get]
+// @Summary Check authentication status
+// @Description Verify if user is authenticated and return user data
+// @Tags auth
+// @Produce json
+// @Success 200 {object} models.User
+// @Failure 401 {object} models.Error
+// @Failure 500 {object} models.Error
+// @Router /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
@@ -163,6 +165,14 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, user)
 }
 
+// LogOutUser godoc
+// @Summary User logout
+// @Description Clear authentication cookie and log out user
+// @Tags auth
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Failure 500 {object} models.Error
+// @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err := a.uc.LogOutUser(r.Context())
