@@ -9,10 +9,13 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
-	CookieName = "DDFilmsJWT"
+	CookieName     = "DDFilmsJWT"
+	CSRFCookieName = "DDFilmsCSRF"
 )
 
 type AuthHandler struct {
@@ -58,7 +61,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
@@ -66,9 +69,21 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -97,22 +112,33 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
 	user, token, err := a.uc.SignInUser(r.Context(), req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -130,6 +156,31 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		csrfCookie, err := r.Cookie(CSRFCookieName)
+		if err != nil {
+			helpers.WriteError(w, http.StatusUnauthorized, err)
+			return
+		}
+		var csrfToken string
+
+		tokenFromHeader := r.Header.Get("X-CSRF-Token")
+		if tokenFromHeader != "" {
+			csrfToken = tokenFromHeader
+		} else {
+			tokenFromForm := r.FormValue("csrftoken")
+			if tokenFromForm != "" {
+				csrfToken = tokenFromForm
+			} else {
+				helpers.WriteError(w, http.StatusUnauthorized, err)
+				return
+			}
+		}
+
+		if csrfCookie.Value != csrfToken {
+			helpers.WriteError(w, http.StatusUnauthorized, err)
+			return
+		}
+
 		var token string
 		cookie, err := r.Cookie(CookieName)
 		if err == nil {
@@ -138,7 +189,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, 401, err)
+			helpers.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 		user.Sanitize()
@@ -160,7 +211,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
-		helpers.WriteError(w, 401, err)
+		helpers.WriteError(w, http.StatusUnauthorized, err)
 	}
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
@@ -175,12 +226,21 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
-		helpers.WriteError(w, 401, err)
+		helpers.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    "",
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(-12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -191,6 +251,4 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(-12 * time.Hour),
 		Path:     "/",
 	})
-
-	helpers.WriteJSON(w, map[string]string{"message": "Successfully logged out"})
 }

@@ -29,13 +29,13 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	actor, err := a.uc.GetActor(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	actor.Sanitize()
@@ -56,7 +56,7 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	neededActor, err := uuid.FromString(idStr)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	for i := range films {
