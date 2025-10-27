@@ -50,6 +50,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 			return
 		}
 		var csrfToken string
@@ -62,11 +63,13 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 			if tokenFromForm != "" {
 				csrfToken = tokenFromForm
 			} else {
+				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 				return
 			}
 		}
 
 		if csrfCookie.Value != csrfToken {
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 			return
 		}
 		var token string
