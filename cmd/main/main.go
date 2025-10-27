@@ -76,8 +76,6 @@ func main() {
 	}
 
 	mainRouter := mux.NewRouter()
-	//fs := http.FileServer(http.Dir("/opt/static/"))
-	//mainRouter.PathPrefix("/static/").Handler(http.StripPrefix("/static/", fs))
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
 	apiRouter := mainRouter.PathPrefix("/api").Subrouter()
@@ -130,7 +128,7 @@ func main() {
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
-	filmRouter.HandleFunc("", filmHandler.GetFilms).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
@@ -143,7 +141,7 @@ func main() {
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
-	genreRouter.HandleFunc("", genreHandler.GetGenres).Methods(http.MethodGet)
+	genreRouter.HandleFunc("/", genreHandler.GetGenres).Methods(http.MethodGet)
 	genreRouter.HandleFunc("/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
 	genreRouter.HandleFunc("/{id}/films", genreHandler.GetFilmsByGenre).Methods(http.MethodGet)
 

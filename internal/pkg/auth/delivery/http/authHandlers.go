@@ -157,6 +157,31 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		csrfCookie, err := r.Cookie(CSRFCookieName)
+		if err != nil {
+			helpers.WriteError(w, 401, err)
+			return
+		}
+		var csrfToken string
+
+		tokenFromHeader := r.Header.Get("X-CSRF-Token")
+		if tokenFromHeader != "" {
+			csrfToken = tokenFromHeader
+		} else {
+			tokenFromForm := r.FormValue("csrftoken")
+			if tokenFromForm != "" {
+				csrfToken = tokenFromForm
+			} else {
+				helpers.WriteError(w, 401, err)
+				return
+			}
+		}
+
+		if csrfCookie.Value != csrfToken {
+			helpers.WriteError(w, 401, err)
+			return
+		}
+
 		var token string
 		cookie, err := r.Cookie(CookieName)
 		if err == nil {

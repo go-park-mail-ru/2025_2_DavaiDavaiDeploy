@@ -48,6 +48,27 @@ func NewUserHandler(uc users.UsersUsecase) *UserHandler {
 
 func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		csrfCookie, err := r.Cookie(CSRFCookieName)
+		if err != nil {
+			return
+		}
+		var csrfToken string
+
+		tokenFromHeader := r.Header.Get("X-CSRF-Token")
+		if tokenFromHeader != "" {
+			csrfToken = tokenFromHeader
+		} else {
+			tokenFromForm := r.FormValue("csrftoken")
+			if tokenFromForm != "" {
+				csrfToken = tokenFromForm
+			} else {
+				return
+			}
+		}
+
+		if csrfCookie.Value != csrfToken {
+			return
+		}
 		var token string
 		cookie, err := r.Cookie(CookieName)
 		if err == nil {
