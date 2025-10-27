@@ -112,7 +112,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -227,7 +226,6 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
 		helpers.WriteError(w, http.StatusUnauthorized, err)
