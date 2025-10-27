@@ -61,7 +61,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
@@ -69,7 +69,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -118,14 +118,14 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
 	user, token, err := a.uc.SignInUser(r.Context(), req)
 
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -159,7 +159,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
-			helpers.WriteError(w, 401, err)
+			helpers.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 		var csrfToken string
@@ -172,13 +172,13 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			if tokenFromForm != "" {
 				csrfToken = tokenFromForm
 			} else {
-				helpers.WriteError(w, 401, err)
+				helpers.WriteError(w, http.StatusUnauthorized, err)
 				return
 			}
 		}
 
 		if csrfCookie.Value != csrfToken {
-			helpers.WriteError(w, 401, err)
+			helpers.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 
@@ -190,7 +190,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, 401, err)
+			helpers.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 		user.Sanitize()
@@ -212,7 +212,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
-		helpers.WriteError(w, 401, err)
+		helpers.WriteError(w, http.StatusUnauthorized, err)
 	}
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
@@ -230,7 +230,7 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
-		helpers.WriteError(w, 401, err)
+		helpers.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
 

@@ -77,7 +77,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, 401, err)
+			helpers.WriteError(w, http.StatusUnauthorized, err)
 			return
 		}
 		user.Sanitize()
@@ -100,13 +100,13 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	neededUser, err := u.uc.GetUser(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, 500, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	neededUser.Sanitize()
@@ -127,21 +127,21 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
-		helpers.WriteError(w, 401, errors.New("user not authenticated"))
+		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 		return
 	}
 
 	var req models.ChangePasswordInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -185,7 +185,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
-		helpers.WriteError(w, 401, errors.New("user not authenticated"))
+		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 		return
 	}
 
@@ -203,10 +203,10 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
-			helpers.WriteError(w, 413, err)
+			helpers.WriteError(w, http.StatusRequestEntityTooLarge, err)
 			return
 		}
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	defer func() {
@@ -217,7 +217,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	defer func() {
@@ -229,13 +229,13 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	buffer, err := io.ReadAll(file)
 	if err != nil {
-		helpers.WriteError(w, 400, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
 	if err != nil {
-		helpers.WriteError(w, 500, err)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
