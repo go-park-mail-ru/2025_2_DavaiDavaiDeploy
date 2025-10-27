@@ -9,7 +9,7 @@ import (
 
 type User struct {
 	ID           uuid.UUID `json:"id"`
-	Version      int       `json:"version"`
+	Version      int       `json:"version" binding:"required"`
 	Login        string    `json:"login" binding:"required"`
 	PasswordHash []byte    `json:"-"`
 	Avatar       *string   `json:"avatar,omitempty"`

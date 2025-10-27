@@ -9,7 +9,7 @@ import (
 
 type PromoFilm struct {
 	ID               uuid.UUID `json:"id"`
-	Image            string    `json:"image,omitempty"`
+	Image            string    `json:"image" binding:"required"`
 	Title            string    `json:"title" binding:"required"`
 	Rating           float64   `json:"rating"`
 	ShortDescription *string   `json:"short_description"`

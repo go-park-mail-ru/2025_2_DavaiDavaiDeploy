@@ -13,7 +13,7 @@ type Actor struct {
 	OriginalName  *string    `json:"original_name,omitempty"`
 	Photo         string     `json:"photo,omitempty"`
 	Height        int        `json:"height,omitempty"`
-	BirthDate     time.Time  `json:"birth_date" binding:"required"`
+	BirthDate     *time.Time `json:"birth_date,omitempty"`
 	DeathDate     *time.Time `json:"death_date,omitempty"`
 	ZodiacSign    string     `json:"zodiac_sign,omitempty"`
 	BirthPlace    string     `json:"birth_place,omitempty"`

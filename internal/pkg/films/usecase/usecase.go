@@ -22,7 +22,7 @@ func NewFilmUsecase(repo films.FilmRepo) *FilmUsecase {
 }
 
 func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, error) {
-	film, err := uc.filmRepo.GetFilmByID(ctx, uuid.FromStringOrNil("1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"))
+	film, err := uc.filmRepo.GetFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
 	if err != nil {
 		return models.PromoFilm{}, errors.New("no films")
 	}

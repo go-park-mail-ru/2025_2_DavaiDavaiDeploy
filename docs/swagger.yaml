@@ -27,7 +27,33 @@ definitions:
       zodiac_sign:
         type: string
     required:
-    - birth_date
+    - russian_name
+    type: object
+  models.ActorPage:
+    properties:
+      age:
+        type: integer
+      birth_date:
+        type: string
+      birth_place:
+        type: string
+      films_number:
+        type: integer
+      height:
+        type: integer
+      id:
+        type: string
+      marital_status:
+        type: string
+      original_name:
+        type: string
+      photo:
+        type: string
+      russian_name:
+        type: string
+      zodiac_sign:
+        type: string
+    required:
     - russian_name
     type: object
   models.ChangePasswordInput:
@@ -92,8 +118,11 @@ definitions:
       year:
         type: integer
     required:
+    - country_id
+    - duration
     - genre_id
     - title
+    - year
     type: object
   models.FilmFeedback:
     properties:
@@ -119,6 +148,10 @@ definitions:
         type: string
       user_login:
         type: string
+    required:
+    - film_id
+    - user_id
+    - user_login
     type: object
   models.FilmFeedbackInput:
     properties:
@@ -187,6 +220,12 @@ definitions:
         type: integer
       year:
         type: integer
+    required:
+    - country
+    - genre
+    - number_of_ratings
+    - title
+    - year
     type: object
   models.Genre:
     properties:
@@ -250,6 +289,7 @@ definitions:
     required:
     - duration
     - genre
+    - image
     - title
     - year
     type: object
@@ -289,6 +329,7 @@ definitions:
         type: integer
     required:
     - login
+    - version
     type: object
 host: localhost:5458
 info:
@@ -311,7 +352,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Actor'
+            $ref: '#/definitions/models.ActorPage'
         "400":
           description: Bad Request
           schema:

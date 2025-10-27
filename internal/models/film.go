@@ -20,11 +20,11 @@ type Film struct {
 	Budget           *int      `json:"budget,omitempty"`
 	WorldwideFees    *int      `json:"worldwide_fees,omitempty"`
 	TrailerURL       *string   `json:"trailer_url,omitempty"`
-	Year             int       `json:"year,omitempty"`
+	Year             int       `json:"year" binding:"required"`
 	Rating           float64   `json:"rating,omitempty"`
-	CountryID        uuid.UUID `json:"country_id,omitempty"`
+	CountryID        uuid.UUID `json:"country_id" binding:"required"`
 	Slogan           *string   `json:"slogan,omitempty"`
-	Duration         int       `json:"duration,omitempty"`
+	Duration         int       `json:"duration" binding:"required"`
 	Image1           *string   `json:"image1,omitempty"`
 	Image2           *string   `json:"image2,omitempty"`
 	Image3           *string   `json:"image3,omitempty"`

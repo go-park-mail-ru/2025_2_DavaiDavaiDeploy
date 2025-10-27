@@ -37,7 +37,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Actor"
+                            "$ref": "#/definitions/models.ActorPage"
                         }
                     },
                     "400": {
@@ -759,7 +759,6 @@ const docTemplate = `{
         "models.Actor": {
             "type": "object",
             "required": [
-                "birth_date",
                 "russian_name"
             ],
             "properties": {
@@ -801,6 +800,47 @@ const docTemplate = `{
                 }
             }
         },
+        "models.ActorPage": {
+            "type": "object",
+            "required": [
+                "russian_name"
+            ],
+            "properties": {
+                "age": {
+                    "type": "integer"
+                },
+                "birth_date": {
+                    "type": "string"
+                },
+                "birth_place": {
+                    "type": "string"
+                },
+                "films_number": {
+                    "type": "integer"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "marital_status": {
+                    "type": "string"
+                },
+                "original_name": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "russian_name": {
+                    "type": "string"
+                },
+                "zodiac_sign": {
+                    "type": "string"
+                }
+            }
+        },
         "models.ChangePasswordInput": {
             "type": "object",
             "required": [
@@ -827,8 +867,11 @@ const docTemplate = `{
         "models.Film": {
             "type": "object",
             "required": [
+                "country_id",
+                "duration",
                 "genre_id",
-                "title"
+                "title",
+                "year"
             ],
             "properties": {
                 "age_category": {
@@ -901,6 +944,11 @@ const docTemplate = `{
         },
         "models.FilmFeedback": {
             "type": "object",
+            "required": [
+                "film_id",
+                "user_id",
+                "user_login"
+            ],
             "properties": {
                 "created_at": {
                     "type": "string"
@@ -963,6 +1011,13 @@ const docTemplate = `{
         },
         "models.FilmPage": {
             "type": "object",
+            "required": [
+                "country",
+                "genre",
+                "number_of_ratings",
+                "title",
+                "year"
+            ],
             "properties": {
                 "actors": {
                     "type": "array",
@@ -1095,6 +1150,7 @@ const docTemplate = `{
             "required": [
                 "duration",
                 "genre",
+                "image",
                 "title",
                 "year"
             ],
@@ -1164,7 +1220,8 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "required": [
-                "login"
+                "login",
+                "version"
             ],
             "properties": {
                 "avatar": {

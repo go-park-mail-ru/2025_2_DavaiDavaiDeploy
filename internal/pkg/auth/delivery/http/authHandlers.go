@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/helpers"
@@ -160,8 +159,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
-			fmt.Println("error here")
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
 			return
 		}
 		var csrfToken string
@@ -174,13 +172,12 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			if tokenFromForm != "" {
 				csrfToken = tokenFromForm
 			} else {
-				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
 				return
 			}
 		}
-
 		if csrfCookie.Value != csrfToken {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
 			return
 		}
 
@@ -192,11 +189,11 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
 			return
 		}
 		user.Sanitize()
-		ctx := context.WithValue(r.Context(), auth.UserKey, errors.New("user not authenticated"))
+		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

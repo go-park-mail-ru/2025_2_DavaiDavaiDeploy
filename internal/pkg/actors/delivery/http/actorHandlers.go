@@ -22,7 +22,7 @@ func NewActorHandler(uc actors.ActorUsecase) *ActorHandler {
 // @Tags         actors
 // @Produce      json
 // @Param        id   path      string  true  "Actor ID"
-// @Success      200  {object}  models.Actor
+// @Success      200  {object}  models.ActorPage
 // @Failure      400  {object}  models.Error
 // @Router       /actors/{id} [get]
 func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
