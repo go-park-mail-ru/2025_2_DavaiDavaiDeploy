@@ -39,7 +39,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	neededGenre.Sanitize()
 	helpers.WriteJSON(w, neededGenre)
 }
 
@@ -58,7 +58,9 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	for i := range genres {
+		genres[i].Sanitize()
+	}
 	helpers.WriteJSON(w, genres)
 }
 
@@ -88,6 +90,8 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	for i := range films {
+		films[i].Sanitize()
+	}
 	helpers.WriteJSON(w, films)
 }

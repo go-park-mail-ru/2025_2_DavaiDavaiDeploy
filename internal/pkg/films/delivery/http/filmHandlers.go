@@ -34,6 +34,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	film.Sanitize()
 	helpers.WriteJSON(w, film)
 }
 
@@ -54,7 +55,9 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	for i := range films {
+		films[i].Sanitize()
+	}
 	helpers.WriteJSON(w, films)
 }
 
@@ -79,7 +82,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	film.Sanitize()
 	helpers.WriteJSON(w, film)
 }
 
@@ -107,7 +110,9 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	for i := range films {
+		films[i].Sanitize()
+	}
 	helpers.WriteJSON(w, films)
 }
 
@@ -136,6 +141,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	req.Sanitize()
 
 	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
 
@@ -143,7 +149,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	feedback.Sanitize()
 	helpers.WriteJSON(w, feedback)
 }
 
@@ -180,12 +186,13 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	req.Sanitize()
 
 	rating, err := c.uc.SetRating(r.Context(), req, filmID)
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	rating.Sanitize()
 	helpers.WriteJSON(w, rating)
 }

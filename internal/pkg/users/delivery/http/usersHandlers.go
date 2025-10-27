@@ -58,7 +58,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 			helpers.WriteError(w, 401, err)
 			return
 		}
-
+		user.Sanitize()
 		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -87,7 +87,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 500, err)
 		return
 	}
-
+	neededUser.Sanitize()
 	helpers.WriteJSON(w, neededUser)
 }
 
@@ -115,6 +115,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
+	req.Sanitize()
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
@@ -131,7 +132,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-
+	user.Sanitize()
 	helpers.WriteJSON(w, user)
 }
 
@@ -213,6 +214,6 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-
+	user.Sanitize()
 	helpers.WriteJSON(w, user)
 }

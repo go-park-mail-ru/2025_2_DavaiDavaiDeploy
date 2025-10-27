@@ -61,6 +61,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
+	req.Sanitize()
 
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
 
@@ -78,7 +79,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-
+	user.Sanitize()
 	//w.Header().Set("Authorization", "Bearer "+token)
 	helpers.WriteJSON(w, user)
 }
@@ -105,7 +106,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	req.Sanitize()
 	user, token, err := a.uc.SignInUser(r.Context(), req)
 
 	if err != nil {
@@ -122,7 +123,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-
+	user.Sanitize()
 	//w.Header().Set("Authorization", "Bearer "+token)
 	helpers.WriteJSON(w, user)
 }
@@ -140,7 +141,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			helpers.WriteError(w, 401, err)
 			return
 		}
-
+		user.Sanitize()
 		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -161,7 +162,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.WriteError(w, 401, err)
 	}
-
+	user.Sanitize()
 	helpers.WriteJSON(w, user)
 }
 
