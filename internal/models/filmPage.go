@@ -8,21 +8,21 @@ import (
 
 type FilmPage struct {
 	ID               uuid.UUID `json:"id"`
-	Title            string    `json:"title"`
+	Title            string    `json:"title" binding:"required"`
 	OriginalTitle    *string   `json:"original_title,omitempty"`
 	Cover            *string   `json:"cover,omitempty"`
 	Poster           *string   `json:"poster,omitempty"`
-	Genre            string    `json:"genre"`
+	Genre            string    `json:"genre" binding:"required"`
 	ShortDescription *string   `json:"short_description,omitempty"`
 	Description      *string   `json:"description,omitempty"`
 	AgeCategory      *string   `json:"age_category,omitempty"`
 	Budget           *int      `json:"budget,omitempty"`
 	WorldwideFees    *int      `json:"worldwide_fees,omitempty"`
 	TrailerURL       *string   `json:"trailer_url,omitempty"`
-	NumberOfRatings  int       `json:"number_of_ratings"`
-	Year             int       `json:"year,omitempty"`
+	NumberOfRatings  int       `json:"number_of_ratings" binding:"required"`
+	Year             int       `json:"year" binding:"required"`
 	Rating           float64   `json:"rating,omitempty"`
-	Country          string    `json:"country,omitempty"`
+	Country          string    `json:"country" binding:"required"`
 	Slogan           *string   `json:"slogan,omitempty"`
 	Duration         int       `json:"duration,omitempty"`
 	Image1           *string   `json:"image1,omitempty"`
