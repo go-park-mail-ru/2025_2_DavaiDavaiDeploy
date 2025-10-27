@@ -9,7 +9,7 @@ import (
 
 type PromoFilm struct {
 	ID               uuid.UUID `json:"id"`
-	Image            *string   `json:"image,omitempty"`
+	Image            string    `json:"image,omitempty"`
 	Title            string    `json:"title" binding:"required"`
 	Rating           float64   `json:"rating"`
 	ShortDescription *string   `json:"short_description"`
@@ -23,11 +23,8 @@ type PromoFilm struct {
 func (pf *PromoFilm) Sanitize() {
 	pf.Title = html.EscapeString(pf.Title)
 	pf.Genre = html.EscapeString(pf.Genre)
+	pf.Image = html.EscapeString(pf.Image)
 
-	if pf.Image != nil {
-		sanitized := html.EscapeString(*pf.Image)
-		pf.Image = &sanitized
-	}
 	if pf.ShortDescription != nil {
 		sanitized := html.EscapeString(*pf.ShortDescription)
 		pf.ShortDescription = &sanitized

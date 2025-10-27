@@ -39,7 +39,7 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 
 	promoFilm := models.PromoFilm{
 		ID:               film.ID,
-		Image:            film.Poster,
+		Image:            *film.Poster,
 		Title:            film.Title,
 		Rating:           avgRating,
 		ShortDescription: film.ShortDescription,

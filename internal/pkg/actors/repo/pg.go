@@ -73,7 +73,7 @@ func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID
 			&film.Year,
 			&film.Genre,
 		); err != nil {
-			continue
+			return nil, err
 		}
 		films = append(films, film)
 	}
