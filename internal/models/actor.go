@@ -1,6 +1,7 @@
 package models
 
 import (
+	"html"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -19,4 +20,16 @@ type Actor struct {
 	MaritalStatus string     `json:"marital_status,omitempty"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
+}
+
+func (a *Actor) Sanitize() {
+	a.RussianName = html.EscapeString(a.RussianName)
+	if a.OriginalName != nil {
+		sanitized := html.EscapeString(*a.OriginalName)
+		a.OriginalName = &sanitized
+	}
+	a.Photo = html.EscapeString(a.Photo)
+	a.ZodiacSign = html.EscapeString(a.ZodiacSign)
+	a.BirthPlace = html.EscapeString(a.BirthPlace)
+	a.MaritalStatus = html.EscapeString(a.MaritalStatus)
 }

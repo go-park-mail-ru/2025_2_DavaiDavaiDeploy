@@ -1,6 +1,8 @@
 package models
 
 import (
+	"html"
+
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -11,4 +13,10 @@ type MainPageFilm struct {
 	Rating *float64  `json:"rating,omitempty"`
 	Year   int       `json:"year" binding:"required"`
 	Genre  string    `json:"genre" binding:"required"`
+}
+
+func (mpf *MainPageFilm) Sanitize() {
+	mpf.Cover = html.EscapeString(mpf.Cover)
+	mpf.Title = html.EscapeString(mpf.Title)
+	mpf.Genre = html.EscapeString(mpf.Genre)
 }

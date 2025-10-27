@@ -1,6 +1,7 @@
 package models
 
 import (
+	"html"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -29,4 +30,53 @@ type Film struct {
 	Image3           *string   `json:"image3,omitempty"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+func (f *Film) Sanitize() {
+	f.Title = html.EscapeString(f.Title)
+
+	if f.OriginalTitle != nil {
+		sanitized := html.EscapeString(*f.OriginalTitle)
+		f.OriginalTitle = &sanitized
+	}
+	if f.Cover != nil {
+		sanitized := html.EscapeString(*f.Cover)
+		f.Cover = &sanitized
+	}
+	if f.Poster != nil {
+		sanitized := html.EscapeString(*f.Poster)
+		f.Poster = &sanitized
+	}
+	if f.ShortDescription != nil {
+		sanitized := html.EscapeString(*f.ShortDescription)
+		f.ShortDescription = &sanitized
+	}
+	if f.Description != nil {
+		sanitized := html.EscapeString(*f.Description)
+		f.Description = &sanitized
+	}
+	if f.AgeCategory != nil {
+		sanitized := html.EscapeString(*f.AgeCategory)
+		f.AgeCategory = &sanitized
+	}
+	if f.TrailerURL != nil {
+		sanitized := html.EscapeString(*f.TrailerURL)
+		f.TrailerURL = &sanitized
+	}
+	if f.Slogan != nil {
+		sanitized := html.EscapeString(*f.Slogan)
+		f.Slogan = &sanitized
+	}
+	if f.Image1 != nil {
+		sanitized := html.EscapeString(*f.Image1)
+		f.Image1 = &sanitized
+	}
+	if f.Image2 != nil {
+		sanitized := html.EscapeString(*f.Image2)
+		f.Image2 = &sanitized
+	}
+	if f.Image3 != nil {
+		sanitized := html.EscapeString(*f.Image3)
+		f.Image3 = &sanitized
+	}
 }

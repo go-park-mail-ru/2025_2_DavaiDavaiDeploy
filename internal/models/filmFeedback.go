@@ -1,6 +1,7 @@
 package models
 
 import (
+	"html"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -17,4 +18,20 @@ type FilmFeedback struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	UserLogin  string    `json:"user_login"`
 	UserAvatar *string   `json:"user_avatar,omitempty"`
+}
+
+func (ff *FilmFeedback) Sanitize() {
+	if ff.Title != nil {
+		sanitized := html.EscapeString(*ff.Title)
+		ff.Title = &sanitized
+	}
+	if ff.Text != nil {
+		sanitized := html.EscapeString(*ff.Text)
+		ff.Text = &sanitized
+	}
+	ff.UserLogin = html.EscapeString(ff.UserLogin)
+	if ff.UserAvatar != nil {
+		sanitized := html.EscapeString(*ff.UserAvatar)
+		ff.Text = &sanitized
+	}
 }

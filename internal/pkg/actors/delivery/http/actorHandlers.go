@@ -38,7 +38,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
-
+	actor.Sanitize()
 	helpers.WriteJSON(w, actor)
 }
 
@@ -66,6 +66,9 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.WriteError(w, 400, err)
 		return
+	}
+	for i := range films {
+		films[i].Sanitize()
 	}
 
 	helpers.WriteJSON(w, films)

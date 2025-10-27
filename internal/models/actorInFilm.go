@@ -1,6 +1,7 @@
 package models
 
 import (
+	"html"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -14,4 +15,9 @@ type ActorInFilm struct {
 	Description string    `json:"description,omitempty"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+func (aif *ActorInFilm) Sanitize() {
+	aif.Character = html.EscapeString(aif.Character)
+	aif.Description = html.EscapeString(aif.Description)
 }

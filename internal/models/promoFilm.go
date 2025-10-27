@@ -1,6 +1,7 @@
 package models
 
 import (
+	"html"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -17,4 +18,18 @@ type PromoFilm struct {
 	Duration         int       `json:"duration" binding:"required"`
 	CreatedAt        time.Time `json:"created_at"`
 	UpdatedAt        time.Time `json:"updated_at"`
+}
+
+func (pf *PromoFilm) Sanitize() {
+	pf.Title = html.EscapeString(pf.Title)
+	pf.Genre = html.EscapeString(pf.Genre)
+
+	if pf.Image != nil {
+		sanitized := html.EscapeString(*pf.Image)
+		pf.Image = &sanitized
+	}
+	if pf.ShortDescription != nil {
+		sanitized := html.EscapeString(*pf.ShortDescription)
+		pf.ShortDescription = &sanitized
+	}
 }
