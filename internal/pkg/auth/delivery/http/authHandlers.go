@@ -9,10 +9,13 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 const (
-	CookieName = "DDFilmsJWT"
+	CookieName     = "DDFilmsJWT"
+	CSRFCookieName = "DDFilmsCSRF"
 )
 
 type AuthHandler struct {
@@ -70,6 +73,18 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
 		Value:    token,
@@ -113,6 +128,18 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 400, err)
 		return
 	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
@@ -181,6 +208,16 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 401, err)
 		return
 	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    "",
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(-12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,

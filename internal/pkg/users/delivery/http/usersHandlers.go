@@ -17,7 +17,8 @@ import (
 )
 
 const (
-	CookieName = "DDFilmsJWT"
+	CookieName     = "DDFilmsJWT"
+	CSRFCookieName = "DDFilmsCSRF"
 )
 
 type UserHandler struct {
@@ -123,6 +124,18 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
 		Value:    token,
@@ -204,6 +217,18 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, 500, err)
 		return
 	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
