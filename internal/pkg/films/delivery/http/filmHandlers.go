@@ -173,13 +173,6 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	json.NewEncoder(w).Encode(feedback)
-	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
-	// }
-
 	var req models.FilmFeedbackInput
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {

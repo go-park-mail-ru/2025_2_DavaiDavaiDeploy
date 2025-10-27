@@ -251,6 +251,4 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(-12 * time.Hour),
 		Path:     "/",
 	})
-
-	helpers.WriteJSON(w, map[string]string{"message": "Successfully logged out"})
 }
