@@ -20,6 +20,42 @@ func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
 	return &FilmRepository{db: db}
 }
 
+func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error) {
+	var film models.PromoFilm
+
+	err := r.db.QueryRow(
+		ctx,
+		`SELECT 
+			id, 
+			poster as image, 
+			title, 
+			short_description, 
+			year, 
+			(SELECT title FROM genre WHERE id = genre_id) as genre,
+			duration,
+			created_at, 
+			updated_at
+		FROM film WHERE id = $1`,
+		id,
+	).Scan(
+		&film.ID,
+		&film.Image,
+		&film.Title,
+		&film.ShortDescription,
+		&film.Year,
+		&film.Genre,
+		&film.Duration,
+		&film.CreatedAt,
+		&film.UpdatedAt,
+	)
+
+	if err != nil {
+		return models.PromoFilm{}, fmt.Errorf("failed to get promo film: %w", err)
+	}
+
+	return film, nil
+}
+
 func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error) {
 	var film models.Film
 	err := r.db.QueryRow(

@@ -27,4 +27,5 @@ type FilmRepo interface {
 	UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error
 	CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error
 	SetRating(ctx context.Context, feedback models.FilmFeedback) error
+	GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error)
 }

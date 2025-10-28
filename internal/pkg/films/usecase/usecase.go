@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
@@ -22,14 +23,10 @@ func NewFilmUsecase(repo films.FilmRepo) *FilmUsecase {
 }
 
 func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, error) {
-	film, err := uc.filmRepo.GetFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
+	film, err := uc.filmRepo.GetPromoFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
 	if err != nil {
+		fmt.Println(err)
 		return models.PromoFilm{}, errors.New("no films")
-	}
-
-	genre, err := uc.filmRepo.GetGenreTitle(ctx, film.GenreID)
-	if err != nil {
-		genre = "Unknown"
 	}
 
 	avgRating, err := uc.filmRepo.GetFilmAvgRating(ctx, film.ID)
@@ -39,12 +36,12 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 
 	promoFilm := models.PromoFilm{
 		ID:               film.ID,
-		Image:            film.Poster,
+		Image:            film.Image,
 		Title:            film.Title,
 		Rating:           avgRating,
 		ShortDescription: film.ShortDescription,
 		Year:             film.Year,
-		Genre:            genre,
+		Genre:            film.Genre,
 		Duration:         film.Duration,
 	}
 	return promoFilm, nil
