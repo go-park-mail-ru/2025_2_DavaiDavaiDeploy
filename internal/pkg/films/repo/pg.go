@@ -27,7 +27,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 		ctx,
 		`SELECT 
 			id, 
-			poster as image, 
+			COALESCE(poster, '') as image, 
 			title, 
 			short_description, 
 			year, 
