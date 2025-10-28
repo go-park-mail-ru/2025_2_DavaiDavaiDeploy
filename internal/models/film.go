@@ -12,7 +12,7 @@ type Film struct {
 	Title            string    `json:"title" binding:"required"`
 	OriginalTitle    *string   `json:"original_title,omitempty"`
 	Cover            *string   `json:"cover,omitempty"`
-	Poster           *string   `json:"poster,omitempty"`
+	Poster           string    `json:"poster,omitempty"`
 	GenreID          uuid.UUID `json:"genre_id" binding:"required"`
 	ShortDescription *string   `json:"short_description,omitempty"`
 	Description      *string   `json:"description,omitempty"`
@@ -34,6 +34,7 @@ type Film struct {
 
 func (f *Film) Sanitize() {
 	f.Title = html.EscapeString(f.Title)
+	f.Poster = html.EscapeString(f.Poster)
 
 	if f.OriginalTitle != nil {
 		sanitized := html.EscapeString(*f.OriginalTitle)
@@ -42,10 +43,6 @@ func (f *Film) Sanitize() {
 	if f.Cover != nil {
 		sanitized := html.EscapeString(*f.Cover)
 		f.Cover = &sanitized
-	}
-	if f.Poster != nil {
-		sanitized := html.EscapeString(*f.Poster)
-		f.Poster = &sanitized
 	}
 	if f.ShortDescription != nil {
 		sanitized := html.EscapeString(*f.ShortDescription)
