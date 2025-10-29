@@ -105,15 +105,15 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
+	feedbacks, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
 	if err != nil {
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
-	for i := range films {
-		films[i].Sanitize()
+	for i := range feedbacks {
+		feedbacks[i].Sanitize()
 	}
-	helpers.WriteJSON(w, films)
+	helpers.WriteJSON(w, feedbacks)
 }
 
 // SendFeedback godoc
