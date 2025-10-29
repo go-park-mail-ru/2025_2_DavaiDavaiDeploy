@@ -225,7 +225,7 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
             u.avatar as user_avatar
         FROM film_feedback ff
         JOIN user_table u ON ff.user_id = u.id
-        WHERE ff.film_id = $1
+        WHERE ff.film_id = $1 AND ff.title IS NOT NULL AND ff.title != ''
         ORDER BY ff.created_at DESC
         LIMIT $2 OFFSET $3`
 
