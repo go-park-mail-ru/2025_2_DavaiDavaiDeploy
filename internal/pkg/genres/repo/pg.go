@@ -2,7 +2,9 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"kinopoisk/internal/models"
+	"strconv"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	uuid "github.com/satori/go.uuid"
@@ -59,36 +61,52 @@ func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, of
 	return genres, nil
 }
 
-func (r *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.Film, error) {
+func (g *GenreRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error) {
+	var avgRating float64
+	err := g.db.QueryRow(
+		ctx,
+		"SELECT COALESCE(AVG(rating), 0) FROM film_feedback WHERE film_id = $1",
+		filmID,
+	).Scan(&avgRating)
+	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+	return roundedRating, err
+}
+
+func (g *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
 	query := `
         SELECT 
-            id, title, original_title, cover, poster,
-            short_description, description, age_category, budget,
-            worldwide_fees, trailer_url, year, country_id,
-            genre_id, slogan, duration, image1, image2,
-            image3, created_at, updated_at
-        FROM film 
-        WHERE genre_id = $1
-        ORDER BY created_at DESC
+            f.id, f.cover, f.title, f.year, g.title as genre_title
+        FROM film f
+        JOIN genre g ON f.genre_id = g.id
+        LEFT JOIN film_feedback ff ON f.id = ff.film_id
+		WHERE g.id = $1
+        GROUP BY f.id, g.title
+        ORDER BY f.created_at DESC
         LIMIT $2 OFFSET $3`
 
-	rows, err := r.db.Query(ctx, query, genreID, limit, offset)
+	rows, err := g.db.Query(ctx, query, genreID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var films []models.Film
+	var films []models.MainPageFilm
 	for rows.Next() {
-		var film models.Film
+		var film models.MainPageFilm
 		if err := rows.Scan(
-			&film.ID, &film.Title, &film.OriginalTitle, &film.Cover, &film.Poster,
-			&film.ShortDescription, &film.Description, &film.AgeCategory, &film.Budget,
-			&film.WorldwideFees, &film.TrailerURL, &film.Year, &film.CountryID,
-			&film.GenreID, &film.Slogan, &film.Duration, &film.Image1, &film.Image2,
-			&film.Image3, &film.CreatedAt, &film.UpdatedAt,
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.Year,
+			&film.Genre,
 		); err != nil {
 			continue
+		}
+		rating, err := g.GetFilmAvgRating(ctx, film.ID)
+		if err != nil {
+			film.Rating = 0.0
+		} else {
+			film.Rating = rating
 		}
 		films = append(films, film)
 	}

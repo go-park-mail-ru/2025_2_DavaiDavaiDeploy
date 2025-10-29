@@ -10,7 +10,7 @@ type MainPageFilm struct {
 	ID     uuid.UUID `json:"id"`
 	Cover  string    `json:"cover" binding:"required"`
 	Title  string    `json:"title" binding:"required"`
-	Rating *float64  `json:"rating,omitempty"`
+	Rating float64   `json:"rating" binding:"required"`
 	Year   int       `json:"year" binding:"required"`
 	Genre  string    `json:"genre" binding:"required"`
 }
