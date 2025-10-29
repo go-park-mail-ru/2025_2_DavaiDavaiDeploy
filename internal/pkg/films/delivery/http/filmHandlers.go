@@ -1,14 +1,20 @@
 package filmHandlers
 
 import (
+	"context"
 	"encoding/json"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/helpers"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+)
+
+var (
+	CookieName = "DDFilmsJWT"
 )
 
 type FilmHandler struct {
@@ -84,6 +90,25 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	}
 	film.Sanitize()
 	helpers.WriteJSON(w, film)
+}
+
+func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
+		}
+		if token != "" {
+			user, err := c.uc.ValidateAndGetUser(r.Context(), token)
+			if err == nil {
+				user.Sanitize()
+				ctx := context.WithValue(r.Context(), auth.UserKey, user)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			}
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 // GetFilmFeedbacks godoc
