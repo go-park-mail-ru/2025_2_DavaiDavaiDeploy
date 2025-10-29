@@ -1,0 +1,9 @@
+basePath: /api
+host: localhost:5458
+info:
+  contact: {}
+  description: API для авторизации пользователей и получения фильмов/жанров/актеров.
+  title: Kinopoisk API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

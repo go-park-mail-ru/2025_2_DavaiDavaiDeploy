@@ -69,7 +69,7 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 // @Tags genres
 // @Produce json
 // @Param        id   path      string  true  "Genre ID"
-// @Success 200 {array} models.Film
+// @Success 200 {array} models.MainPageFilm
 // @Failure 400 {object} models.Error
 // @Failure 500 {object} models.Error
 // @Router /genres/{id}/films [get]

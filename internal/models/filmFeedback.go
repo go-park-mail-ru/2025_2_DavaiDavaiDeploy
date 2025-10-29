@@ -8,16 +8,16 @@ import (
 )
 
 type FilmFeedback struct {
-	ID         uuid.UUID `json:"id"`
+	ID         uuid.UUID `json:"id" binding:"required"`
 	UserID     uuid.UUID `json:"user_id" binding:"required"`
 	FilmID     uuid.UUID `json:"film_id" binding:"required"`
-	Title      *string   `json:"title,omitempty"`
-	Text       *string   `json:"text,omitempty"`
-	Rating     int       `json:"rating,omitempty" binding:"min=1,max=10"`
-	CreatedAt  time.Time `json:"created_at"`
-	UpdatedAt  time.Time `json:"updated_at"`
+	Title      *string   `json:"title" binding:"required"`
+	Text       *string   `json:"text" binding:"required"`
+	Rating     int       `json:"rating" binding:"required,min=1,max=10"`
+	CreatedAt  time.Time `json:"created_at" binding:"required"`
+	UpdatedAt  time.Time `json:"updated_at" binding:"required"`
 	UserLogin  string    `json:"user_login" binding:"required"`
-	UserAvatar *string   `json:"user_avatar,omitempty"`
+	UserAvatar string    `json:"user_avatar" binding:"required"`
 }
 
 func (ff *FilmFeedback) Sanitize() {
@@ -30,8 +30,5 @@ func (ff *FilmFeedback) Sanitize() {
 		ff.Text = &sanitized
 	}
 	ff.UserLogin = html.EscapeString(ff.UserLogin)
-	if ff.UserAvatar != nil {
-		sanitized := html.EscapeString(*ff.UserAvatar)
-		ff.Text = &sanitized
-	}
+	ff.UserAvatar = html.EscapeString(ff.UserAvatar)
 }

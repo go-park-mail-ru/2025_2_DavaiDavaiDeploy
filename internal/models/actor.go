@@ -8,16 +8,16 @@ import (
 )
 
 type Actor struct {
-	ID            uuid.UUID  `json:"id"`
+	ID            uuid.UUID  `json:"id" binding:"required"`
 	RussianName   string     `json:"russian_name" binding:"required"`
 	OriginalName  *string    `json:"original_name,omitempty"`
-	Photo         string     `json:"photo,omitempty"`
-	Height        int        `json:"height,omitempty"`
-	BirthDate     *time.Time `json:"birth_date,omitempty"`
+	Photo         string     `json:"photo" binding:"required"`
+	Height        int        `json:"height" binding:"required"`
+	BirthDate     time.Time  `json:"birth_date" binding:"required"`
 	DeathDate     *time.Time `json:"death_date,omitempty"`
-	ZodiacSign    string     `json:"zodiac_sign,omitempty"`
-	BirthPlace    string     `json:"birth_place,omitempty"`
-	MaritalStatus string     `json:"marital_status,omitempty"`
+	ZodiacSign    string     `json:"zodiac_sign" binding:"required"`
+	BirthPlace    string     `json:"birth_place" binding:"required"`
+	MaritalStatus string     `json:"marital_status" binding:"required"`
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 }
