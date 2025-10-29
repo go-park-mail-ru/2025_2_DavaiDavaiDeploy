@@ -140,10 +140,9 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 		}
 		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
-			zeroRating := 0.0
-			film.Rating = &zeroRating
+			film.Rating = 0.0
 		} else {
-			film.Rating = &rating
+			film.Rating = rating
 		}
 		films = append(films, film)
 	}

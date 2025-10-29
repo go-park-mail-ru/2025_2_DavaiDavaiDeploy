@@ -2,7 +2,9 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"kinopoisk/internal/models"
+	"strconv"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	uuid "github.com/satori/go.uuid"
@@ -42,6 +44,17 @@ func (r *ActorRepository) GetActorFilmsCount(ctx context.Context, actorID uuid.U
 	return count, err
 }
 
+func (r *ActorRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error) {
+	var avgRating float64
+	err := r.db.QueryRow(
+		ctx,
+		"SELECT COALESCE(AVG(rating), 0) FROM film_feedback WHERE film_id = $1",
+		filmID,
+	).Scan(&avgRating)
+	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+	return roundedRating, err
+}
+
 func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
 	query := `
         SELECT 
@@ -75,7 +88,16 @@ func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID
 		); err != nil {
 			return nil, err
 		}
+
+		rating, err := r.GetFilmAvgRating(ctx, film.ID)
+		if err != nil {
+			film.Rating = 0.0
+		} else {
+			film.Rating = rating
+		}
+
 		films = append(films, film)
 	}
+
 	return films, nil
 }
