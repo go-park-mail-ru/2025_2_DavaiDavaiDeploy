@@ -37,14 +37,14 @@ func (uc *GenreUsecase) GetGenres(ctx context.Context, pager models.Pager) ([]mo
 	return genres, nil
 }
 
-func (uc *GenreUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.Film, error) {
+func (uc *GenreUsecase) GetFilmsByGenre(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.MainPageFilm, error) {
 	films, err := uc.genreRepo.GetFilmsByGenre(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.Film{}, errors.New("no films")
+		return []models.MainPageFilm{}, errors.New("no films")
 	}
 
 	if len(films) == 0 {
-		return []models.Film{}, errors.New("no films")
+		return []models.MainPageFilm{}, errors.New("no films")
 	}
 	return films, nil
 }

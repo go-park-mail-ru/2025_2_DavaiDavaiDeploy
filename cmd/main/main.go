@@ -128,6 +128,7 @@ func main() {
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
+	filmRouter.Use(filmHandler.Middleware)
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)

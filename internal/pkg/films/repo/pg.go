@@ -140,10 +140,9 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 		}
 		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
-			zeroRating := 0.0
-			film.Rating = &zeroRating
+			film.Rating = 0.0
 		} else {
-			film.Rating = &rating
+			film.Rating = rating
 		}
 		films = append(films, film)
 	}
@@ -323,4 +322,27 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Rating,
 	)
 	return err
+}
+
+func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	var user models.User
+	err := r.db.QueryRow(
+		ctx,
+		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE login = $1",
+		login,
+	).Scan(
+		&user.ID, &user.Version, &user.Login,
+		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
+				pgErr.Message, pgErr.Code, pgErr.Detail)
+		}
+
+		fmt.Printf("Error getting user by ID %v: %v\n", user, err)
+		return models.User{}, fmt.Errorf("failed to get user: %w", err)
+	}
+	return user, nil
 }
