@@ -11,6 +11,28 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var (
+	getUserByIDQuery = `
+		SELECT id, version, login, password_hash, avatar, created_at, updated_at 
+		FROM user_table 
+		WHERE id = $1`
+
+	getUserByLoginQuery = `
+		SELECT id, version, login, password_hash, avatar, created_at, updated_at 
+		FROM user_table 
+		WHERE login = $1`
+
+	updateUserPasswordQuery = `
+		UPDATE user_table 
+		SET password_hash = $1, version = $2, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = $3`
+
+	updateUserAvatarQuery = `
+		UPDATE user_table 
+		SET avatar = $1, version = $2, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = $3`
+)
+
 type UserRepository struct {
 	db *pgxpool.Pool
 }
@@ -23,7 +45,7 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
-		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE id = $1",
+		getUserByIDQuery,
 		id,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
@@ -46,7 +68,7 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
-		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE login = $1",
+		getUserByLoginQuery,
 		login,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
@@ -61,7 +83,7 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error {
 	_, err := u.db.Exec(
 		ctx,
-		"UPDATE user_table SET password_hash = $1, version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+		updateUserPasswordQuery,
 		passwordHash, version, userID,
 	)
 	return err
@@ -70,7 +92,7 @@ func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, us
 func (u *UserRepository) UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error {
 	_, err := u.db.Exec(
 		ctx,
-		"UPDATE user_table SET avatar = $1, version = $2, updated_at = CURRENT_TIMESTAMP WHERE id = $3",
+		updateUserAvatarQuery,
 		avatarPath, version, userID,
 	)
 	if err != nil {

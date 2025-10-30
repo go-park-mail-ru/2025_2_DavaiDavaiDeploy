@@ -12,6 +12,108 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+var (
+	getPromoFilmByIDQuery = `
+		SELECT 
+			id, 
+			COALESCE(poster, '') as image, 
+			title, 
+			short_description, 
+			year, 
+			(SELECT title FROM genre WHERE id = genre_id) as genre,
+			duration,
+			created_at, 
+			updated_at
+		FROM film WHERE id = $1`
+
+	getFilmByIDQuery = `
+		SELECT 
+			id, title, original_title, cover, poster,
+			short_description, description, age_category, budget,
+			worldwide_fees, trailer_url, year, country_id,
+			genre_id, slogan, duration, image1, image2,
+			image3, created_at, updated_at
+		FROM film WHERE id = $1`
+
+	getGenreTitleQuery = `
+		SELECT title FROM genre WHERE id = $1`
+
+	getFilmAvgRatingQuery = `
+		SELECT COALESCE(AVG(rating), 0) FROM film_feedback WHERE film_id = $1`
+
+	getFilmsWithPaginationQuery = `
+		SELECT 
+			f.id, f.cover, f.title, f.year, g.title as genre_title
+		FROM film f
+		JOIN genre g ON f.genre_id = g.id
+		LEFT JOIN film_feedback ff ON f.id = ff.film_id
+		GROUP BY f.id, g.title
+		ORDER BY f.created_at DESC
+		LIMIT $1 OFFSET $2`
+
+	getFilmPageQuery = `
+		SELECT 
+			f.id, f.title, f.original_title, f.cover, f.poster,
+			f.short_description, f.description, f.age_category, f.budget,
+			f.worldwide_fees, f.trailer_url, f.year, 
+			f.slogan, f.duration, f.image1, f.image2, f.image3,
+			g.title as genre, c.name as country,
+			COUNT(ff.id) as number_of_ratings
+		FROM film f
+		JOIN genre g ON f.genre_id = g.id
+		JOIN country c ON f.country_id = c.id
+		LEFT JOIN film_feedback ff ON f.id = ff.film_id
+		WHERE f.id = $1
+		GROUP BY f.id, g.title, c.name`
+
+	getFilmActorsQuery = `
+		SELECT a.id, a.russian_name, a.original_name, a.photo, a.height,
+			   a.birth_date, a.death_date, a.zodiac_sign, a.birth_place, a.marital_status
+		FROM actor a
+		JOIN actor_in_film aif ON a.id = aif.actor_id
+		WHERE aif.film_id = $1`
+
+	getFilmFeedbacksQuery = `
+		SELECT 
+			ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
+			ff.created_at, ff.updated_at,
+			u.login as user_login,
+			u.avatar as user_avatar
+		FROM film_feedback ff
+		JOIN user_table u ON ff.user_id = u.id
+		WHERE ff.film_id = $1 AND ff.title IS NOT NULL AND ff.title != ''
+		ORDER BY ff.created_at DESC
+		LIMIT $2 OFFSET $3`
+
+	checkUserFeedbackExistsQuery = `
+		SELECT 
+			ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
+			ff.created_at, ff.updated_at,
+			u.login as user_login,
+			u.avatar as user_avatar
+		FROM film_feedback ff
+		JOIN user_table u ON ff.user_id = u.id
+		WHERE ff.user_id = $1 AND ff.film_id = $2`
+
+	updateFeedbackQuery = `
+		UPDATE film_feedback 
+		SET title = $1, text = $2, rating = $3, updated_at = CURRENT_TIMESTAMP 
+		WHERE id = $4`
+
+	createFeedbackQuery = `
+		INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) 
+		VALUES ($1, $2, $3, $4, $5, $6)`
+
+	setRatingQuery = `
+		INSERT INTO film_feedback (id, user_id, film_id, rating) 
+		VALUES ($1, $2, $3, $4)`
+
+	getUserByLoginQuery = `
+		SELECT id, version, login, password_hash, avatar, created_at, updated_at 
+		FROM user_table 
+		WHERE login = $1`
+)
+
 type FilmRepository struct {
 	db *pgxpool.Pool
 }
@@ -25,17 +127,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 
 	err := r.db.QueryRow(
 		ctx,
-		`SELECT 
-			id, 
-			COALESCE(poster, '') as image, 
-			title, 
-			short_description, 
-			year, 
-			(SELECT title FROM genre WHERE id = genre_id) as genre,
-			duration,
-			created_at, 
-			updated_at
-		FROM film WHERE id = $1`,
+		getPromoFilmByIDQuery,
 		id,
 	).Scan(
 		&film.ID,
@@ -60,13 +152,7 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.
 	var film models.Film
 	err := r.db.QueryRow(
 		ctx,
-		`SELECT 
-			id, title, original_title, cover, poster,
-			short_description, description, age_category, budget,
-			worldwide_fees, trailer_url, year, country_id,
-			genre_id, slogan, duration, image1, image2,
-			image3, created_at, updated_at
-		FROM film WHERE id = $1`,
+		getFilmByIDQuery,
 		id,
 	).Scan(
 		&film.ID, &film.Title, &film.OriginalTitle, &film.Cover, &film.Poster,
@@ -92,7 +178,7 @@ func (r *FilmRepository) GetGenreTitle(ctx context.Context, genreID uuid.UUID) (
 	var title string
 	err := r.db.QueryRow(
 		ctx,
-		"SELECT title FROM genre WHERE id = $1",
+		getGenreTitleQuery,
 		genreID,
 	).Scan(&title)
 	return title, err
@@ -102,7 +188,7 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 	var avgRating float64
 	err := r.db.QueryRow(
 		ctx,
-		"SELECT COALESCE(AVG(rating), 0) FROM film_feedback WHERE film_id = $1",
+		getFilmAvgRatingQuery,
 		filmID,
 	).Scan(&avgRating)
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
@@ -110,17 +196,7 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 }
 
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
-	query := `
-        SELECT 
-            f.id, f.cover, f.title, f.year, g.title as genre_title
-        FROM film f
-        JOIN genre g ON f.genre_id = g.id
-        LEFT JOIN film_feedback ff ON f.id = ff.film_id
-        GROUP BY f.id, g.title
-        ORDER BY f.created_at DESC
-        LIMIT $1 OFFSET $2`
-
-	rows, err := r.db.Query(ctx, query, limit, offset)
+	rows, err := r.db.Query(ctx, getFilmsWithPaginationQuery, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -150,23 +226,8 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 }
 
 func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error) {
-	filmsQuery := `
-        SELECT 
-            f.id, f.title, f.original_title, f.cover, f.poster,
-            f.short_description, f.description, f.age_category, f.budget,
-            f.worldwide_fees, f.trailer_url, f.year, 
-            f.slogan, f.duration, f.image1, f.image2, f.image3,
-            g.title as genre, c.name as country,
-            COUNT(ff.id) as number_of_ratings
-        FROM film f
-        JOIN genre g ON f.genre_id = g.id
-        JOIN country c ON f.country_id = c.id
-        LEFT JOIN film_feedback ff ON f.id = ff.film_id
-        WHERE f.id = $1
-        GROUP BY f.id, g.title, c.name`
-
 	var result models.FilmPage
-	err := r.db.QueryRow(ctx, filmsQuery, filmID).Scan(
+	err := r.db.QueryRow(ctx, getFilmPageQuery, filmID).Scan(
 		&result.ID, &result.Title, &result.OriginalTitle, &result.Cover, &result.Poster,
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
@@ -190,14 +251,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		result.Rating = 0
 	}
 
-	actorsQuery := `
-        SELECT a.id, a.russian_name, a.original_name, a.photo, a.height,
-               a.birth_date, a.death_date, a.zodiac_sign, a.birth_place, a.marital_status
-        FROM actor a
-        JOIN actor_in_film aif ON a.id = aif.actor_id
-        WHERE aif.film_id = $1`
-
-	rows, err := r.db.Query(ctx, actorsQuery, filmID)
+	rows, err := r.db.Query(ctx, getFilmActorsQuery, filmID)
 	if err != nil {
 		return result, nil
 	}
@@ -217,19 +271,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 }
 
 func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error) {
-	query := `
-        SELECT 
-            ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
-            ff.created_at, ff.updated_at,
-            u.login as user_login,
-            u.avatar as user_avatar
-        FROM film_feedback ff
-        JOIN user_table u ON ff.user_id = u.id
-        WHERE ff.film_id = $1 AND ff.title IS NOT NULL AND ff.title != ''
-        ORDER BY ff.created_at DESC
-        LIMIT $2 OFFSET $3`
-
-	rows, err := r.db.Query(ctx, query, filmID, limit, offset)
+	rows, err := r.db.Query(ctx, getFilmFeedbacksQuery, filmID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -267,14 +309,7 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 	var feedback models.FilmFeedback
 	err := r.db.QueryRow(
 		ctx,
-		`SELECT 
-            ff.id, ff.user_id, ff.film_id, ff.title, ff.text, ff.rating, 
-            ff.created_at, ff.updated_at,
-            u.login as user_login,
-            u.avatar as user_avatar
-        FROM film_feedback ff
-        JOIN user_table u ON ff.user_id = u.id
-        WHERE ff.user_id = $1 AND ff.film_id = $2`,
+		checkUserFeedbackExistsQuery,
 		userID, filmID,
 	).Scan(
 		&feedback.ID, &feedback.UserID, &feedback.FilmID, &feedback.Title,
@@ -290,7 +325,7 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
-		"UPDATE film_feedback SET title = $1, text = $2, rating = $3, updated_at = CURRENT_TIMESTAMP WHERE id = $4",
+		updateFeedbackQuery,
 		feedback.Title, feedback.Text, feedback.Rating, feedback.ID,
 	)
 	return err
@@ -299,7 +334,7 @@ func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.Fil
 func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
-		"INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES ($1, $2, $3, $4, $5, $6)",
+		createFeedbackQuery,
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Title, feedback.Text, feedback.Rating,
 	)
 	if err != nil {
@@ -318,7 +353,7 @@ func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback models.Fil
 func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeedback) error {
 	_, err := r.db.Exec(
 		ctx,
-		"INSERT INTO film_feedback (id, user_id, film_id, rating) VALUES ($1, $2, $3, $4)",
+		setRatingQuery,
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Rating,
 	)
 	return err
@@ -328,7 +363,7 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	var user models.User
 	err := r.db.QueryRow(
 		ctx,
-		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE login = $1",
+		getUserByLoginQuery,
 		login,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
