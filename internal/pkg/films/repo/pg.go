@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"strconv"
 
 	"github.com/jackc/pgconn"
@@ -21,6 +23,7 @@ func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
 }
 
 func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var film models.PromoFilm
 
 	err := r.db.QueryRow(
@@ -50,6 +53,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 	)
 
 	if err != nil {
+		logger.Error("failed to scan promo film")
 		return models.PromoFilm{}, fmt.Errorf("failed to get promo film: %w", err)
 	}
 
@@ -57,6 +61,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 }
 
 func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var film models.Film
 	err := r.db.QueryRow(
 		ctx,
@@ -76,6 +81,7 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.
 		&film.Image3, &film.CreatedAt, &film.UpdatedAt,
 	)
 	if err != nil {
+		logger.Error("failed to scan film")
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",

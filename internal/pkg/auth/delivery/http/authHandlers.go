@@ -101,9 +101,9 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	})
 	user.Sanitize()
 
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 	//w.Header().Set("Authorization", "Bearer "+token)
 	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // SignInUser godoc
@@ -169,7 +169,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
-			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+			log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
 			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 			return
 		}
