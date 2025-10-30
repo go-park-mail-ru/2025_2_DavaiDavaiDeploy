@@ -70,7 +70,7 @@ func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager
 	}
 
 	if len(films) == 0 {
-		logger.Info("Actor has no films")
+		logger.Info("actor has no films")
 		return []models.MainPageFilm{}, errors.New("no films")
 	}
 	return films, nil

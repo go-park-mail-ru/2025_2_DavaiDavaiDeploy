@@ -1,8 +1,11 @@
 package http
 
 import (
+	"errors"
 	"kinopoisk/internal/pkg/genres"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -27,9 +30,11 @@ func NewGenreHandler(uc genres.GenreUsecase) *GenreHandler {
 // @Failure 500 {object} models.Error
 // @Router /genres/{id} [get]
 func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -41,6 +46,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	}
 	neededGenre.Sanitize()
 	helpers.WriteJSON(w, neededGenre)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // GetGenres godoc
@@ -51,6 +57,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /genres [get]
 func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
 	genres, err := g.uc.GetGenres(r.Context(), pager)
@@ -62,6 +69,7 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 		genres[i].Sanitize()
 	}
 	helpers.WriteJSON(w, genres)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // GetFilmsByGenre godoc
@@ -74,11 +82,13 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /genres/{id}/films [get]
 func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 
 	neededGenre, err := uuid.FromString(idStr)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -94,4 +104,5 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		films[i].Sanitize()
 	}
 	helpers.WriteJSON(w, films)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
