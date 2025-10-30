@@ -41,7 +41,6 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 
 	actor, err := a.uc.GetActor(r.Context(), id)
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("failed to get actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -74,7 +73,6 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("failed to get actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}

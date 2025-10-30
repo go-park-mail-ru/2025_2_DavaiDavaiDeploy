@@ -7,6 +7,8 @@ import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -59,16 +61,18 @@ func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
 // @Failure 500 {object} models.Error
 // @Router /auth/signup [post]
 func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
 	var req models.SignUpInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
 
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
-
 	if err != nil {
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -96,6 +100,8 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 	user.Sanitize()
+
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 	//w.Header().Set("Authorization", "Bearer "+token)
 	helpers.WriteJSON(w, user)
 }
@@ -113,16 +119,18 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
-	user, token, err := a.uc.SignInUser(r.Context(), req)
 
+	user, token, err := a.uc.SignInUser(r.Context(), req)
 	if err != nil {
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -152,13 +160,17 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize()
 	//w.Header().Set("Authorization", "Bearer "+token)
 	helpers.WriteJSON(w, user)
+
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
+			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 			return
 		}
 		var csrfToken string
@@ -171,12 +183,14 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			if tokenFromForm != "" {
 				csrfToken = tokenFromForm
 			} else {
-				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
+				log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
+				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 				return
 			}
 		}
 		if csrfCookie.Value != csrfToken {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
+			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 			return
 		}
 
@@ -188,12 +202,13 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 			return
 		}
 		user.Sanitize()
 		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
+		log.LogHandlerInfo(logger, "Success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -208,12 +223,14 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 // @Failure 500 {object} models.Error
 // @Router /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
 		helpers.WriteError(w, http.StatusUnauthorized, err)
 	}
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // LogOutUser godoc
@@ -225,6 +242,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
 		helpers.WriteError(w, http.StatusUnauthorized, err)
@@ -250,4 +268,6 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(-12 * time.Hour),
 		Path:     "/",
 	})
+
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
