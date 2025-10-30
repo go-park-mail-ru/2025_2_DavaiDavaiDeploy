@@ -1,8 +1,11 @@
 package http
 
 import (
+	"errors"
 	"kinopoisk/internal/pkg/actors"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -26,20 +29,25 @@ func NewActorHandler(uc actors.ActorUsecase) *ActorHandler {
 // @Failure      400  {object}  models.Error
 // @Router       /actors/{id} [get]
 func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	actor, err := a.uc.GetActor(r.Context(), id)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to get actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	actor.Sanitize()
 	helpers.WriteJSON(w, actor)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // GetFilmsByActor godoc
@@ -51,11 +59,13 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  models.Error
 // @Router       /actors/{id}/films [get]
 func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	idStr := vars["id"]
 
 	neededActor, err := uuid.FromString(idStr)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -64,6 +74,7 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to get actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -72,4 +83,5 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, films)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
