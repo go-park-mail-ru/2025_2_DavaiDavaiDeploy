@@ -3,33 +3,34 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
+	"os"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 )
 
 type FilmUsecase struct {
 	filmRepo films.FilmRepo
+	secret   string
 }
 
 func NewFilmUsecase(repo films.FilmRepo) *FilmUsecase {
 	return &FilmUsecase{
 		filmRepo: repo,
+		secret:   os.Getenv("JWT_SECRET"),
 	}
 }
 
 func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, error) {
-	film, err := uc.filmRepo.GetFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
+	film, err := uc.filmRepo.GetPromoFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
 	if err != nil {
+		fmt.Println(err)
 		return models.PromoFilm{}, errors.New("no films")
-	}
-
-	genre, err := uc.filmRepo.GetGenreTitle(ctx, film.GenreID)
-	if err != nil {
-		genre = "Unknown"
 	}
 
 	avgRating, err := uc.filmRepo.GetFilmAvgRating(ctx, film.ID)
@@ -39,12 +40,12 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 
 	promoFilm := models.PromoFilm{
 		ID:               film.ID,
-		Image:            film.Poster,
+		Image:            film.Image,
 		Title:            film.Title,
 		Rating:           avgRating,
 		ShortDescription: film.ShortDescription,
 		Year:             film.Year,
-		Genre:            genre,
+		Genre:            film.Genre,
 		Duration:         film.Duration,
 	}
 	return promoFilm, nil
@@ -74,6 +75,7 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 }
 
 func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
+	user, _ := ctx.Value(auth.UserKey).(models.User)
 	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.FilmFeedback{}, errors.New("no feedbacks")
@@ -81,6 +83,14 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 
 	if len(feedbacks) == 0 {
 		return []models.FilmFeedback{}, errors.New("no feedbacks")
+	}
+
+	for i := range feedbacks {
+		if feedbacks[i].UserID == user.ID {
+			feedbacks[i].IsMine = true
+		} else {
+			feedbacks[i].IsMine = false
+		}
 	}
 	return feedbacks, nil
 }
@@ -144,7 +154,6 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 
 	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
 	// if err != nil {
-	// 	fmt.Println("suslik")
 	// 	w.WriteHeader(http.StatusInternalServerError)
 	// 	json.NewEncoder(w).Encode(feedback)
 	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
@@ -169,4 +178,46 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 	}
 
 	return newFeedback, nil
+}
+
+func (uc *FilmUsecase) ParseToken(token string) (*jwt.Token, error) {
+	return jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(uc.secret), nil
+	})
+}
+
+func (uc *FilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {
+	if token == "" {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	parsedToken, err := uc.ParseToken(token)
+	if err != nil || !parsedToken.Valid {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	claims, ok := parsedToken.Claims.(jwt.MapClaims)
+	if !ok {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	exp, ok := claims["exp"].(float64)
+	if !ok || int64(exp) < time.Now().Unix() {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	login, ok := claims["login"].(string)
+	if !ok || login == "" {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	user, err := uc.filmRepo.GetUserByLogin(ctx, login)
+	if err != nil {
+		return models.User{}, errors.New("user not authenticated")
+	}
+
+	return user, nil
 }

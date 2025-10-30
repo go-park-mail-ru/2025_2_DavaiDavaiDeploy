@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os/signal"
 	"syscall"
@@ -27,6 +28,7 @@ import (
 	genreRepo "kinopoisk/internal/pkg/genres/repo"
 	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
 	"kinopoisk/internal/pkg/middleware/cors"
+	logger "kinopoisk/internal/pkg/middleware/logger"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	userRepo "kinopoisk/internal/pkg/users/repo"
 	userUsecase "kinopoisk/internal/pkg/users/usecase"
@@ -75,6 +77,8 @@ func main() {
 		log.Fatalf("Unable to connect to database: %v\n", err)
 	}
 
+	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	mainRouter := mux.NewRouter()
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
 
@@ -84,6 +88,7 @@ func main() {
 	})
 
 	apiRouter.Use(cors.CorsMiddleware)
+	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
 
 	// Инициализация репозиториев, usecases и handlers
 	filmRepo := filmRepo.NewFilmRepository(dbpool)
@@ -128,6 +133,7 @@ func main() {
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
+	filmRouter.Use(filmHandler.Middleware)
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)

@@ -14,6 +14,7 @@ type FilmUsecase interface {
 	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
+	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 }
 
 type FilmRepo interface {
@@ -27,4 +28,6 @@ type FilmRepo interface {
 	UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error
 	CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error
 	SetRating(ctx context.Context, feedback models.FilmFeedback) error
+	GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error)
+	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 }

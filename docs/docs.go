@@ -887,6 +887,7 @@ const docTemplate = `{
                 "created_at",
                 "film_id",
                 "id",
+                "is_mine",
                 "rating",
                 "text",
                 "title",
@@ -904,6 +905,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_mine": {
+                    "type": "boolean"
                 },
                 "rating": {
                     "type": "integer",

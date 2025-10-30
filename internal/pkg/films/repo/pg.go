@@ -20,6 +20,42 @@ func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
 	return &FilmRepository{db: db}
 }
 
+func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error) {
+	var film models.PromoFilm
+
+	err := r.db.QueryRow(
+		ctx,
+		`SELECT 
+			id, 
+			COALESCE(poster, '') as image, 
+			title, 
+			short_description, 
+			year, 
+			(SELECT title FROM genre WHERE id = genre_id) as genre,
+			duration,
+			created_at, 
+			updated_at
+		FROM film WHERE id = $1`,
+		id,
+	).Scan(
+		&film.ID,
+		&film.Image,
+		&film.Title,
+		&film.ShortDescription,
+		&film.Year,
+		&film.Genre,
+		&film.Duration,
+		&film.CreatedAt,
+		&film.UpdatedAt,
+	)
+
+	if err != nil {
+		return models.PromoFilm{}, fmt.Errorf("failed to get promo film: %w", err)
+	}
+
+	return film, nil
+}
+
 func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error) {
 	var film models.Film
 	err := r.db.QueryRow(
@@ -189,7 +225,7 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
             u.avatar as user_avatar
         FROM film_feedback ff
         JOIN user_table u ON ff.user_id = u.id
-        WHERE ff.film_id = $1
+        WHERE ff.film_id = $1 AND ff.title IS NOT NULL AND ff.title != ''
         ORDER BY ff.created_at DESC
         LIMIT $2 OFFSET $3`
 
@@ -286,4 +322,27 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Rating,
 	)
 	return err
+}
+
+func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	var user models.User
+	err := r.db.QueryRow(
+		ctx,
+		"SELECT id, version, login, password_hash, avatar, created_at, updated_at FROM user_table WHERE login = $1",
+		login,
+	).Scan(
+		&user.ID, &user.Version, &user.Login,
+		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
+				pgErr.Message, pgErr.Code, pgErr.Detail)
+		}
+
+		fmt.Printf("Error getting user by ID %v: %v\n", user, err)
+		return models.User{}, fmt.Errorf("failed to get user: %w", err)
+	}
+	return user, nil
 }

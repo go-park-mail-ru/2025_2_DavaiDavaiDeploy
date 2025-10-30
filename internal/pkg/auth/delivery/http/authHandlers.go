@@ -113,7 +113,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
-
 	var req models.SignInInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 

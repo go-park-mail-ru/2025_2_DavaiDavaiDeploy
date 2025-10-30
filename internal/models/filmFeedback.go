@@ -18,6 +18,7 @@ type FilmFeedback struct {
 	UpdatedAt  time.Time `json:"updated_at" binding:"required"`
 	UserLogin  string    `json:"user_login" binding:"required"`
 	UserAvatar string    `json:"user_avatar" binding:"required"`
+	IsMine     bool      `json:"is_mine" binding:"required"`
 }
 
 func (ff *FilmFeedback) Sanitize() {
