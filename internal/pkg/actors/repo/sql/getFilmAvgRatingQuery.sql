@@ -1,0 +1,3 @@
+SELECT COALESCE(AVG(rating), 0) 
+FROM film_feedback 
+WHERE film_id = $1

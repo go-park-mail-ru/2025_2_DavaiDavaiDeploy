@@ -163,7 +163,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	var req models.FilmFeedbackInput
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()
@@ -201,7 +201,7 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	var req models.FilmFeedbackInput
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()

@@ -10,35 +10,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var (
-	getGenreByIDQuery = `
-		SELECT id, title, description, icon, created_at, updated_at 
-		FROM genre 
-		WHERE id = $1`
-
-	getGenresWithPaginationQuery = `
-		SELECT id, title, description, icon, created_at, updated_at 
-		FROM genre 
-		ORDER BY title
-		LIMIT $1 OFFSET $2`
-
-	getFilmAvgRatingQuery = `
-		SELECT COALESCE(AVG(rating), 0) 
-		FROM film_feedback 
-		WHERE film_id = $1`
-
-	getFilmsByGenreQuery = `
-		SELECT 
-			f.id, f.cover, f.title, f.year, g.title as genre_title
-		FROM film f
-		JOIN genre g ON f.genre_id = g.id
-		LEFT JOIN film_feedback ff ON f.id = ff.film_id
-		WHERE g.id = $1
-		GROUP BY f.id, g.title
-		ORDER BY f.created_at DESC
-		LIMIT $2 OFFSET $3`
-)
-
 type GenreRepository struct {
 	db *pgxpool.Pool
 }
@@ -51,7 +22,7 @@ func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (model
 	var genre models.Genre
 	err := g.db.QueryRow(
 		ctx,
-		getGenreByIDQuery,
+		GetGenreByIDQuery,
 		id,
 	).Scan(
 		&genre.ID, &genre.Title, &genre.Description, &genre.Icon,
@@ -64,7 +35,7 @@ func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (model
 }
 
 func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, offset int) ([]models.Genre, error) {
-	rows, err := g.db.Query(ctx, getGenresWithPaginationQuery, limit, offset)
+	rows, err := g.db.Query(ctx, GetGenresWithPaginationQuery, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +59,7 @@ func (g *GenreRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID
 	var avgRating float64
 	err := g.db.QueryRow(
 		ctx,
-		getFilmAvgRatingQuery,
+		GetFilmAvgRatingQuery,
 		filmID,
 	).Scan(&avgRating)
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
@@ -96,7 +67,7 @@ func (g *GenreRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID
 }
 
 func (g *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
-	rows, err := g.db.Query(ctx, getFilmsByGenreQuery, genreID, limit, offset)
+	rows, err := g.db.Query(ctx, GetFilmsByGenreQuery, genreID, limit, offset)
 	if err != nil {
 		return nil, err
 	}

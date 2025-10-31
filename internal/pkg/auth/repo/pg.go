@@ -11,30 +11,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-var (
-	checkUserExistsQuery = `
-		SELECT EXISTS(SELECT 1 FROM user_table WHERE login = $1)`
-
-	createUserQuery = `
-		INSERT INTO user_table (id, login, password_hash, created_at, updated_at) 
-		VALUES ($1, $2, $3, $4, $5)`
-
-	checkUserLoginQuery = `
-		SELECT id, version, login, password_hash, avatar, created_at, updated_at 
-		FROM user_table 
-		WHERE login = $1`
-
-	incrementUserVersionQuery = `
-		UPDATE user_table 
-		SET version = version + 1 
-		WHERE id = $1`
-
-	getUserByLoginQuery = `
-		SELECT id, version, login, password_hash, avatar, created_at, updated_at 
-		FROM user_table 
-		WHERE login = $1`
-)
-
 type AuthRepository struct {
 	db *pgxpool.Pool
 }
@@ -47,7 +23,7 @@ func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (boo
 	var exists bool
 	err := r.db.QueryRow(
 		ctx,
-		checkUserExistsQuery,
+		CheckUserExistsQuery,
 		login,
 	).Scan(&exists)
 	return exists, err
@@ -56,7 +32,7 @@ func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (boo
 func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error {
 	_, err := r.db.Exec(
 		ctx,
-		createUserQuery,
+		CreateUserQuery,
 		user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt,
 	)
 	return err
@@ -65,7 +41,7 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error
 func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (models.User, error) {
 	var user models.User
 	err := r.db.QueryRow(ctx,
-		checkUserLoginQuery,
+		CheckUserLoginQuery,
 		login,
 	).Scan(&user.ID,
 		&user.Version,
@@ -83,7 +59,7 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.UUID) error {
 	_, err := r.db.Exec(
 		ctx,
-		incrementUserVersionQuery,
+		IncrementUserVersionQuery,
 		userID,
 	)
 	return err
@@ -93,7 +69,7 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	var user models.User
 	err := r.db.QueryRow(
 		ctx,
-		getUserByLoginQuery,
+		GetUserByLoginQuery,
 		login,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
