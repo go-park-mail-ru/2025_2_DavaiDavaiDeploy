@@ -83,7 +83,7 @@ func TestActorUsecase_GetActor(t *testing.T) {
 					BirthDate:     birthDate,
 					DeathDate:     &deathDate,
 					ZodiacSign:    "Телец",
-					BirthPlace:    "Перth, Австралия",
+					BirthPlace:    "Австралия",
 					MaritalStatus: "Не женат",
 				}
 				mockRepo.EXPECT().
@@ -102,7 +102,7 @@ func TestActorUsecase_GetActor(t *testing.T) {
 				BirthDate:     birthDate,
 				Age:           40,
 				ZodiacSign:    "Телец",
-				BirthPlace:    "Перth, Австралия",
+				BirthPlace:    "Австралия",
 				MaritalStatus: "Не женат",
 				FilmsNumber:   15,
 			},
