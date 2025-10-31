@@ -183,6 +183,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 	user.Sanitize()
+	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
@@ -283,6 +284,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 	user.Sanitize()
+	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
