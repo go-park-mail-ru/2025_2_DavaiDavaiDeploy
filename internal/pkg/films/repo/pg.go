@@ -8,15 +8,15 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type FilmRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
+func NewFilmRepository(db pgxtype.Querier) *FilmRepository {
 	return &FilmRepository{db: db}
 }
 

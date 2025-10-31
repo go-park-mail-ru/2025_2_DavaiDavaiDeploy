@@ -8,15 +8,15 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type ActorRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewActorRepository(db *pgxpool.Pool) *ActorRepository {
+func NewActorRepository(db pgxtype.Querier) *ActorRepository {
 	return &ActorRepository{db: db}
 }
 

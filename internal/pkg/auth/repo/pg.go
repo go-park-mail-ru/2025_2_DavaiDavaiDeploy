@@ -6,15 +6,15 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type AuthRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewAuthRepository(db *pgxpool.Pool) *AuthRepository {
+func NewAuthRepository(db pgxtype.Querier) *AuthRepository {
 	return &AuthRepository{db: db}
 }
 

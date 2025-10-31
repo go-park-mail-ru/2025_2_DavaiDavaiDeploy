@@ -8,15 +8,15 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type GenreRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewGenreRepository(db *pgxpool.Pool) *GenreRepository {
+func NewGenreRepository(db pgxtype.Querier) *GenreRepository {
 	return &GenreRepository{db: db}
 }
 

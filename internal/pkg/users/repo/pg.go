@@ -6,15 +6,15 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type UserRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewUserRepository(db *pgxpool.Pool) *UserRepository {
+func NewUserRepository(db pgxtype.Querier) *UserRepository {
 	return &UserRepository{db: db}
 }
 
