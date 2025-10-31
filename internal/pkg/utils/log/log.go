@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 )
 
@@ -21,12 +21,12 @@ func GetFuncName() string {
 }
 
 func LogHandlerInfo(logger *slog.Logger, msg string, statusCode int) {
-	logger = logger.With(slog.String("status", strconv.Itoa(statusCode)))
+	logger = logger.With(slog.String("status", http.StatusText(statusCode)))
 	logger.Info(msg)
 }
 
 func LogHandlerError(logger *slog.Logger, err error, statusCode int) {
-	logger = logger.With(slog.String("status", strconv.Itoa(statusCode)))
+	logger = logger.With(slog.String("status", http.StatusText(statusCode)))
 
 	unwrappedErr := errors.Unwrap(err)
 	if unwrappedErr != nil {
