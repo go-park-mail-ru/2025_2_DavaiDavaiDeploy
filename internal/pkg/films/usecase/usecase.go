@@ -7,6 +7,8 @@ import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"os"
 	"time"
 
@@ -52,6 +54,7 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 }
 
 func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	films, err := uc.filmRepo.GetFilmsWithPagination(ctx, pager.Count, pager.Offset)
 	if err != nil {
@@ -59,6 +62,7 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 	}
 
 	if len(films) == 0 {
+		logger.Error("no films")
 		return []models.MainPageFilm{}, errors.New("no films")
 	}
 
@@ -75,6 +79,7 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 }
 
 func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, _ := ctx.Value(auth.UserKey).(models.User)
 	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
@@ -82,6 +87,7 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	}
 
 	if len(feedbacks) == 0 {
+		logger.Error("no feedbacks")
 		return []models.FilmFeedback{}, errors.New("no feedbacks")
 	}
 
@@ -96,20 +102,25 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 }
 
 func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
+		logger.Error("no such user")
 		return models.FilmFeedback{}, errors.New("user not authenticated")
 	}
 
 	if req.Rating < 1 || req.Rating > 10 {
+		logger.Error("invalid rating")
 		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
 	}
 
 	if len(req.Title) < 1 || len(req.Title) > 100 {
+		logger.Error("invalid length of title")
 		return models.FilmFeedback{}, errors.New("title length must be between 1 and 100")
 	}
 
 	if len(req.Text) < 1 || len(req.Text) > 1000 {
+		logger.Error("invalid length of text")
 		return models.FilmFeedback{}, errors.New("text length must be between 1 and 1000")
 	}
 
@@ -147,20 +158,22 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 }
 
 func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
-		return models.FilmFeedback{}, errors.New("user not authenticated")
+		logger.Error("user is not authorized")
+		return models.FilmFeedback{}, errors.New("user is not authorized")
 	}
 
 	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
 	// if err != nil {
-	// 	fmt.Println("suslik")
 	// 	w.WriteHeader(http.StatusInternalServerError)
 	// 	json.NewEncoder(w).Encode(feedback)
 	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
 	// }
 
 	if req.Rating < 1 || req.Rating > 10 {
+		logger.Error("invalid rating")
 		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
 	}
 
@@ -191,27 +204,34 @@ func (uc *FilmUsecase) ParseToken(token string) (*jwt.Token, error) {
 }
 
 func (uc *FilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
 	if token == "" {
-		return models.User{}, errors.New("user not authenticated")
+		logger.Error("user is not authorized")
+		return models.User{}, errors.New("user is not authorized")
 	}
 
 	parsedToken, err := uc.ParseToken(token)
 	if err != nil || !parsedToken.Valid {
+		logger.Error("invalid token")
 		return models.User{}, errors.New("user not authenticated")
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
+		logger.Error("invalid claims")
 		return models.User{}, errors.New("user not authenticated")
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok || int64(exp) < time.Now().Unix() {
+		logger.Error("invalid exp claim")
 		return models.User{}, errors.New("user not authenticated")
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok || login == "" {
+		logger.Error("invalid login claim")
 		return models.User{}, errors.New("user not authenticated")
 	}
 

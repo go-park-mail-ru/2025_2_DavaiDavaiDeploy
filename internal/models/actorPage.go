@@ -8,17 +8,17 @@ import (
 )
 
 type ActorPage struct {
-	ID            uuid.UUID  `json:"id"`
-	RussianName   string     `json:"russian_name" binding:"required"`
-	OriginalName  *string    `json:"original_name,omitempty"`
-	Photo         string     `json:"photo,omitempty"`
-	Height        int        `json:"height,omitempty"`
-	BirthDate     *time.Time `json:"birth_date,omitempty"`
-	Age           int        `json:"age,omitempty"`
-	ZodiacSign    string     `json:"zodiac_sign,omitempty"`
-	BirthPlace    string     `json:"birth_place,omitempty"`
-	MaritalStatus string     `json:"marital_status,omitempty"`
-	FilmsNumber   int        `json:"films_number,omitempty"`
+	ID            uuid.UUID `json:"id" binding:"required"`
+	RussianName   string    `json:"russian_name" binding:"required"`
+	OriginalName  *string   `json:"original_name" binding:"required"`
+	Photo         string    `json:"photo" binding:"required"`
+	Height        int       `json:"height" binding:"required"`
+	BirthDate     time.Time `json:"birth_date" binding:"required"`
+	Age           int       `json:"age" binding:"required"`
+	ZodiacSign    string    `json:"zodiac_sign" binding:"required"`
+	BirthPlace    string    `json:"birth_place" binding:"required"`
+	MaritalStatus string    `json:"marital_status" binding:"required"`
+	FilmsNumber   int       `json:"films_number" binding:"required"`
 }
 
 func (ap *ActorPage) Sanitize() {

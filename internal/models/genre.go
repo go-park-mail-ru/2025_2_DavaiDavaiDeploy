@@ -8,10 +8,10 @@ import (
 )
 
 type Genre struct {
-	ID          uuid.UUID `json:"id"`
+	ID          uuid.UUID `json:"id" binding:"required"`
 	Title       string    `json:"title" binding:"required"`
-	Description string    `json:"description,omitempty"`
-	Icon        string    `json:"icon,omitempty"`
+	Description string    `json:"description" binding:"required"`
+	Icon        string    `json:"icon" binding:"required"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

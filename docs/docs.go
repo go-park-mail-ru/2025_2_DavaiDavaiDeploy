@@ -589,7 +589,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Film"
+                                "$ref": "#/definitions/models.MainPageFilm"
                             }
                         }
                     },
@@ -759,7 +759,14 @@ const docTemplate = `{
         "models.Actor": {
             "type": "object",
             "required": [
-                "russian_name"
+                "birth_date",
+                "birth_place",
+                "height",
+                "id",
+                "marital_status",
+                "photo",
+                "russian_name",
+                "zodiac_sign"
             ],
             "properties": {
                 "birth_date": {
@@ -803,7 +810,17 @@ const docTemplate = `{
         "models.ActorPage": {
             "type": "object",
             "required": [
-                "russian_name"
+                "age",
+                "birth_date",
+                "birth_place",
+                "films_number",
+                "height",
+                "id",
+                "marital_status",
+                "original_name",
+                "photo",
+                "russian_name",
+                "zodiac_sign"
             ],
             "properties": {
                 "age": {
@@ -864,88 +881,18 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Film": {
-            "type": "object",
-            "required": [
-                "country_id",
-                "duration",
-                "genre_id",
-                "title",
-                "year"
-            ],
-            "properties": {
-                "age_category": {
-                    "type": "string"
-                },
-                "budget": {
-                    "type": "integer"
-                },
-                "country_id": {
-                    "type": "string"
-                },
-                "cover": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "duration": {
-                    "type": "integer"
-                },
-                "genre_id": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "image1": {
-                    "type": "string"
-                },
-                "image2": {
-                    "type": "string"
-                },
-                "image3": {
-                    "type": "string"
-                },
-                "original_title": {
-                    "type": "string"
-                },
-                "poster": {
-                    "type": "string"
-                },
-                "rating": {
-                    "type": "number"
-                },
-                "short_description": {
-                    "type": "string"
-                },
-                "slogan": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "trailer_url": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "worldwide_fees": {
-                    "type": "integer"
-                },
-                "year": {
-                    "type": "integer"
-                }
-            }
-        },
         "models.FilmFeedback": {
             "type": "object",
             "required": [
+                "created_at",
                 "film_id",
+                "id",
+                "is_mine",
+                "rating",
+                "text",
+                "title",
+                "updated_at",
+                "user_avatar",
                 "user_id",
                 "user_login"
             ],
@@ -958,6 +905,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
+                },
+                "is_mine": {
+                    "type": "boolean"
                 },
                 "rating": {
                     "type": "integer",
@@ -1012,10 +962,22 @@ const docTemplate = `{
         "models.FilmPage": {
             "type": "object",
             "required": [
+                "actors",
+                "age_category",
+                "budget",
                 "country",
+                "cover",
+                "description",
+                "duration",
                 "genre",
+                "id",
                 "number_of_ratings",
+                "poster",
+                "rating",
+                "short_description",
                 "title",
+                "trailer_url",
+                "worldwide_fees",
                 "year"
             ],
             "properties": {
@@ -1093,6 +1055,9 @@ const docTemplate = `{
         "models.Genre": {
             "type": "object",
             "required": [
+                "description",
+                "icon",
+                "id",
                 "title"
             ],
             "properties": {
@@ -1121,6 +1086,8 @@ const docTemplate = `{
             "required": [
                 "cover",
                 "genre",
+                "id",
+                "rating",
                 "title",
                 "year"
             ],
@@ -1150,7 +1117,10 @@ const docTemplate = `{
             "required": [
                 "duration",
                 "genre",
+                "id",
                 "image",
+                "rating",
+                "short_description",
                 "title",
                 "year"
             ],
@@ -1220,6 +1190,8 @@ const docTemplate = `{
         "models.User": {
             "type": "object",
             "required": [
+                "avatar",
+                "id",
                 "login",
                 "version"
             ],

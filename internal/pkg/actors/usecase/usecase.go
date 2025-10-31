@@ -5,6 +5,8 @@ import (
 	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/actors"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -61,12 +63,14 @@ func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.Acto
 }
 
 func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	films, err := uc.actorRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.MainPageFilm{}, errors.New("no films")
 	}
 
 	if len(films) == 0 {
+		logger.Info("actor has no films")
 		return []models.MainPageFilm{}, errors.New("no films")
 	}
 	return films, nil

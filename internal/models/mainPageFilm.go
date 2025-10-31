@@ -7,7 +7,7 @@ import (
 )
 
 type MainPageFilm struct {
-	ID     uuid.UUID `json:"id"`
+	ID     uuid.UUID `json:"id" binding:"required"`
 	Cover  string    `json:"cover" binding:"required"`
 	Title  string    `json:"title" binding:"required"`
 	Rating float64   `json:"rating" binding:"required"`

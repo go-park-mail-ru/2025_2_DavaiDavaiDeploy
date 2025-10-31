@@ -3,10 +3,13 @@ package filmHandlers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -34,6 +37,7 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 // @Failure 500 {object} models.Error
 // @Router /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
 		helpers.WriteError(w, http.StatusNotFound, err)
@@ -42,6 +46,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 
 	film.Sanitize()
 	helpers.WriteJSON(w, film)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // GetFilms godoc
@@ -54,6 +59,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Failure      400     {object}  models.Error
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
 	films, err := c.uc.GetFilms(r.Context(), pager)
@@ -65,6 +71,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		films[i].Sanitize()
 	}
 	helpers.WriteJSON(w, films)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // GetFilm godoc
@@ -76,9 +83,11 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 // @Failure      400  {object}  models.Error
 // @Router       /films/{id} [get]
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -90,6 +99,29 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	}
 	film.Sanitize()
 	helpers.WriteJSON(w, film)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+}
+
+func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
+		}
+		if token != "" {
+			user, err := c.uc.ValidateAndGetUser(r.Context(), token)
+			if err == nil {
+				user.Sanitize()
+				ctx := context.WithValue(r.Context(), auth.UserKey, user)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			}
+		}
+
+		log.LogHandlerInfo(logger, "Success", http.StatusOK)
+		next.ServeHTTP(w, r)
+	})
 }
 
 func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
@@ -121,9 +153,11 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 // @Failure 500 {object} models.Error
 // @Router /films/{id}/feedbacks [get]
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -138,7 +172,9 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	for i := range feedbacks {
 		feedbacks[i].Sanitize()
 	}
+
 	helpers.WriteJSON(w, feedbacks)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // SendFeedback godoc
@@ -153,9 +189,11 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -163,7 +201,8 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	var req models.FilmFeedbackInput
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
@@ -176,6 +215,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 	feedback.Sanitize()
 	helpers.WriteJSON(w, feedback)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // SetRating godoc
@@ -191,9 +231,11 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -201,7 +243,8 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	var req models.FilmFeedbackInput
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
@@ -213,4 +256,5 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	}
 	rating.Sanitize()
 	helpers.WriteJSON(w, rating)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }

@@ -8,7 +8,7 @@ import (
 )
 
 type Country struct {
-	ID        uuid.UUID `json:"id"`
+	ID        uuid.UUID `json:"id" binding:"required"`
 	Name      string    `json:"name" binding:"required"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

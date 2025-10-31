@@ -8,11 +8,11 @@ import (
 )
 
 type ActorInFilm struct {
-	ID          uuid.UUID `json:"id"`
+	ID          uuid.UUID `json:"id" binding:"required"`
 	ActorID     uuid.UUID `json:"actor_id" binding:"required"`
 	FilmID      uuid.UUID `json:"film_id" binding:"required"`
-	Character   string    `json:"character,omitempty"`
-	Description string    `json:"description,omitempty"`
+	Character   string    `json:"character" binding:"required"`
+	Description string    `json:"description" binding:"required"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
