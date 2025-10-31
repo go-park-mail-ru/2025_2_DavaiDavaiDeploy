@@ -105,6 +105,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
+		logger.Error("no such user")
 		return models.FilmFeedback{}, errors.New("user not authenticated")
 	}
 
