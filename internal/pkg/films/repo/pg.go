@@ -2,25 +2,26 @@ package repo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"strconv"
 
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type FilmRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewFilmRepository(db *pgxpool.Pool) *FilmRepository {
+func NewFilmRepository(db pgxtype.Querier) *FilmRepository {
 	return &FilmRepository{db: db}
 }
 
 func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var film models.PromoFilm
 
 	err := r.db.QueryRow(
@@ -40,6 +41,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 	)
 
 	if err != nil {
+		logger.Error("failed to scan promo film: " + err.Error())
 		return models.PromoFilm{}, fmt.Errorf("failed to get promo film: %w", err)
 	}
 
@@ -47,6 +49,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 }
 
 func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var film models.Film
 	err := r.db.QueryRow(
 		ctx,
@@ -60,42 +63,48 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.
 		&film.Image3, &film.CreatedAt, &film.UpdatedAt,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting film by ID %s: %v\n", id, err)
-		return models.Film{}, fmt.Errorf("failed to get film: %w", err)
+		logger.Error("failed to scan film: " + err.Error())
+		return models.Film{}, err
 	}
 	return film, nil
 }
 
 func (r *FilmRepository) GetGenreTitle(ctx context.Context, genreID uuid.UUID) (string, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var title string
 	err := r.db.QueryRow(
 		ctx,
 		GetGenreTitleQuery,
 		genreID,
 	).Scan(&title)
+	if err != nil {
+		logger.Error("failed to scan genre: " + err.Error())
+		return "", err
+	}
 	return title, err
 }
 
 func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var avgRating float64
 	err := r.db.QueryRow(
 		ctx,
 		GetFilmAvgRatingQuery,
 		filmID,
 	).Scan(&avgRating)
+	if err != nil {
+		logger.Error("failed to scan rating: " + err.Error())
+		return 0.0, err
+	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
 	return roundedRating, err
 }
 
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := r.db.Query(ctx, GetFilmsWithPaginationQuery, limit, offset)
 	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -110,10 +119,12 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 			&film.Year,
 			&film.Genre,
 		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
 			continue
 		}
 		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
+			logger.Error("failed to get rating: " + err.Error())
 			film.Rating = 0.0
 		} else {
 			film.Rating = rating
@@ -124,6 +135,7 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 }
 
 func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var result models.FilmPage
 	err := r.db.QueryRow(ctx, GetFilmPageQuery, filmID).Scan(
 		&result.ID, &result.Title, &result.OriginalTitle, &result.Cover, &result.Poster,
@@ -134,23 +146,19 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 	)
 
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting film by ID %s: %v\n", filmID, err)
-		return models.FilmPage{}, fmt.Errorf("failed to get film: %w", err)
+		logger.Error("failed to scan film: " + err.Error())
+		return models.FilmPage{}, err
 	}
 
 	result.Rating, err = r.GetFilmAvgRating(ctx, filmID)
 	if err != nil {
+		logger.Error("failed to get rating: " + err.Error())
 		result.Rating = 0
 	}
 
 	rows, err := r.db.Query(ctx, GetFilmActorsQuery, filmID)
 	if err != nil {
+		logger.Error("failed to get actors: " + err.Error())
 		return result, nil
 	}
 	defer rows.Close()
@@ -169,8 +177,10 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 }
 
 func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := r.db.Query(ctx, GetFilmFeedbacksQuery, filmID, limit, offset)
 	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -184,26 +194,17 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
 			&feedback.Text, &feedback.Rating, &feedback.CreatedAt, &feedback.UpdatedAt,
 			&feedback.UserLogin, &feedback.UserAvatar,
 		); err != nil {
+			logger.Error("failed to scan feedbacks: " + err.Error())
 			continue
 		}
 		feedbacks = append(feedbacks, feedback)
-	}
-
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting feedbacks by film %v\n", err)
-		return []models.FilmFeedback{}, fmt.Errorf("failed to get film: %w", err)
 	}
 
 	return feedbacks, nil
 }
 
 func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var feedback models.FilmFeedback
 	err := r.db.QueryRow(
 		ctx,
@@ -215,49 +216,55 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 		&feedback.UserLogin, &feedback.UserAvatar,
 	)
 	if err != nil {
+		logger.Error("failed to scan feedbacks: " + err.Error())
 		return models.FilmFeedback{}, err
 	}
 	return feedback, nil
 }
 
 func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
 		UpdateFeedbackQuery,
 		feedback.Title, feedback.Text, feedback.Rating, feedback.ID,
 	)
+	if err != nil {
+		logger.Error("failed to update feedback: " + err.Error())
+	}
 	return err
 }
 
 func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
 		CreateFeedbackQuery,
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Title, feedback.Text, feedback.Rating,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting film by ID %v\n", err)
-		return fmt.Errorf("failed to get film: %w", err)
+		logger.Error("failed to create feedback: " + err.Error())
+		return err
 	}
 	return err
 }
 
 func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeedback) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
 		SetRatingQuery,
 		feedback.ID, feedback.UserID, feedback.FilmID, feedback.Rating,
 	)
+	if err != nil {
+		logger.Error("failed to set rating: " + err.Error())
+		return err
+	}
 	return err
 }
 
 func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
 	err := r.db.QueryRow(
 		ctx,
@@ -268,14 +275,8 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting user by ID %v: %v\n", user, err)
-		return models.User{}, fmt.Errorf("failed to get user: %w", err)
+		logger.Error("failed to scan user: " + err.Error())
+		return models.User{}, err
 	}
 	return user, nil
 }

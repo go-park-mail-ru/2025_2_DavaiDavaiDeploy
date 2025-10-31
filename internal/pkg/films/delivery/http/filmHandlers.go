@@ -116,6 +116,7 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 				user.Sanitize()
 				ctx := context.WithValue(r.Context(), auth.UserKey, user)
 				next.ServeHTTP(w, r.WithContext(ctx))
+				return
 			}
 		}
 
@@ -225,7 +226,7 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
-		w.WriteHeader(http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 	req.Sanitize()

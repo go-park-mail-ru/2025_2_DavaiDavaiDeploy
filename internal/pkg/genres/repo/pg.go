@@ -4,21 +4,24 @@ import (
 	"context"
 	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"strconv"
 
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgtype/pgxtype"
 	uuid "github.com/satori/go.uuid"
 )
 
 type GenreRepository struct {
-	db *pgxpool.Pool
+	db pgxtype.Querier
 }
 
-func NewGenreRepository(db *pgxpool.Pool) *GenreRepository {
+func NewGenreRepository(db pgxtype.Querier) *GenreRepository {
 	return &GenreRepository{db: db}
 }
 
 func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (models.Genre, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var genre models.Genre
 	err := g.db.QueryRow(
 		ctx,
@@ -29,14 +32,17 @@ func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (model
 		&genre.CreatedAt, &genre.UpdatedAt,
 	)
 	if err != nil {
+		logger.Error("failed to scan genre: " + err.Error())
 		return models.Genre{}, err
 	}
 	return genre, nil
 }
 
 func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, offset int) ([]models.Genre, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := g.db.Query(ctx, GetGenresWithPaginationQuery, limit, offset)
 	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -48,6 +54,7 @@ func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, of
 			&genre.ID, &genre.Title, &genre.Description, &genre.Icon,
 			&genre.CreatedAt, &genre.UpdatedAt,
 		); err != nil {
+			logger.Error("failed to scan genre: " + err.Error())
 			continue
 		}
 		genres = append(genres, genre)
@@ -56,19 +63,26 @@ func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, of
 }
 
 func (g *GenreRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var avgRating float64
 	err := g.db.QueryRow(
 		ctx,
 		GetFilmAvgRatingQuery,
 		filmID,
 	).Scan(&avgRating)
+	if err != nil {
+		logger.Error("failed to get rating: " + err.Error())
+		return 0.0, err
+	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
 	return roundedRating, err
 }
 
 func (g *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := g.db.Query(ctx, GetFilmsByGenreQuery, genreID, limit, offset)
 	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -83,10 +97,12 @@ func (g *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID
 			&film.Year,
 			&film.Genre,
 		); err != nil {
+			logger.Error("failed to scan film: " + err.Error())
 			continue
 		}
 		rating, err := g.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
+			logger.Error("failed to get rating: " + err.Error())
 			film.Rating = 0.0
 		} else {
 			film.Rating = rating
