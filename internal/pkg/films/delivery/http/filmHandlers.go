@@ -124,25 +124,6 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var token string
-		cookie, err := r.Cookie(CookieName)
-		if err == nil {
-			token = cookie.Value
-		}
-		if token != "" {
-			user, err := c.uc.ValidateAndGetUser(r.Context(), token)
-			if err == nil {
-				user.Sanitize()
-				ctx := context.WithValue(r.Context(), auth.UserKey, user)
-				next.ServeHTTP(w, r.WithContext(ctx))
-			}
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
 // GetFilmFeedbacks godoc
 // @Summary Get film reviews
 // @Tags films
