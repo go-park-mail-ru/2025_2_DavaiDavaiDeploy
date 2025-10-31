@@ -152,14 +152,6 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 		return models.FilmFeedback{}, errors.New("user not authenticated")
 	}
 
-	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
-	// if err != nil {
-	// 	fmt.Println("suslik")
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	json.NewEncoder(w).Encode(feedback)
-	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
-	// }
-
 	if req.Rating < 1 || req.Rating > 10 {
 		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
 	}
