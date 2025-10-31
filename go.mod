@@ -13,6 +13,7 @@ require (
 	github.com/KyleBanks/depth v1.2.1 // indirect
 	github.com/chrisyxlee/pgxpoolmock v1.1.4 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/driftprogramming/pgxpoolmock v1.1.0 // indirect
 	github.com/go-openapi/jsonpointer v0.22.1 // indirect
 	github.com/go-openapi/jsonreference v0.21.2 // indirect
 	github.com/go-openapi/spec v0.22.0 // indirect
