@@ -2,11 +2,10 @@ package repo
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	uuid "github.com/satori/go.uuid"
 )
@@ -20,6 +19,7 @@ func NewUserRepository(db *pgxpool.Pool) *UserRepository {
 }
 
 func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
@@ -30,19 +30,14 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error %s: %v\n", id, err)
-		return models.User{}, fmt.Errorf("failed to: %w", err)
+		logger.Error("failed to scan user: " + err.Error())
+		return models.User{}, err
 	}
 	return user, nil
 }
 
 func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
 	err := u.db.QueryRow(
 		ctx,
@@ -53,33 +48,36 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
+		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, err
 	}
 	return user, nil
 }
 
 func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := u.db.Exec(
 		ctx,
 		UpdateUserPasswordQuery,
 		passwordHash, version, userID,
 	)
+	if err != nil {
+		logger.Error("failed to update password: " + err.Error())
+		return err
+	}
 	return err
 }
 
 func (u *UserRepository) UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := u.db.Exec(
 		ctx,
 		UpdateUserAvatarQuery,
 		avatarPath, version, userID,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-		return fmt.Errorf("failed to update avatar: %w", err)
+		logger.Error("failed to update avatar: " + err.Error())
+		return err
 	}
 	return nil
 }

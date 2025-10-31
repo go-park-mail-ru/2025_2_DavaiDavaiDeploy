@@ -2,11 +2,10 @@ package repo
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 
-	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	uuid "github.com/satori/go.uuid"
 )
@@ -20,25 +19,35 @@ func NewAuthRepository(db *pgxpool.Pool) *AuthRepository {
 }
 
 func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (bool, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var exists bool
 	err := r.db.QueryRow(
 		ctx,
 		CheckUserExistsQuery,
 		login,
 	).Scan(&exists)
+	if err != nil {
+		logger.Error("failed to scan user: " + err.Error())
+		return false, err
+	}
 	return exists, err
 }
 
 func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
 		CreateUserQuery,
 		user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt,
 	)
+	if err != nil {
+		logger.Error("failed to create user: " + err.Error())
+	}
 	return err
 }
 
 func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
 	err := r.db.QueryRow(ctx,
 		CheckUserLoginQuery,
@@ -51,21 +60,27 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 		&user.CreatedAt,
 		&user.UpdatedAt)
 	if err != nil {
+		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, err
 	}
 	return user, nil
 }
 
 func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
 		IncrementUserVersionQuery,
 		userID,
 	)
+	if err != nil {
+		logger.Error("failed to increment version: " + err.Error())
+	}
 	return err
 }
 
 func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
 	err := r.db.QueryRow(
 		ctx,
@@ -76,14 +91,8 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) {
-			fmt.Printf("PostgreSQL Error: %s, Code: %s, Detail: %s\n",
-				pgErr.Message, pgErr.Code, pgErr.Detail)
-		}
-
-		fmt.Printf("Error getting user by ID %v: %v\n", user, err)
-		return models.User{}, fmt.Errorf("failed to get user: %w", err)
+		logger.Error("failed to scan user: " + err.Error())
+		return models.User{}, err
 	}
 	return user, nil
 }
