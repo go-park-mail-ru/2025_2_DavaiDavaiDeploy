@@ -3,16 +3,28 @@ package usecase
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"os"
 	"testing"
 	"time"
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/actors/mocks"
+	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+func testLogger() *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+}
+
+func testContext() context.Context {
+	testLogger := testLogger()
+	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
 
 func TestActorUsecase_GetActor(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -150,7 +162,7 @@ func TestActorUsecase_GetActor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMock()
-			result, err := usecase.GetActor(context.Background(), actorID)
+			result, err := usecase.GetActor(testContext(), actorID)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -246,7 +258,7 @@ func TestActorUsecase_GetFilmsByActor(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMock()
-			result, err := usecase.GetFilmsByActor(context.Background(), actorID, pager)
+			result, err := usecase.GetFilmsByActor(testContext(), actorID, pager)
 
 			if tt.expectError {
 				assert.Error(t, err)

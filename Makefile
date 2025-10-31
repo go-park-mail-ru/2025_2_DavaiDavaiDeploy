@@ -16,7 +16,7 @@ generate-mocks:
 	mockgen -source=internal/pkg/genres/interfaces.go -destination=internal/pkg/genres/mocks/mocks.go -package=mocks
 	mockgen -source=internal/pkg/auth/interfaces.go -destination=internal/pkg/auth/mocks/mocks.go -package=mocks
 	mockgen -source=internal/pkg/films/interfaces.go -destination=internal/pkg/films/mocks/mocks.go -package=mocks
-	mockgen -source=internal/pkg/users/interfaces.go -destination=internal/pkg/films/users/mocks.go -package=mocks
+	mockgen -source=internal/pkg/users/interfaces.go -destination=internal/pkg/users/mocks/mocks.go -package=mocks
 
 clean:
 	rm -f $(COVERAGE_FILE) $(COVERAGE_HTML) ${COVERPROFILE_TMP} 
