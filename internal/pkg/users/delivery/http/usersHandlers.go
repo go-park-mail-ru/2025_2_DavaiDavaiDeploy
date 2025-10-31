@@ -8,6 +8,8 @@ import (
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/users"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -48,8 +50,10 @@ func NewUserHandler(uc users.UsersUsecase) *UserHandler {
 
 func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
+			log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
 			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 			return
 		}
@@ -63,12 +67,14 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 			if tokenFromForm != "" {
 				csrfToken = tokenFromForm
 			} else {
+				log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
 				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 				return
 			}
 		}
 
 		if csrfCookie.Value != csrfToken {
+			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
 			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 			return
 		}
@@ -86,6 +92,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 		user.Sanitize()
 		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
+		log.LogHandlerInfo(logger, "Success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -100,9 +107,11 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 // @Failure 500 {object} models.Error
 // @Router /users/{id} [get]
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of user"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -114,6 +123,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	neededUser.Sanitize()
 	helpers.WriteJSON(w, neededUser)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // ChangePassword godoc
@@ -128,15 +138,18 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
-		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
 		return
 	}
 
 	var req models.ChangePasswordInput
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -171,6 +184,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	})
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
 // ChangeAvatar godoc
@@ -186,8 +200,10 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} models.Error
 // @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
 		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
 		return
 	}
@@ -206,6 +222,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
+			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
 			helpers.WriteError(w, http.StatusRequestEntityTooLarge, err)
 			return
 		}
@@ -220,6 +237,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -232,6 +250,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	buffer, err := io.ReadAll(file)
 	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
@@ -265,4 +284,5 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	})
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
