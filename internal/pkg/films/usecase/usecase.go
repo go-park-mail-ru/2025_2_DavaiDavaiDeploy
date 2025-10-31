@@ -71,8 +71,18 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 
 func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error) {
 	film, err := uc.filmRepo.GetFilmPage(ctx, id)
+	user, _ := ctx.Value(auth.UserKey).(models.User)
 	if err != nil {
 		return models.FilmPage{}, errors.New("no films")
+	}
+	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+	film.IsReviewed = false
+	emptyFeedback := ""
+	if err == nil && feedback.Title != &emptyFeedback {
+		film.IsReviewed = true
+		film.UserRating = &feedback.Rating
+	} else if err == nil {
+		film.UserRating = &feedback.Rating
 	}
 
 	return film, nil
@@ -81,6 +91,15 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, _ := ctx.Value(auth.UserKey).(models.User)
+	result := make([]models.FilmFeedback, 0, pager.Count+1)
+	if user.ID != uuid.Nil {
+		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+		if err == nil {
+			feedback.IsMine = true
+			result = append(result, feedback)
+		}
+	}
+
 	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.FilmFeedback{}, errors.New("no feedbacks")
@@ -92,13 +111,15 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	}
 
 	for i := range feedbacks {
-		if feedbacks[i].UserID == user.ID {
-			feedbacks[i].IsMine = true
-		} else {
-			feedbacks[i].IsMine = false
-		}
+		feedbacks[i].IsMine = false
+		result = append(result, feedbacks[i])
 	}
-	return feedbacks, nil
+
+	if len(result) > pager.Count {
+		result = result[:pager.Count]
+	}
+
+	return result, nil
 }
 
 func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
@@ -164,13 +185,6 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 		logger.Error("user is not authorized")
 		return models.FilmFeedback{}, errors.New("user is not authorized")
 	}
-
-	// feedback, err := c.filmRepo.CheckUserFeedbackExists(r.Context(), user.ID, filmID)
-	// if err != nil {
-	// 	w.WriteHeader(http.StatusInternalServerError)
-	// 	json.NewEncoder(w).Encode(feedback)
-	// 	return // у нас нельзя менять рейтинг, но можно поменять отзыв
-	// }
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
