@@ -191,6 +191,19 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
 	}
 
+	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
+	if err == nil {
+		// запись существует - обновляем рейтинг
+		existingFeedback.Rating = req.Rating
+
+		err := uc.filmRepo.UpdateFeedback(ctx, existingFeedback)
+		if err != nil {
+			return models.FilmFeedback{}, err
+		}
+
+		return existingFeedback, nil
+	}
+
 	newFeedback := models.FilmFeedback{
 		ID:        uuid.NewV4(),
 		UserID:    user.ID,
@@ -200,7 +213,7 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 		UpdatedAt: time.Now().UTC(),
 	}
 
-	err := uc.filmRepo.CreateFeedback(ctx, newFeedback)
+	err = uc.filmRepo.CreateFeedback(ctx, newFeedback)
 	if err != nil {
 		return models.FilmFeedback{}, errors.New("no feedback")
 	}
