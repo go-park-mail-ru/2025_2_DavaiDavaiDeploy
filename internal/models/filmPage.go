@@ -29,6 +29,8 @@ type FilmPage struct {
 	Image2           *string   `json:"image2,omitempty"`
 	Image3           *string   `json:"image3,omitempty"`
 	Actors           []Actor   `json:"actors" binding:"required"`
+	IsReviewed       bool      `json:"is_reviewed" binding:"required"`
+	UserRating       *int      `json:"user_rating,omitempty"`
 }
 
 func (fp *FilmPage) Sanitize() {
