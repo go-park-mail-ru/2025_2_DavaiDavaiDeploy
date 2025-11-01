@@ -2,18 +2,31 @@ package authHandlers
 
 import (
 	"bytes"
+	"context"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth/mocks"
+	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+func testLogger() *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+}
+
+func testContext() context.Context {
+	testLogger := testLogger()
+	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
 
 func TestSignupUser(t *testing.T) {
 	type args struct {
@@ -71,7 +84,7 @@ func TestSignupUser(t *testing.T) {
 				}, "jwt_token", tt.ucErr)
 			}
 
-			r := httptest.NewRequest("POST", "/auth/signup", bytes.NewBufferString(tt.requestBody))
+			r := httptest.NewRequest("POST", "/auth/signup", bytes.NewBufferString(tt.requestBody)).WithContext(testContext())
 			w := httptest.NewRecorder()
 
 			handler := NewAuthHandler(mockUsecase)
@@ -138,7 +151,7 @@ func TestSignInUser(t *testing.T) {
 				}, "jwt_token", tt.ucErr)
 			}
 
-			r := httptest.NewRequest("POST", "/auth/signin", bytes.NewBufferString(tt.requestBody))
+			r := httptest.NewRequest("POST", "/auth/signin", bytes.NewBufferString(tt.requestBody)).WithContext(testContext())
 			w := httptest.NewRecorder()
 
 			handler := NewAuthHandler(mockUsecase)
@@ -179,7 +192,7 @@ func TestCheckAuth(t *testing.T) {
 					Login: "testuser",
 				}, tt.ucErr)
 
-			r := httptest.NewRequest("GET", "/auth/check", nil)
+			r := httptest.NewRequest("GET", "/auth/check", nil).WithContext(testContext())
 			w := httptest.NewRecorder()
 
 			handler := NewAuthHandler(mockUsecase)
@@ -217,7 +230,7 @@ func TestLogOutUser(t *testing.T) {
 			mockUsecase.EXPECT().LogOutUser(gomock.Any()).
 				Return(tt.ucErr)
 
-			r := httptest.NewRequest("POST", "/auth/logout", nil)
+			r := httptest.NewRequest("POST", "/auth/logout", nil).WithContext(testContext())
 			w := httptest.NewRecorder()
 
 			handler := NewAuthHandler(mockUsecase)

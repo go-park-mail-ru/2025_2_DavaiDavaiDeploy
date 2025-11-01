@@ -3,7 +3,7 @@ COVERPROFILE_TMP=coverprofile.tmp
 
 test:
 	go test -json ./... -coverprofile coverprofile_.tmp -coverpkg=./... ; \
-	grep -v -e 'mocks.go' -e 'mock.go' -e 'docs.go' -e '_easyjson.go' -e 'gen_sql.go' -e '/redis/' -e '/gen/' -e '/metrics/'  -e '/cmd/' coverprofile_.tmp > coverprofile.tmp ; \
+	grep -v -e 'mocks.go' -e 'mock.go' -e 'docs.go' -e '/cmd/' coverprofile_.tmp > coverprofile.tmp ; \
     rm coverprofile_.tmp ; \
 	go tool cover -html ${COVERPROFILE_TMP} -o  $(COVERAGE_HTML); \
     go tool cover -func ${COVERPROFILE_TMP}

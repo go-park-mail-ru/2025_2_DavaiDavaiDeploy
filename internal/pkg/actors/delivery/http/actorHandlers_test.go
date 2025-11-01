@@ -1,21 +1,34 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 	"time"
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/actors/mocks"
+	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+func testLogger() *slog.Logger {
+	return slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelError}))
+}
+
+func testContext() context.Context {
+	testLogger := testLogger()
+	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
 
 func TestGetActor(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -91,7 +104,7 @@ func TestGetActor(t *testing.T) {
 				tt.mockSetup()
 			}
 
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil).WithContext(testContext())
 			rec := httptest.NewRecorder()
 
 			router := mux.NewRouter()
@@ -187,7 +200,7 @@ func TestGetFilmsByActor(t *testing.T) {
 				tt.mockSetup()
 			}
 
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil).WithContext(testContext())
 			rec := httptest.NewRecorder()
 
 			router := mux.NewRouter()
