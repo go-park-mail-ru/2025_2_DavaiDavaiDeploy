@@ -2,11 +2,14 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 
 	"github.com/jackc/pgtype/pgxtype"
+	"github.com/jackc/pgx/v4"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -28,9 +31,9 @@ func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (boo
 	).Scan(&exists)
 	if err != nil {
 		logger.Error("failed to scan user: " + err.Error())
-		return false, err
+		return false, auth.ErrorInternalServerError
 	}
-	return exists, err
+	return exists, nil
 }
 
 func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error {
@@ -42,8 +45,9 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error
 	)
 	if err != nil {
 		logger.Error("failed to create user: " + err.Error())
+		return auth.ErrorInternalServerError
 	}
-	return err
+	return nil
 }
 
 func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (models.User, error) {
@@ -60,8 +64,11 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 		&user.CreatedAt,
 		&user.UpdatedAt)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.User{}, auth.ErrorBadRequest
+		}
 		logger.Error("failed to scan user: " + err.Error())
-		return models.User{}, err
+		return models.User{}, auth.ErrorInternalServerError
 	}
 	return user, nil
 }
@@ -75,8 +82,9 @@ func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.U
 	)
 	if err != nil {
 		logger.Error("failed to increment version: " + err.Error())
+		return auth.ErrorInternalServerError
 	}
-	return err
+	return nil
 }
 
 func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
@@ -91,8 +99,11 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return models.User{}, auth.ErrorBadRequest
+		}
 		logger.Error("failed to scan user: " + err.Error())
-		return models.User{}, err
+		return models.User{}, auth.ErrorInternalServerError
 	}
 	return user, nil
 }

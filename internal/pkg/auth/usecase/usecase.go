@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
@@ -100,14 +99,15 @@ func (uc *AuthUsecase) ParseToken(token string) (*jwt.Token, error) {
 
 func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
 	if msg, passwordIsValid := ValidatePassword(req.Password); !passwordIsValid {
 		logger.Error(msg)
-		return models.User{}, "", errors.New(msg)
+		return models.User{}, "", auth.ErrorBadRequest
 	}
 
 	if msg, loginIsValid := ValidateLogin(req.Login); !loginIsValid {
 		logger.Error(msg)
-		return models.User{}, "", errors.New(msg)
+		return models.User{}, "", auth.ErrorBadRequest
 	}
 
 	exists, err := uc.authRepo.CheckUserExists(ctx, req.Login)
@@ -116,7 +116,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	}
 	if exists {
 		logger.Error("user already exists")
-		return models.User{}, "", errors.New("user already exists")
+		return models.User{}, "", auth.ErrorConflict
 	}
 
 	passwordHash := HashPass(req.Password)
@@ -142,7 +142,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	token, err := uc.GenerateToken(id, req.Login)
 	if err != nil {
 		logger.Error("cannot generate token")
-		return models.User{}, "", err
+		return models.User{}, "", auth.ErrorInternalServerError
 	}
 
 	return user, token, nil
@@ -150,26 +150,21 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 
 func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	neededUser, err := uc.authRepo.CheckUserLogin(ctx, req.Login)
 
+	neededUser, err := uc.authRepo.CheckUserLogin(ctx, req.Login)
 	if err != nil {
 		return models.User{}, "", err
 	}
 
-	if neededUser.ID == uuid.Nil {
-		logger.Error("no such user")
-		return models.User{}, "", errors.New("wrong login or password")
-	}
-
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
-		logger.Error("no such user")
-		return models.User{}, "", errors.New("wrong login or password")
+		logger.Error("invalid password")
+		return models.User{}, "", auth.ErrorBadRequest
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, req.Login)
 	if err != nil {
 		logger.Error("cannot generate token")
-		return models.User{}, "", err
+		return models.User{}, "", auth.ErrorInternalServerError
 	}
 
 	return neededUser, token, nil
@@ -180,9 +175,8 @@ func (uc *AuthUsecase) CheckAuth(ctx context.Context) (models.User, error) {
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		logger.Info("no such user in context")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, auth.ErrorUnauthorized
 	}
-
 	return user, nil
 }
 
@@ -192,12 +186,12 @@ func (uc *AuthUsecase) LogOutUser(ctx context.Context) error {
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		logger.Error("no such user in context")
-		return errors.New("user is not authorized")
+		return auth.ErrorUnauthorized
 	}
+
 	err := uc.authRepo.IncrementUserVersion(ctx, user.ID)
 	if err != nil {
-		logger.Error("cannot increment version")
-		return errors.New("user is not authorized")
+		return err
 	}
 
 	return nil
@@ -208,36 +202,37 @@ func (uc *AuthUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 
 	if token == "" {
 		logger.Error("user is not authorized")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, auth.ErrorUnauthorized
 	}
 
 	parsedToken, err := uc.ParseToken(token)
 	if err != nil || !parsedToken.Valid {
 		logger.Error("user is not authorized or invalid token")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, auth.ErrorUnauthorized
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		logger.Error("invalid claims")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, auth.ErrorUnauthorized
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok || int64(exp) < time.Now().Unix() {
 		logger.Error("invalid exp claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, auth.ErrorUnauthorized
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok || login == "" {
 		logger.Error("invalid login claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, auth.ErrorUnauthorized
 	}
 
 	user, err := uc.authRepo.GetUserByLogin(ctx, login)
 	if err != nil {
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, err
 	}
+
 	return user, nil
 }
