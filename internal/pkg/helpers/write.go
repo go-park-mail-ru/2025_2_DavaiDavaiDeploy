@@ -13,6 +13,6 @@ func WriteJSON(w http.ResponseWriter, data interface{}) {
 	}
 }
 
-func WriteError(w http.ResponseWriter, status int, err error) {
+func WriteError(w http.ResponseWriter, status int) {
 	w.WriteHeader(status)
 }

@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/actors"
 	"kinopoisk/internal/pkg/utils/log"
@@ -25,7 +24,7 @@ func NewActorUsecase(repo actors.ActorRepo) *ActorUsecase {
 func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.ActorPage, error) {
 	actor, err := uc.actorRepo.GetActorByID(ctx, id)
 	if err != nil {
-		return models.ActorPage{}, errors.New("actor not exists")
+		return models.ActorPage{}, err
 	}
 
 	var endDate time.Time
@@ -43,7 +42,7 @@ func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.Acto
 
 	filmsNumber, err := uc.actorRepo.GetActorFilmsCount(ctx, id)
 	if err != nil {
-		return models.ActorPage{}, errors.New("no films")
+		return models.ActorPage{}, err
 	}
 
 	result := models.ActorPage{
@@ -66,12 +65,12 @@ func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	films, err := uc.actorRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.MainPageFilm{}, errors.New("no films")
+		return []models.MainPageFilm{}, err
 	}
 
 	if len(films) == 0 {
-		logger.Info("actor has no films")
-		return []models.MainPageFilm{}, errors.New("no films")
+		logger.Error("actor has no films")
+		return []models.MainPageFilm{}, actors.ErrorNotFound
 	}
 	return films, nil
 }

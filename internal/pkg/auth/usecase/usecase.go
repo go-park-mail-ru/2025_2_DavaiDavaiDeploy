@@ -157,7 +157,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 	}
 
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
-		logger.Error("invalid password")
+		logger.Error("wrong password")
 		return models.User{}, "", auth.ErrorBadRequest
 	}
 

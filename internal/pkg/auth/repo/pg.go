@@ -65,6 +65,7 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 		&user.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
 			return models.User{}, auth.ErrorBadRequest
 		}
 		logger.Error("failed to scan user: " + err.Error())
@@ -100,6 +101,7 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
 			return models.User{}, auth.ErrorBadRequest
 		}
 		logger.Error("failed to scan user: " + err.Error())

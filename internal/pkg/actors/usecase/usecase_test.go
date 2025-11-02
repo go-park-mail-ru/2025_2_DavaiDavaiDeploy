@@ -2,13 +2,13 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"os"
 	"testing"
 	"time"
 
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/actors"
 	"kinopoisk/internal/pkg/actors/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
@@ -43,7 +43,7 @@ func TestActorUsecase_GetActor(t *testing.T) {
 		setupMock   func()
 		expected    models.ActorPage
 		expectError bool
-		errorMsg    string
+		errorType   error
 	}{
 		{
 			name: "Success - living actor",
@@ -125,11 +125,22 @@ func TestActorUsecase_GetActor(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					GetActorByID(gomock.Any(), actorID).
-					Return(models.Actor{}, errors.New("actor not found"))
+					Return(models.Actor{}, actors.ErrorNotFound)
 			},
 			expected:    models.ActorPage{},
 			expectError: true,
-			errorMsg:    "actor not exists",
+			errorType:   actors.ErrorNotFound,
+		},
+		{
+			name: "Error - internal server error",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetActorByID(gomock.Any(), actorID).
+					Return(models.Actor{}, actors.ErrorInternalServerError)
+			},
+			expected:    models.ActorPage{},
+			expectError: true,
+			errorType:   actors.ErrorInternalServerError,
 		},
 		{
 			name: "Error - no films count",
@@ -151,11 +162,11 @@ func TestActorUsecase_GetActor(t *testing.T) {
 					Return(actor, nil)
 				mockRepo.EXPECT().
 					GetActorFilmsCount(gomock.Any(), actorID).
-					Return(0, errors.New("db error"))
+					Return(0, actors.ErrorInternalServerError)
 			},
 			expected:    models.ActorPage{},
 			expectError: true,
-			errorMsg:    "no films",
+			errorType:   actors.ErrorInternalServerError,
 		},
 	}
 
@@ -166,10 +177,10 @@ func TestActorUsecase_GetActor(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.expected, result)
-				if tt.errorMsg != "" {
-					assert.Equal(t, tt.errorMsg, err.Error())
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
 				}
+				assert.Equal(t, tt.expected, result)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected.ID, result.ID)
@@ -219,7 +230,7 @@ func TestActorUsecase_GetFilmsByActor(t *testing.T) {
 		setupMock   func()
 		expected    []models.MainPageFilm
 		expectError bool
-		errorMsg    string
+		errorType   error
 	}{
 		{
 			name: "Success - with films",
@@ -236,11 +247,22 @@ func TestActorUsecase_GetFilmsByActor(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					GetFilmsByActor(gomock.Any(), actorID, pager.Count, pager.Offset).
-					Return(nil, errors.New("database error"))
+					Return(nil, actors.ErrorInternalServerError)
 			},
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
+			errorType:   actors.ErrorInternalServerError,
+		},
+		{
+			name: "Error - actor not found",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetFilmsByActor(gomock.Any(), actorID, pager.Count, pager.Offset).
+					Return(nil, actors.ErrorNotFound)
+			},
+			expected:    []models.MainPageFilm{},
+			expectError: true,
+			errorType:   actors.ErrorNotFound,
 		},
 		{
 			name: "Error - no films found",
@@ -251,7 +273,7 @@ func TestActorUsecase_GetFilmsByActor(t *testing.T) {
 			},
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
+			errorType:   actors.ErrorNotFound,
 		},
 	}
 
@@ -262,16 +284,75 @@ func TestActorUsecase_GetFilmsByActor(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.expected, result)
-				if tt.errorMsg != "" {
-					assert.Equal(t, tt.errorMsg, err.Error())
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
 				}
+				assert.Equal(t, tt.expected, result)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
 			}
 		})
 	}
+}
+
+func TestActorUsecase_GetFilmsByActor_EmptyFilms(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockActorRepo(ctrl)
+	usecase := NewActorUsecase(mockRepo)
+
+	actorID := uuid.NewV4()
+	pager := models.Pager{
+		Count:  10,
+		Offset: 0,
+	}
+
+	mockRepo.EXPECT().
+		GetFilmsByActor(gomock.Any(), actorID, pager.Count, pager.Offset).
+		Return([]models.MainPageFilm{}, nil)
+
+	films, err := usecase.GetFilmsByActor(testContext(), actorID, pager)
+
+	assert.Error(t, err)
+	assert.ErrorIs(t, err, actors.ErrorNotFound)
+	assert.Len(t, films, 0)
+}
+
+func TestActorUsecase_GetFilmsByActor_WithFilms(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockActorRepo(ctrl)
+	usecase := NewActorUsecase(mockRepo)
+
+	actorID := uuid.NewV4()
+	pager := models.Pager{
+		Count:  10,
+		Offset: 0,
+	}
+
+	expectedFilms := []models.MainPageFilm{
+		{
+			ID:     uuid.NewV4(),
+			Cover:  "film1.jpg",
+			Title:  "Тестовый фильм",
+			Rating: 8.0,
+			Year:   2020,
+			Genre:  "Драма",
+		},
+	}
+
+	mockRepo.EXPECT().
+		GetFilmsByActor(gomock.Any(), actorID, pager.Count, pager.Offset).
+		Return(expectedFilms, nil)
+
+	films, err := usecase.GetFilmsByActor(testContext(), actorID, pager)
+
+	assert.NoError(t, err)
+	assert.Len(t, films, 1)
+	assert.Equal(t, expectedFilms[0].Title, films[0].Title)
 }
 
 func calculateAge(birthDate, endDate time.Time) int {
