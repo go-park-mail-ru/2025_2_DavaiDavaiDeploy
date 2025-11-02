@@ -74,7 +74,16 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := a.uc.SignUpUser(r.Context(), req)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		switch {
+		case errors.Is(err, auth.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest, err)
+		case errors.Is(err, auth.ErrorConflict):
+			helpers.WriteError(w, http.StatusConflict, err)
+		case errors.Is(err, auth.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError, err)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
+		}
 		return
 	}
 
@@ -132,7 +141,14 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := a.uc.SignInUser(r.Context(), req)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		switch {
+		case errors.Is(err, auth.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest, err)
+		case errors.Is(err, auth.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError, err)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
+		}
 		return
 	}
 
@@ -226,7 +242,12 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
-		helpers.WriteError(w, http.StatusUnauthorized, err)
+		if errors.Is(err, auth.ErrorUnauthorized) {
+			helpers.WriteError(w, http.StatusUnauthorized, err)
+		} else {
+			helpers.WriteError(w, http.StatusInternalServerError, err)
+		}
+		return
 	}
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
@@ -245,7 +266,11 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
-		helpers.WriteError(w, http.StatusUnauthorized, err)
+		if errors.Is(err, auth.ErrorUnauthorized) {
+			helpers.WriteError(w, http.StatusUnauthorized, err)
+		} else {
+			helpers.WriteError(w, http.StatusInternalServerError, err)
+		}
 		return
 	}
 

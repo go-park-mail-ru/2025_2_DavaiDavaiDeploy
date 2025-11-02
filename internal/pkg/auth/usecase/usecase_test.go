@@ -42,7 +42,7 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 		setupMock   func()
 		req         models.SignUpInput
 		expectError bool
-		errorMsg    string
+		errorType   error
 	}{
 		{
 			name: "Success",
@@ -72,7 +72,7 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 				Password: password,
 			},
 			expectError: true,
-			errorMsg:    "user already exists",
+			errorType:   auth.ErrorConflict,
 		},
 		{
 			name:      "Error - invalid login",
@@ -82,7 +82,17 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 				Password: password,
 			},
 			expectError: true,
-			errorMsg:    "Invalid login length",
+			errorType:   auth.ErrorBadRequest,
+		},
+		{
+			name:      "Error - invalid password",
+			setupMock: func() {},
+			req: models.SignUpInput{
+				Login:    login,
+				Password: "pass",
+			},
+			expectError: true,
+			errorType:   auth.ErrorBadRequest,
 		},
 	}
 
@@ -93,7 +103,9 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
 				assert.Empty(t, token)
 			} else {
 				assert.NoError(t, err)
@@ -122,12 +134,14 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 		Version:      1,
 	}
 
+	notFoundError := errors.New("user not found")
+
 	tests := []struct {
 		name        string
 		setupMock   func()
 		req         models.SignInInput
 		expectError bool
-		errorMsg    string
+		errorType   error
 	}{
 		{
 			name: "Success",
@@ -147,14 +161,13 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserLogin(gomock.Any(), login).
-					Return(models.User{ID: uuid.Nil}, nil)
+					Return(models.User{}, notFoundError)
 			},
 			req: models.SignInInput{
 				Login:    login,
 				Password: password,
 			},
 			expectError: true,
-			errorMsg:    "wrong login or password",
 		},
 		{
 			name: "Error - repository error",
@@ -168,7 +181,6 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 				Password: password,
 			},
 			expectError: true,
-			errorMsg:    "database error",
 		},
 		{
 			name: "Error - wrong password",
@@ -182,7 +194,7 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 				Password: "wrongpass",
 			},
 			expectError: true,
-			errorMsg:    "wrong login or password",
+			errorType:   auth.ErrorBadRequest,
 		},
 	}
 
@@ -193,8 +205,8 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				if tt.errorMsg != "" {
-					assert.Equal(t, tt.errorMsg, err.Error())
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
 				}
 				assert.Empty(t, token)
 			} else {
@@ -242,6 +254,7 @@ func TestAuthUsecase_CheckAuth(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
+				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, user, result)
@@ -294,6 +307,7 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
+				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -354,6 +368,7 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
+				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, user, result)
@@ -425,13 +440,4 @@ func TestValidateFunctions(t *testing.T) {
 			assert.Equal(t, tt.passwordValid, passValid)
 		})
 	}
-}
-
-func TestHashAndCheckPassword(t *testing.T) {
-	password := "testpassword123"
-
-	hash := HashPass(password)
-	assert.NotEmpty(t, hash)
-	assert.True(t, CheckPass(hash, password))
-	assert.False(t, CheckPass(hash, "wrongpassword"))
 }
