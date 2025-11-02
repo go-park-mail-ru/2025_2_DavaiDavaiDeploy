@@ -93,10 +93,12 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	user, _ := ctx.Value(auth.UserKey).(models.User)
 	result := make([]models.FilmFeedback, 0, pager.Count+1)
 	emptyFeedback := ""
+	usersFeedbackLogin := "" // !!!
 	if user.ID != uuid.Nil {
 		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
 		if err == nil && feedback.Text != &emptyFeedback && feedback.Text != nil {
 			feedback.IsMine = true
+			usersFeedbackLogin = feedback.UserLogin // !!!
 			result = append(result, feedback)
 		}
 	}
@@ -113,12 +115,14 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 
 	for i := range feedbacks {
 		feedbacks[i].IsMine = false
-		result = append(result, feedbacks[i])
+		if feedbacks[i].UserLogin != usersFeedbackLogin { // !!!
+			result = append(result, feedbacks[i]) // !!!
+		}
 	}
 
-	if len(result) > pager.Count {
-		result = result[:pager.Count]
-	}
+	//if len(result) > pager.Count {
+	//result = result[:pager.Count]
+	//}
 
 	return result, nil
 }
