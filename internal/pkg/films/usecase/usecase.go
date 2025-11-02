@@ -92,9 +92,10 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, _ := ctx.Value(auth.UserKey).(models.User)
 	result := make([]models.FilmFeedback, 0, pager.Count+1)
+	emptyFeedback := ""
 	if user.ID != uuid.Nil {
 		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
-		if err == nil {
+		if err == nil && feedback.Text != &emptyFeedback {
 			feedback.IsMine = true
 			result = append(result, feedback)
 		}
