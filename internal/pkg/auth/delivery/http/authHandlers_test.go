@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/auth/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
@@ -43,10 +44,10 @@ func TestSignupUser(t *testing.T) {
 	}{
 		{
 			name:        "Success",
-			requestBody: `{"login":"test123","password":"Pass@123"}`,
+			requestBody: `{"login":"test123","password":"Pass123"}`,
 			args: args{
 				login:    "test123",
-				password: "Pass@123",
+				password: "Pass123",
 			},
 			ucErr:          nil,
 			expectedStatus: http.StatusOK,
@@ -58,13 +59,33 @@ func TestSignupUser(t *testing.T) {
 		},
 		{
 			name:        "User already exists",
-			requestBody: `{"login":"testuser","password":"Pass@123"}`,
+			requestBody: `{"login":"testuser","password":"Pass123"}`,
 			args: args{
 				login:    "testuser",
-				password: "Pass@123",
+				password: "Pass123",
 			},
-			ucErr:          errors.New("user already exists"),
+			ucErr:          auth.ErrorConflict,
+			expectedStatus: http.StatusConflict,
+		},
+		{
+			name:        "Bad request - invalid login",
+			requestBody: `{"login":"usr","password":"Pass123"}`,
+			args: args{
+				login:    "usr",
+				password: "Pass123",
+			},
+			ucErr:          auth.ErrorBadRequest,
 			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:        "Internal server error",
+			requestBody: `{"login":"testuser","password":"Pass123"}`,
+			args: args{
+				login:    "testuser",
+				password: "Pass123",
+			},
+			ucErr:          errors.New("database error"),
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -110,10 +131,10 @@ func TestSignInUser(t *testing.T) {
 	}{
 		{
 			name:        "Success",
-			requestBody: `{"login":"test123","password":"Pass@123"}`,
+			requestBody: `{"login":"test123","password":"Pass123"}`,
 			args: args{
 				login:    "test123",
-				password: "Pass@123",
+				password: "Pass123",
 			},
 			ucErr:          nil,
 			expectedStatus: http.StatusOK,
@@ -130,8 +151,18 @@ func TestSignInUser(t *testing.T) {
 				login:    "testuser",
 				password: "wrongpass",
 			},
-			ucErr:          errors.New("wrong login or password"),
+			ucErr:          auth.ErrorBadRequest,
 			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:        "Internal server error",
+			requestBody: `{"login":"testuser","password":"Pass123"}`,
+			args: args{
+				login:    "testuser",
+				password: "Pass123",
+			},
+			ucErr:          errors.New("database error"),
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -175,8 +206,13 @@ func TestCheckAuth(t *testing.T) {
 		},
 		{
 			name:           "Unauthorized",
-			ucErr:          errors.New("user is not authorized"),
+			ucErr:          auth.ErrorUnauthorized,
 			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "Internal server error",
+			ucErr:          errors.New("database error"),
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -215,9 +251,14 @@ func TestLogOutUser(t *testing.T) {
 			expectedStatus: http.StatusOK,
 		},
 		{
-			name:           "Error",
-			ucErr:          errors.New("logout error"),
+			name:           "Unauthorized",
+			ucErr:          auth.ErrorUnauthorized,
 			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "Internal server error",
+			ucErr:          errors.New("database error"),
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
