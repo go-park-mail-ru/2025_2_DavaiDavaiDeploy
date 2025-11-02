@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS actor (
     CONSTRAINT actor_height_check CHECK (((height > 0) AND (height <= 300))),
     CONSTRAINT actor_marital_status_check CHECK (((marital_status IS NULL) OR ((length(marital_status) > 0) AND (length(marital_status) <= 50)))),
     CONSTRAINT actor_original_name_check CHECK (((length(original_name) > 0) AND (length(original_name) <= 100))),
-    CONSTRAINT actor_photo_check CHECK (((photo IS NULL) OR ((length(photo) > 0) AND (length(photo) <= 100) AND (photo ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
+    CONSTRAINT actor_photo_check CHECK (((photo IS NULL) OR ((length(photo) > 0) AND (length(photo) <= 100)))),
     CONSTRAINT actor_russian_name_check CHECK (((length(russian_name) > 0) AND (length(russian_name) <= 100))),
     CONSTRAINT actor_zodiac_sign_check CHECK (((zodiac_sign IS NULL) OR ((length(zodiac_sign) > 0) AND (length(zodiac_sign) <= 20))))
 );
@@ -66,14 +66,14 @@ CREATE TABLE IF NOT EXISTS film (
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT film_age_category_check CHECK (((age_category IS NULL) OR ((length(age_category) > 0) AND (length(age_category) <= 5)))),
     CONSTRAINT film_budget_check CHECK ((budget >= 0)),
-    CONSTRAINT film_cover_check CHECK (((cover IS NULL) OR ((length(cover) > 0) AND (length(cover) <= 100) AND (cover ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
+    CONSTRAINT film_cover_check CHECK (((cover IS NULL) OR ((length(cover) > 0) AND (length(cover) <= 100)))),
     CONSTRAINT film_description_check CHECK (((description IS NULL) OR ((length(description) > 0) AND (length(description) <= 5000)))),
     CONSTRAINT film_duration_check CHECK ((duration > 0)),
-    CONSTRAINT film_image1_check CHECK (((image1 IS NULL) OR ((length(image1) > 0) AND (length(image1) <= 100) AND (image1 ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
-    CONSTRAINT film_image2_check CHECK (((image2 IS NULL) OR ((length(image2) > 0) AND (length(image2) <= 100) AND (image2 ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
-    CONSTRAINT film_image3_check CHECK (((image3 IS NULL) OR ((length(image3) > 0) AND (length(image3) <= 100) AND (image3 ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
+    CONSTRAINT film_image1_check CHECK (((image1 IS NULL) OR ((length(image1) > 0) AND (length(image1) <= 100)))),
+    CONSTRAINT film_image2_check CHECK (((image2 IS NULL) OR ((length(image2) > 0) AND (length(image2) <= 100)))),
+    CONSTRAINT film_image3_check CHECK (((image3 IS NULL) OR ((length(image3) > 0) AND (length(image3) <= 100)))),
     CONSTRAINT film_original_title_check CHECK (((original_title IS NULL) OR ((length(original_title) > 0) AND (length(original_title) <= 100)))),
-    CONSTRAINT film_poster_check CHECK (((poster IS NULL) OR ((length(poster) > 0) AND (length(poster) <= 100) AND (poster ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp)$'::text)))),
+    CONSTRAINT film_poster_check CHECK (((poster IS NULL) OR ((length(poster) > 0) AND (length(poster) <= 100)))),
     CONSTRAINT film_short_description_check CHECK (((short_description IS NULL) OR ((length(short_description) > 0) AND (length(short_description) <= 500)))),
     CONSTRAINT film_slogan_check CHECK (((slogan IS NULL) OR ((length(slogan) > 0) AND (length(slogan) <= 200)))),
     CONSTRAINT film_title_check CHECK (((length(title) > 0) AND (length(title) <= 100))),
@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS genre (
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT genre_description_check CHECK (((description IS NULL) OR ((length(description) > 0) AND (length(description) <= 500)))),
-    CONSTRAINT genre_icon_check CHECK (((icon IS NULL) OR ((length(icon) > 0) AND (length(icon) <= 100) AND (icon ~ '^/static/[^/]+/[^/]+\.(png|jpg|webp|svg)$'::text)))),
+    CONSTRAINT genre_icon_check CHECK (((icon IS NULL) OR ((length(icon) > 0) AND (length(icon) <= 100)))),
     CONSTRAINT genre_title_check CHECK (((length(title) > 0) AND (length(title) <= 40)))
 );
 
