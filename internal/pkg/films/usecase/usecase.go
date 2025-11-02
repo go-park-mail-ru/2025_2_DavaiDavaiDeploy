@@ -95,7 +95,7 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	emptyFeedback := ""
 	if user.ID != uuid.Nil {
 		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
-		if err == nil && feedback.Text != &emptyFeedback {
+		if err == nil && feedback.Text != &emptyFeedback && feedback.Text != nil {
 			feedback.IsMine = true
 			result = append(result, feedback)
 		}
