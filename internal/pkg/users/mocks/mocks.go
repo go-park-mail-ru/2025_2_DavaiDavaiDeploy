@@ -11,7 +11,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt"
 	gomock "github.com/golang/mock/gomock"
-	go_uuid "github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
 
 // MockUsersUsecase is a mock of UsersUsecase interface.
@@ -38,7 +38,7 @@ func (m *MockUsersUsecase) EXPECT() *MockUsersUsecaseMockRecorder {
 }
 
 // ChangePassword mocks base method.
-func (m *MockUsersUsecase) ChangePassword(ctx context.Context, id go_uuid.UUID, oldPassword, newPassword string) (models.User, string, error) {
+func (m *MockUsersUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPassword, newPassword string) (models.User, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangePassword", ctx, id, oldPassword, newPassword)
 	ret0, _ := ret[0].(models.User)
@@ -54,7 +54,7 @@ func (mr *MockUsersUsecaseMockRecorder) ChangePassword(ctx, id, oldPassword, new
 }
 
 // ChangeUserAvatar mocks base method.
-func (m *MockUsersUsecase) ChangeUserAvatar(ctx context.Context, userID go_uuid.UUID, fileBytes []byte) (models.User, string, error) {
+func (m *MockUsersUsecase) ChangeUserAvatar(ctx context.Context, userID uuid.UUID, fileBytes []byte) (models.User, string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ChangeUserAvatar", ctx, userID, fileBytes)
 	ret0, _ := ret[0].(models.User)
@@ -70,7 +70,7 @@ func (mr *MockUsersUsecaseMockRecorder) ChangeUserAvatar(ctx, userID, fileBytes 
 }
 
 // GenerateToken mocks base method.
-func (m *MockUsersUsecase) GenerateToken(id go_uuid.UUID, login string) (string, error) {
+func (m *MockUsersUsecase) GenerateToken(id uuid.UUID, login string) (string, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GenerateToken", id, login)
 	ret0, _ := ret[0].(string)
@@ -85,7 +85,7 @@ func (mr *MockUsersUsecaseMockRecorder) GenerateToken(id, login interface{}) *go
 }
 
 // GetUser mocks base method.
-func (m *MockUsersUsecase) GetUser(ctx context.Context, id go_uuid.UUID) (models.User, error) {
+func (m *MockUsersUsecase) GetUser(ctx context.Context, id uuid.UUID) (models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUser", ctx, id)
 	ret0, _ := ret[0].(models.User)
@@ -153,7 +153,7 @@ func (m *MockUsersRepo) EXPECT() *MockUsersRepoMockRecorder {
 }
 
 // GetUserByID mocks base method.
-func (m *MockUsersRepo) GetUserByID(ctx context.Context, id go_uuid.UUID) (models.User, error) {
+func (m *MockUsersRepo) GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserByID", ctx, id)
 	ret0, _ := ret[0].(models.User)
@@ -183,7 +183,7 @@ func (mr *MockUsersRepoMockRecorder) GetUserByLogin(ctx, login interface{}) *gom
 }
 
 // UpdateUserAvatar mocks base method.
-func (m *MockUsersRepo) UpdateUserAvatar(ctx context.Context, version int, userID go_uuid.UUID, avatarPath string) error {
+func (m *MockUsersRepo) UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserAvatar", ctx, version, userID, avatarPath)
 	ret0, _ := ret[0].(error)
@@ -197,7 +197,7 @@ func (mr *MockUsersRepoMockRecorder) UpdateUserAvatar(ctx, version, userID, avat
 }
 
 // UpdateUserPassword mocks base method.
-func (m *MockUsersRepo) UpdateUserPassword(ctx context.Context, version int, userID go_uuid.UUID, passwordHash []byte) error {
+func (m *MockUsersRepo) UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateUserPassword", ctx, version, userID, passwordHash)
 	ret0, _ := ret[0].(error)
