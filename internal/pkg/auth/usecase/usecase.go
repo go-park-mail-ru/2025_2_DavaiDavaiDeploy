@@ -122,7 +122,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	passwordHash := HashPass(req.Password)
 
 	id := uuid.NewV4()
-	defaultAvatar := "/static/default.jpg"
+	defaultAvatar := "avatars/default.jpg"
 
 	user := models.User{
 		ID:           id,
