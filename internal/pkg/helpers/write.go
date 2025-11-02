@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"encoding/json"
-	"kinopoisk/internal/models"
 	"net/http"
 )
 
@@ -15,10 +14,6 @@ func WriteJSON(w http.ResponseWriter, data interface{}) {
 }
 
 func WriteError(w http.ResponseWriter, status int, err error) {
-	errorResp := models.Error{
-		Message: err.Error(),
-	}
-
 	w.WriteHeader(status)
-	WriteJSON(w, errorResp)
+	WriteJSON(w, err.Error())
 }

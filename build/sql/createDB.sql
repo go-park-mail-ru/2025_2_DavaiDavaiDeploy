@@ -111,7 +111,7 @@ CREATE TABLE IF NOT EXISTS user_table (
     version integer DEFAULT 1 NOT NULL,
     login text NOT NULL,
     password_hash bytea NOT NULL,
-    avatar text DEFAULT '/static/default.jpg',
+    avatar text DEFAULT 'avatars/default.jpg',
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT user_table_login_check CHECK (((length(login) >= 6) AND (length(login) <= 20))),
