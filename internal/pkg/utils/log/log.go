@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"errors"
+	"kinopoisk/internal/pkg/middleware/logger"
 	"log/slog"
 	"net/http"
 	"os"
@@ -37,7 +38,7 @@ func LogHandlerError(logger *slog.Logger, err error, statusCode int) {
 }
 
 func GetLoggerFromContext(ctx context.Context) *slog.Logger {
-	if logger, ok := ctx.Value("logger").(*slog.Logger); ok {
+	if logger, ok := ctx.Value(logger.LoggerKey).(*slog.Logger); ok {
 		return logger
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
