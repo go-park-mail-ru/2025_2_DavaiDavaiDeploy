@@ -15,5 +15,4 @@ func WriteJSON(w http.ResponseWriter, data interface{}) {
 
 func WriteError(w http.ResponseWriter, status int, err error) {
 	w.WriteHeader(status)
-	WriteJSON(w, err.Error())
 }
