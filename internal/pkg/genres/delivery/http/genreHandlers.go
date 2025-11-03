@@ -26,8 +26,9 @@ func NewGenreHandler(uc genres.GenreUsecase) *GenreHandler {
 // @Produce json
 // @Param        id   path      string  true  "Genre ID"
 // @Success 200 {object} models.Genre
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 404
+// @Failure 500
 // @Router /genres/{id} [get]
 func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -61,7 +62,8 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 // @Tags genres
 // @Produce json
 // @Success 200 {array} models.Genre
-// @Failure 500 {object} models.Error
+// @Failure 404
+// @Failure 500
 // @Router /genres [get]
 func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -92,8 +94,9 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param        id   path      string  true  "Genre ID"
 // @Success 200 {array} models.MainPageFilm
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 404
+// @Failure 500
 // @Router /genres/{id}/films [get]
 func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))

@@ -34,7 +34,8 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 // @Tags films
 // @Produce json
 // @Success 200 {object} models.PromoFilm
-// @Failure 500 {object} models.Error
+// @Failure 404
+// @Failure 500
 // @Router /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -63,7 +64,9 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Param        count   query     int  false  "Number of films" default(10)
 // @Param        offset  query     int  false  "Offset" default(0)
 // @Success      200     {array}   models.MainPageFilm
-// @Failure      400     {object}  models.Error
+// @Failure      400
+// @Failure 	 404
+// @Failure 	 500
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -96,7 +99,9 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      string  true  "Film ID"
 // @Success      200  {object}  models.FilmPage
-// @Failure      400  {object}  models.Error
+// @Failure      400
+// @Failure 	 404
+// @Failure 	 500
 // @Router       /films/{id} [get]
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -156,8 +161,9 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
 // @Success 200 {array} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/feedbacks [get]
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -197,10 +203,11 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
-// @Success 201 {object} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Success 200 {object} models.FilmFeedback
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -249,9 +256,10 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Film ID"
 // @Param input body models.FilmFeedbackInput true "Rating data (rating 1-10 is required)"
 // @Success 200 {object} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))

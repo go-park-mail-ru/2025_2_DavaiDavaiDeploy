@@ -57,8 +57,9 @@ func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
 // @Produce json
 // @Param input body models.SignUpInput true "User registration data"
 // @Success 200 {object} models.User
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 409
+// @Failure 500
 // @Router /auth/signup [post]
 func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -123,9 +124,9 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param input body models.SignInInput true "User data"
 // @Success 200 {object} models.User
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 401
+// @Failure 500
 // @Router /auth/signin [post]
 func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -235,8 +236,8 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 // @Tags auth
 // @Produce json
 // @Success 200 {object} models.User
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 401
+// @Failure 500
 // @Router /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -260,7 +261,8 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Tags auth
 // @Produce json
 // @Success 200 {object} map[string]string
-// @Failure 500 {object} models.Error
+// @Failure 401
+// @Failure 500
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))

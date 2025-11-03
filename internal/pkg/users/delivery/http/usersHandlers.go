@@ -103,8 +103,9 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 // @Produce json
 // @Param        id   path      string  true  "Genre ID"
 // @Success 200 {object} models.User
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 404
+// @Failure 500
 // @Router /users/{id} [get]
 func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -140,9 +141,9 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param input body models.ChangePasswordInput true "Password data (old_password and new_password are required)"
 // @Success 200 {object} models.User
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error "User not authenticated"
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 401
+// @Failure 500
 // @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -165,8 +166,6 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
 		switch {
-		case errors.Is(err, users.ErrorNotFound):
-			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, users.ErrorInternalServerError):
 			helpers.WriteError(w, http.StatusInternalServerError)
 		case errors.Is(err, users.ErrorBadRequest):
@@ -211,10 +210,10 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param avatar formData file true "Avatar image file (required, max 10MB, formats: jpg, png, webp)"
 // @Success 200 {object} models.User
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 413 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 401
+// @Failure 413
+// @Failure 500
 // @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -275,8 +274,6 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
 	if err != nil {
 		switch {
-		case errors.Is(err, users.ErrorNotFound):
-			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, users.ErrorInternalServerError):
 			helpers.WriteError(w, http.StatusInternalServerError)
 		case errors.Is(err, users.ErrorBadRequest):
