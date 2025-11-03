@@ -40,7 +40,14 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
-		helpers.WriteError(w, http.StatusNotFound)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -62,15 +69,24 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilms(r.Context(), pager)
+	mainPageFilms, err := c.uc.GetFilms(r.Context(), pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
-	for i := range films {
-		films[i].Sanitize()
+	for i := range mainPageFilms {
+		mainPageFilms[i].Sanitize()
 	}
-	helpers.WriteJSON(w, films)
+	helpers.WriteJSON(w, mainPageFilms)
 	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
@@ -94,7 +110,16 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 	film, err := c.uc.GetFilm(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	film.Sanitize()
@@ -148,7 +173,14 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	feedbacks, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	for i := range feedbacks {
@@ -192,7 +224,16 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
 
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	feedback.Sanitize()
@@ -233,7 +274,16 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 
 	rating, err := c.uc.SetRating(r.Context(), req, filmID)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	rating.Sanitize()

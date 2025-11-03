@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
@@ -31,8 +30,7 @@ func NewFilmUsecase(repo films.FilmRepo) *FilmUsecase {
 func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, error) {
 	film, err := uc.filmRepo.GetPromoFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
 	if err != nil {
-		fmt.Println(err)
-		return models.PromoFilm{}, errors.New("no films")
+		return models.PromoFilm{}, err
 	}
 
 	avgRating, err := uc.filmRepo.GetFilmAvgRating(ctx, film.ID)
@@ -56,24 +54,24 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	films, err := uc.filmRepo.GetFilmsWithPagination(ctx, pager.Count, pager.Offset)
+	mainPageFilms, err := uc.filmRepo.GetFilmsWithPagination(ctx, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.MainPageFilm{}, errors.New("no films")
+		return []models.MainPageFilm{}, err
 	}
 
-	if len(films) == 0 {
+	if len(mainPageFilms) == 0 {
 		logger.Error("no films")
-		return []models.MainPageFilm{}, errors.New("no films")
+		return []models.MainPageFilm{}, films.ErrorNotFound
 	}
 
-	return films, nil
+	return mainPageFilms, nil
 }
 
 func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error) {
 	film, err := uc.filmRepo.GetFilmPage(ctx, id)
 	user, _ := ctx.Value(auth.UserKey).(models.User)
 	if err != nil {
-		return models.FilmPage{}, errors.New("no films")
+		return models.FilmPage{}, err
 	}
 	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
 	film.IsReviewed = false
@@ -105,12 +103,12 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 
 	feedbacks, err := uc.filmRepo.GetFilmFeedbacks(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.FilmFeedback{}, errors.New("no feedbacks")
+		return []models.FilmFeedback{}, err
 	}
 
 	if len(feedbacks) == 0 {
 		logger.Error("no feedbacks")
-		return []models.FilmFeedback{}, errors.New("no feedbacks")
+		return []models.FilmFeedback{}, films.ErrorNotFound
 	}
 
 	for i := range feedbacks {
@@ -131,23 +129,23 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
-		logger.Error("no such user")
-		return models.FilmFeedback{}, errors.New("user not authenticated")
+		logger.Error("user is unauthorized")
+		return models.FilmFeedback{}, films.ErrorUnauthorized
 	}
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
-		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
+		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
 	if len(req.Title) < 1 || len(req.Title) > 100 {
 		logger.Error("invalid length of title")
-		return models.FilmFeedback{}, errors.New("title length must be between 1 and 100")
+		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
 	if len(req.Text) < 1 || len(req.Text) > 1000 {
 		logger.Error("invalid length of text")
-		return models.FilmFeedback{}, errors.New("text length must be between 1 and 1000")
+		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
 	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
@@ -178,7 +176,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	}
 
 	if err := uc.filmRepo.CreateFeedback(ctx, feedback); err != nil {
-		return models.FilmFeedback{}, nil
+		return models.FilmFeedback{}, err
 	}
 	return feedback, nil
 }
@@ -188,12 +186,12 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 	user, ok := ctx.Value(auth.UserKey).(models.User)
 	if !ok {
 		logger.Error("user is not authorized")
-		return models.FilmFeedback{}, errors.New("user is not authorized")
+		return models.FilmFeedback{}, films.ErrorUnauthorized
 	}
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
-		return models.FilmFeedback{}, errors.New("rating must be between 1 and 10")
+		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
 	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
@@ -220,7 +218,7 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 
 	err = uc.filmRepo.CreateFeedback(ctx, newFeedback)
 	if err != nil {
-		return models.FilmFeedback{}, errors.New("no feedback")
+		return models.FilmFeedback{}, err
 	}
 
 	return newFeedback, nil
@@ -240,36 +238,36 @@ func (uc *FilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 
 	if token == "" {
 		logger.Error("user is not authorized")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	parsedToken, err := uc.ParseToken(token)
 	if err != nil || !parsedToken.Valid {
 		logger.Error("invalid token")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		logger.Error("invalid claims")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok || int64(exp) < time.Now().Unix() {
 		logger.Error("invalid exp claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok || login == "" {
 		logger.Error("invalid login claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	user, err := uc.filmRepo.GetUserByLogin(ctx, login)
 	if err != nil {
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, films.ErrorUnauthorized
 	}
 
 	return user, nil

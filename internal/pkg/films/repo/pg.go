@@ -2,13 +2,16 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"strconv"
 
 	"github.com/jackc/pgtype/pgxtype"
+	"github.com/jackc/pgx/v4"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -41,8 +44,12 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("promo film is not found: " + err.Error())
+			return models.PromoFilm{}, films.ErrorNotFound
+		}
 		logger.Error("failed to scan promo film: " + err.Error())
-		return models.PromoFilm{}, fmt.Errorf("failed to get promo film: %w", err)
+		return models.PromoFilm{}, films.ErrorInternalServerError
 	}
 
 	return film, nil
@@ -62,9 +69,14 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.
 		&film.GenreID, &film.Slogan, &film.Duration, &film.Image1, &film.Image2,
 		&film.Image3, &film.CreatedAt, &film.UpdatedAt,
 	)
+
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("film is not found: " + err.Error())
+			return models.Film{}, films.ErrorNotFound
+		}
 		logger.Error("failed to scan film: " + err.Error())
-		return models.Film{}, err
+		return models.Film{}, films.ErrorInternalServerError
 	}
 	return film, nil
 }
@@ -78,8 +90,12 @@ func (r *FilmRepository) GetGenreTitle(ctx context.Context, genreID uuid.UUID) (
 		genreID,
 	).Scan(&title)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("genre is not found: " + err.Error())
+			return "", films.ErrorNotFound
+		}
 		logger.Error("failed to scan genre: " + err.Error())
-		return "", err
+		return "", films.ErrorInternalServerError
 	}
 	return title, err
 }
@@ -93,8 +109,12 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 		filmID,
 	).Scan(&avgRating)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("film is not found: " + err.Error())
+			return 0, films.ErrorNotFound
+		}
 		logger.Error("failed to scan rating: " + err.Error())
-		return 0.0, err
+		return 0, films.ErrorInternalServerError
 	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
 	return roundedRating, err
@@ -102,10 +122,15 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	if limit <= 0 || offset < 0 {
+		return nil, films.ErrorBadRequest
+	}
+
 	rows, err := r.db.Query(ctx, GetFilmsWithPaginationQuery, limit, offset)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
-		return nil, err
+		return nil, films.ErrorInternalServerError
 	}
 	defer rows.Close()
 
@@ -146,8 +171,12 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 	)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("film is not found: " + err.Error())
+			return models.FilmPage{}, films.ErrorNotFound
+		}
 		logger.Error("failed to scan film: " + err.Error())
-		return models.FilmPage{}, err
+		return models.FilmPage{}, films.ErrorInternalServerError
 	}
 
 	result.Rating, err = r.GetFilmAvgRating(ctx, filmID)
@@ -158,8 +187,12 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 
 	rows, err := r.db.Query(ctx, GetFilmActorsQuery, filmID)
 	if err != nil {
-		logger.Error("failed to get actors: " + err.Error())
-		return result, nil
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("actors are not found: " + err.Error())
+			return result, films.ErrorNotFound
+		}
+		logger.Error("failed to scan actors: " + err.Error())
+		return result, films.ErrorInternalServerError
 	}
 	defer rows.Close()
 
@@ -178,10 +211,15 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 
 func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
 	rows, err := r.db.Query(ctx, GetFilmFeedbacksQuery, filmID, limit, offset)
 	if err != nil {
-		logger.Error("failed to get rows: " + err.Error())
-		return nil, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("film is not found: " + err.Error())
+			return nil, films.ErrorNotFound
+		}
+		logger.Error("failed to scan film: " + err.Error())
+		return nil, films.ErrorInternalServerError
 	}
 	defer rows.Close()
 
@@ -216,8 +254,12 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 		&feedback.UserLogin, &feedback.UserAvatar,
 	)
 	if err != nil {
-		logger.Error("failed to scan feedbacks: " + err.Error())
-		return models.FilmFeedback{}, err
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user or film are not found: " + err.Error())
+			return models.FilmFeedback{}, films.ErrorNotFound
+		}
+		logger.Error("failed to scan feedback: " + err.Error())
+		return models.FilmFeedback{}, films.ErrorInternalServerError
 	}
 	return feedback, nil
 }
@@ -231,6 +273,7 @@ func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.Fil
 	)
 	if err != nil {
 		logger.Error("failed to update feedback: " + err.Error())
+		return films.ErrorInternalServerError
 	}
 	return err
 }
@@ -244,7 +287,7 @@ func (r *FilmRepository) CreateFeedback(ctx context.Context, feedback models.Fil
 	)
 	if err != nil {
 		logger.Error("failed to create feedback: " + err.Error())
-		return err
+		return films.ErrorInternalServerError
 	}
 	return err
 }
@@ -258,7 +301,7 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 	)
 	if err != nil {
 		logger.Error("failed to set rating: " + err.Error())
-		return err
+		return films.ErrorInternalServerError
 	}
 	return err
 }
@@ -275,8 +318,12 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return models.User{}, films.ErrorBadRequest
+		}
 		logger.Error("failed to scan user: " + err.Error())
-		return models.User{}, err
+		return models.User{}, films.ErrorInternalServerError
 	}
 	return user, nil
 }
