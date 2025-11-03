@@ -10,6 +10,7 @@ import (
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/middleware/logger"
+	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/users/mocks"
 
 	"github.com/golang/mock/gomock"
@@ -92,14 +93,28 @@ func TestUserUsecase_ChangePassword(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(existingUser, nil)
 		_, _, err := usecase.ChangePassword(testContext(), userID, "wrong", newPassword)
 		assert.Error(t, err)
-		assert.Equal(t, "wrong password", err.Error())
+		assert.True(t, errors.Is(err, users.ErrorBadRequest))
 	})
 
 	t.Run("User not found", func(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(models.User{}, errors.New("not found"))
 		_, _, err := usecase.ChangePassword(testContext(), userID, oldPassword, newPassword)
 		assert.Error(t, err)
-		assert.Equal(t, "user is not authorized", err.Error())
+		assert.Equal(t, "not found", err.Error())
+	})
+
+	t.Run("Same passwords", func(t *testing.T) {
+		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(existingUser, nil)
+		_, _, err := usecase.ChangePassword(testContext(), userID, oldPassword, oldPassword)
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, users.ErrorBadRequest))
+	})
+
+	t.Run("Invalid new password", func(t *testing.T) {
+		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(existingUser, nil)
+		_, _, err := usecase.ChangePassword(testContext(), userID, oldPassword, "short")
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, users.ErrorBadRequest))
 	})
 }
 
@@ -161,14 +176,20 @@ func TestUserUsecase_ValidateAndGetUser(t *testing.T) {
 	t.Run("Empty token", func(t *testing.T) {
 		_, err := usecase.ValidateAndGetUser(testContext(), "")
 		assert.Error(t, err)
-		assert.Equal(t, "user is not authorized", err.Error())
+		assert.True(t, errors.Is(err, users.ErrorUnauthorized))
 	})
 
 	t.Run("User not found", func(t *testing.T) {
 		mockRepo.EXPECT().GetUserByLogin(gomock.Any(), login).Return(models.User{}, errors.New("not found"))
 		_, err := usecase.ValidateAndGetUser(testContext(), validToken)
 		assert.Error(t, err)
-		assert.Equal(t, "user not authenticated", err.Error())
+		assert.True(t, errors.Is(err, users.ErrorUnauthorized))
+	})
+
+	t.Run("Invalid token", func(t *testing.T) {
+		_, err := usecase.ValidateAndGetUser(testContext(), "invalid.token.here")
+		assert.Error(t, err)
+		assert.True(t, errors.Is(err, users.ErrorUnauthorized))
 	})
 }
 
@@ -181,9 +202,14 @@ func TestUserUsecase_ChangeUserAvatar(t *testing.T) {
 	os.Setenv("JWT_SECRET", "test-secret-key")
 	usecase := NewUserUsecase(mockRepo)
 
-	jpegBuffer := []byte{0xFF, 0xD8, 0xFF, 0xE0}
+	// Корректная JPEG сигнатура
+	jpegBuffer := []byte{
+		0xFF, 0xD8, 0xFF, 0xE0, // JPEG signature
+		0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, // JFIF header
+		0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, // Some image data
+	}
 
-	t.Run("Success", func(t *testing.T) {
+	t.Run("Success JPEG", func(t *testing.T) {
 		userID := uuid.NewV4()
 		existingUser := models.User{
 			ID:        userID,
@@ -207,7 +233,7 @@ func TestUserUsecase_ChangeUserAvatar(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(models.User{}, errors.New("not found"))
 		_, _, err := usecase.ChangeUserAvatar(testContext(), userID, jpegBuffer)
 		assert.Error(t, err)
-		assert.Equal(t, "user is not authorized", err.Error())
+		assert.True(t, errors.Is(err, users.ErrorUnauthorized))
 	})
 
 	t.Run("Invalid format", func(t *testing.T) {
@@ -223,6 +249,50 @@ func TestUserUsecase_ChangeUserAvatar(t *testing.T) {
 		mockRepo.EXPECT().GetUserByID(gomock.Any(), userID).Return(existingUser, nil)
 		_, _, err := usecase.ChangeUserAvatar(testContext(), userID, []byte{0x00, 0x01, 0x02, 0x03})
 		assert.Error(t, err)
-		assert.Equal(t, "unsupported image format", err.Error())
+		assert.True(t, errors.Is(err, users.ErrorBadRequest))
 	})
+}
+
+func TestValidateLogin(t *testing.T) {
+	tests := []struct {
+		name     string
+		login    string
+		expected string
+		valid    bool
+	}{
+		{"Valid login", "user123", "Ok", true},
+		{"Too short", "usr", "Invalid login length", false},
+		{"Too long", "thisloginistoolong123", "Invalid login length", false},
+		{"Valid with symbols", "user_name-123", "Ok", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg, valid := ValidateLogin(tt.login)
+			assert.Equal(t, tt.valid, valid)
+			assert.Equal(t, tt.expected, msg)
+		})
+	}
+}
+
+func TestValidatePassword(t *testing.T) {
+	tests := []struct {
+		name     string
+		password string
+		expected string
+		valid    bool
+	}{
+		{"Valid password", "pass123!", "Ok", true},
+		{"Too short", "pwd", "Invalid password length", false},
+		{"Too long", "thispasswordistoolong123!", "Invalid password length", false},
+		{"Valid with symbols", "P@ssw0rd_123", "Ok", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			msg, valid := ValidatePassword(tt.password)
+			assert.Equal(t, tt.valid, valid)
+			assert.Equal(t, tt.expected, msg)
+		})
+	}
 }

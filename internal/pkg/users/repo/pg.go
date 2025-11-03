@@ -2,11 +2,14 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 
 	"github.com/jackc/pgtype/pgxtype"
+	"github.com/jackc/pgx/v4"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -30,8 +33,12 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return models.User{}, users.ErrorNotFound
+		}
 		logger.Error("failed to scan user: " + err.Error())
-		return models.User{}, err
+		return models.User{}, users.ErrorInternalServerError
 	}
 	return user, nil
 }
@@ -48,8 +55,12 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return models.User{}, users.ErrorNotFound
+		}
 		logger.Error("failed to scan user: " + err.Error())
-		return models.User{}, err
+		return models.User{}, users.ErrorInternalServerError
 	}
 	return user, nil
 }
@@ -63,7 +74,7 @@ func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, us
 	)
 	if err != nil {
 		logger.Error("failed to update password: " + err.Error())
-		return err
+		return users.ErrorInternalServerError
 	}
 	return err
 }
@@ -77,7 +88,7 @@ func (u *UserRepository) UpdateUserAvatar(ctx context.Context, version int, user
 	)
 	if err != nil {
 		logger.Error("failed to update avatar: " + err.Error())
-		return err
+		return users.ErrorInternalServerError
 	}
 	return nil
 }

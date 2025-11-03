@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -51,8 +52,20 @@ func TestGetUser(t *testing.T) {
 		{
 			name:           "User not found",
 			userID:         uuid.NewV4().String(),
-			ucErr:          errors.New("user not found"),
-			expectedStatus: http.StatusBadRequest,
+			ucErr:          users.ErrorNotFound,
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:           "Internal server error",
+			userID:         uuid.NewV4().String(),
+			ucErr:          users.ErrorInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
+		},
+		{
+			name:           "Generic error",
+			userID:         uuid.NewV4().String(),
+			ucErr:          errors.New("some error"),
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -124,13 +137,35 @@ func TestChangePassword(t *testing.T) {
 				newPassword: "newPass123",
 			},
 			userID:         uuid.NewV4(),
-			ucErr:          errors.New("wrong password"),
+			ucErr:          users.ErrorBadRequest,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name:           "No user in context",
 			requestBody:    `{"old_password":"oldPass123","new_password":"newPass123"}`,
 			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:        "User not found",
+			requestBody: `{"old_password":"oldPass123","new_password":"newPass123"}`,
+			args: args{
+				oldPassword: "oldPass123",
+				newPassword: "newPass123",
+			},
+			userID:         uuid.NewV4(),
+			ucErr:          users.ErrorNotFound,
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:        "Internal server error",
+			requestBody: `{"old_password":"oldPass123","new_password":"newPass123"}`,
+			args: args{
+				oldPassword: "oldPass123",
+				newPassword: "newPass123",
+			},
+			userID:         uuid.NewV4(),
+			ucErr:          users.ErrorInternalServerError,
+			expectedStatus: http.StatusInternalServerError,
 		},
 	}
 
@@ -158,6 +193,207 @@ func TestChangePassword(t *testing.T) {
 
 			handler := NewUserHandler(mockUsecase)
 			handler.ChangePassword(w, r)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+		})
+	}
+}
+
+func TestChangeAvatar(t *testing.T) {
+	tests := []struct {
+		name           string
+		userID         uuid.UUID
+		ucErr          error
+		fileContent    []byte
+		expectedStatus int
+		setupRequest   func(userID uuid.UUID) *http.Request
+	}{
+		{
+			name:           "No user in context",
+			expectedStatus: http.StatusUnauthorized,
+			setupRequest: func(userID uuid.UUID) *http.Request {
+				return httptest.NewRequest("PUT", "/users/avatar", nil).WithContext(testContext())
+			},
+		},
+		{
+			name:           "No multipart form",
+			userID:         uuid.NewV4(),
+			expectedStatus: http.StatusBadRequest,
+			setupRequest: func(userID uuid.UUID) *http.Request {
+				req := httptest.NewRequest("PUT", "/users/avatar", bytes.NewBufferString("not multipart"))
+				req.Header.Set("Content-Type", "application/json")
+				return req.WithContext(context.WithValue(testContext(), users.UserKey, userID))
+			},
+		},
+		{
+			name:           "File too large",
+			userID:         uuid.NewV4(),
+			expectedStatus: http.StatusRequestEntityTooLarge,
+			setupRequest: func(userID uuid.UUID) *http.Request {
+				// Create a request with content larger than 10MB
+				largeContent := make([]byte, 11*1024*1024) // 11MB
+				body := &bytes.Buffer{}
+				writer := multipart.NewWriter(body)
+				part, _ := writer.CreateFormFile("avatar", "large.jpg")
+				part.Write(largeContent)
+				writer.Close()
+
+				req := httptest.NewRequest("PUT", "/users/avatar", body)
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+				return req.WithContext(context.WithValue(testContext(), users.UserKey, userID))
+			},
+		},
+		{
+			name:           "Success",
+			userID:         uuid.NewV4(),
+			ucErr:          nil,
+			fileContent:    []byte("fake image content"),
+			expectedStatus: http.StatusOK,
+			setupRequest: func(userID uuid.UUID) *http.Request {
+				body := &bytes.Buffer{}
+				writer := multipart.NewWriter(body)
+				part, _ := writer.CreateFormFile("avatar", "test.jpg")
+				part.Write([]byte("fake image content"))
+				writer.Close()
+
+				req := httptest.NewRequest("PUT", "/users/avatar", body)
+				req.Header.Set("Content-Type", writer.FormDataContentType())
+				return req.WithContext(context.WithValue(testContext(), users.UserKey, userID))
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			mockUsecase := mocks.NewMockUsersUsecase(ctrl)
+			defer ctrl.Finish()
+
+			// Setup mock only for the Success case
+			if tt.name == "Success" {
+				mockUsecase.EXPECT().ChangeUserAvatar(gomock.Any(), tt.userID, tt.fileContent).
+					Return(models.User{
+						ID:    tt.userID,
+						Login: "testuser",
+					}, "new_jwt_token", tt.ucErr)
+			}
+
+			r := tt.setupRequest(tt.userID)
+			w := httptest.NewRecorder()
+
+			handler := NewUserHandler(mockUsecase)
+			handler.ChangeAvatar(w, r)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+		})
+	}
+}
+
+func TestMiddleware(t *testing.T) {
+	tests := []struct {
+		name           string
+		setupRequest   func() *http.Request
+		setupMocks     func(mockUsecase *mocks.MockUsersUsecase)
+		expectedStatus int
+	}{
+		{
+			name: "Success",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("GET", "/test", nil)
+				req.AddCookie(&http.Cookie{Name: CSRFCookieName, Value: "csrf-token"})
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "jwt-token"})
+				req.Header.Set("X-CSRF-Token", "csrf-token")
+				return req.WithContext(testContext())
+			},
+			setupMocks: func(mockUsecase *mocks.MockUsersUsecase) {
+				mockUsecase.EXPECT().ValidateAndGetUser(gomock.Any(), "jwt-token").
+					Return(models.User{ID: uuid.NewV4()}, nil)
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "No CSRF cookie",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("GET", "/test", nil)
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "jwt-token"})
+				req.Header.Set("X-CSRF-Token", "csrf-token")
+				return req.WithContext(testContext())
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "No CSRF token in header or form",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("GET", "/test", nil)
+				req.AddCookie(&http.Cookie{Name: CSRFCookieName, Value: "csrf-token"})
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "jwt-token"})
+				return req.WithContext(testContext())
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "CSRF token mismatch",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("GET", "/test", nil)
+				req.AddCookie(&http.Cookie{Name: CSRFCookieName, Value: "csrf-token"})
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "jwt-token"})
+				req.Header.Set("X-CSRF-Token", "different-csrf-token")
+				return req.WithContext(testContext())
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "Invalid JWT token",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("GET", "/test", nil)
+				req.AddCookie(&http.Cookie{Name: CSRFCookieName, Value: "csrf-token"})
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "invalid-jwt-token"})
+				req.Header.Set("X-CSRF-Token", "csrf-token")
+				return req.WithContext(testContext())
+			},
+			setupMocks: func(mockUsecase *mocks.MockUsersUsecase) {
+				mockUsecase.EXPECT().ValidateAndGetUser(gomock.Any(), "invalid-jwt-token").
+					Return(models.User{}, errors.New("invalid token"))
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name: "CSRF token from form",
+			setupRequest: func() *http.Request {
+				req := httptest.NewRequest("POST", "/test", bytes.NewBufferString("csrftoken=csrf-token"))
+				req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+				req.AddCookie(&http.Cookie{Name: CSRFCookieName, Value: "csrf-token"})
+				req.AddCookie(&http.Cookie{Name: CookieName, Value: "jwt-token"})
+				return req.WithContext(testContext())
+			},
+			setupMocks: func(mockUsecase *mocks.MockUsersUsecase) {
+				mockUsecase.EXPECT().ValidateAndGetUser(gomock.Any(), "jwt-token").
+					Return(models.User{ID: uuid.NewV4()}, nil)
+			},
+			expectedStatus: http.StatusOK,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			mockUsecase := mocks.NewMockUsersUsecase(ctrl)
+			defer ctrl.Finish()
+
+			if tt.setupMocks != nil {
+				tt.setupMocks(mockUsecase)
+			}
+
+			handler := NewUserHandler(mockUsecase)
+			nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+			})
+
+			r := tt.setupRequest()
+			w := httptest.NewRecorder()
+
+			middleware := handler.Middleware(nextHandler)
+			middleware.ServeHTTP(w, r)
 
 			assert.Equal(t, tt.expectedStatus, w.Code)
 		})

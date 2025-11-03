@@ -2,7 +2,9 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/actors"
 	"kinopoisk/internal/pkg/middleware/logger"
 	"log/slog"
 	"os"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/driftprogramming/pgxpoolmock"
 	"github.com/golang/mock/gomock"
+	"github.com/jackc/pgx/v4"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +25,14 @@ func testLogger() *slog.Logger {
 func testContext() context.Context {
 	testLogger := testLogger()
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
+
+type MockRow struct {
+	err error
+}
+
+func (m MockRow) Scan(dest ...interface{}) error {
+	return m.err
 }
 
 func TestGetActorByID(t *testing.T) {
@@ -78,6 +89,17 @@ func TestGetActorByID(t *testing.T) {
 				MaritalStatus: "Женат",
 			},
 		},
+		{
+			name:    "NotFound",
+			actorID: actorID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorByID, actorID).
+					Return(MockRow{err: pgx.ErrNoRows})
+			},
+			wantErr:   true,
+			wantActor: models.Actor{},
+		},
 	}
 
 	for _, tt := range tests {
@@ -93,11 +115,29 @@ func TestGetActorByID(t *testing.T) {
 
 			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.name == "NotFound" {
+					assert.True(t, errors.Is(err, actors.ErrorNotFound))
+				}
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantActor.ID, actor.ID)
 				assert.Equal(t, tt.wantActor.RussianName, actor.RussianName)
 				assert.Equal(t, tt.wantActor.Photo, actor.Photo)
+				assert.Equal(t, tt.wantActor.Height, actor.Height)
+				assert.Equal(t, tt.wantActor.BirthDate, actor.BirthDate)
+				assert.Equal(t, tt.wantActor.ZodiacSign, actor.ZodiacSign)
+				assert.Equal(t, tt.wantActor.BirthPlace, actor.BirthPlace)
+				assert.Equal(t, tt.wantActor.MaritalStatus, actor.MaritalStatus)
+				if tt.wantActor.OriginalName != nil {
+					assert.Equal(t, *tt.wantActor.OriginalName, *actor.OriginalName)
+				} else {
+					assert.Nil(t, actor.OriginalName)
+				}
+				if tt.wantActor.DeathDate != nil {
+					assert.Equal(t, *tt.wantActor.DeathDate, *actor.DeathDate)
+				} else {
+					assert.Nil(t, actor.DeathDate)
+				}
 			}
 		})
 	}
@@ -155,6 +195,47 @@ func TestGetActorFilmsCount(t *testing.T) {
 			wantErr:   false,
 			wantCount: 15,
 		},
+		{
+			name:    "ActorNotFound",
+			actorID: actorID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorByID, actorID).
+					Return(MockRow{err: pgx.ErrNoRows})
+			},
+			wantErr:   true,
+			wantCount: 0,
+		},
+		{
+			name:    "NoFilmsFound",
+			actorID: actorID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				actorRows := pgxpoolmock.NewRows(actorColumns).
+					AddRow(
+						actorID,
+						"Том Хэнкс",
+						&originalName,
+						"tom.jpg",
+						183,
+						birthDate,
+						nil,
+						"Козерог",
+						"Конкорд, Калифорния, США",
+						"Женат",
+					).ToPgxRows()
+				actorRows.Next()
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorByID, actorID).
+					Return(actorRows)
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorFilmsCount, actorID).
+					Return(MockRow{err: pgx.ErrNoRows})
+			},
+			wantErr:   true,
+			wantCount: 0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -193,7 +274,7 @@ func TestGetFilmAvgRating(t *testing.T) {
 			filmID: filmID,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
 				rows := pgxpoolmock.NewRows([]string{"avg"}).
-					AddRow(8.5).
+					AddRow(8.54321).
 					ToPgxRows()
 				rows.Next()
 
@@ -220,6 +301,33 @@ func TestGetFilmAvgRating(t *testing.T) {
 			wantErr:    false,
 			wantRating: 0.0,
 		},
+		{
+			name:   "HighPrecisionRating",
+			filmID: filmID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"avg"}).
+					AddRow(9.98765).
+					ToPgxRows()
+				rows.Next()
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID).
+					Return(rows)
+			},
+			wantErr:    false,
+			wantRating: 10.0,
+		},
+		{
+			name:   "NotFound",
+			filmID: filmID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID).
+					Return(MockRow{err: pgx.ErrNoRows})
+			},
+			wantErr:    true,
+			wantRating: 0.0,
+		},
 	}
 
 	for _, tt := range tests {
@@ -235,6 +343,9 @@ func TestGetFilmAvgRating(t *testing.T) {
 
 			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.name == "NotFound" {
+					assert.True(t, errors.Is(err, actors.ErrorNotFound))
+				}
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantRating, rating)
@@ -245,14 +356,8 @@ func TestGetFilmAvgRating(t *testing.T) {
 
 func TestGetFilmsByActor(t *testing.T) {
 	actorID := uuid.NewV4()
-	filmID := uuid.NewV4()
-	birthDate := time.Date(1980, 1, 1, 0, 0, 0, 0, time.UTC)
-	originalName := "Tom Hanks"
-
-	actorColumns := []string{
-		"id", "russian_name", "original_name", "photo", "height",
-		"birth_date", "death_date", "zodiac_sign", "birth_place", "marital_status",
-	}
+	filmID1 := uuid.NewV4()
+	filmID2 := uuid.NewV4()
 
 	filmColumns := []string{"id", "cover", "title", "year", "genre"}
 
@@ -271,49 +376,45 @@ func TestGetFilmsByActor(t *testing.T) {
 			limit:   10,
 			offset:  0,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				actorRows := pgxpoolmock.NewRows(actorColumns).
-					AddRow(
-						actorID,
-						"Том Хэнкс",
-						&originalName,
-						"tom.jpg",
-						183,
-						birthDate,
-						nil,
-						"Козерог",
-						"Конкорд, Калифорния, США",
-						"Женат",
-					).ToPgxRows()
-				actorRows.Next()
-
 				filmRows := pgxpoolmock.NewRows(filmColumns).
-					AddRow(filmID, "film1.jpg", "Форрест Гамп", 1994, "Драма").
+					AddRow(filmID1, "film1.jpg", "Форрест Гамп", 1994, "Драма").
+					AddRow(filmID2, "film2.jpg", "Зеленая миля", 1999, "Драма").
 					ToPgxRows()
 
-				ratingRows := pgxpoolmock.NewRows([]string{"avg"}).AddRow(8.8).ToPgxRows()
-				ratingRows.Next()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetActorByID, actorID).
-					Return(actorRows)
+				ratingRows1 := pgxpoolmock.NewRows([]string{"avg"}).AddRow(8.8).ToPgxRows()
+				ratingRows1.Next()
+				ratingRows2 := pgxpoolmock.NewRows([]string{"avg"}).AddRow(8.6).ToPgxRows()
+				ratingRows2.Next()
 
 				mockPool.EXPECT().
 					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
 					Return(filmRows, nil)
 
 				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetFilmAvgRating, filmID).
-					Return(ratingRows)
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID1).
+					Return(ratingRows1)
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID2).
+					Return(ratingRows2)
 			},
 			wantErr: false,
 			wantFilms: []models.MainPageFilm{
 				{
-					ID:     filmID,
+					ID:     filmID1,
 					Cover:  "film1.jpg",
 					Title:  "Форрест Гамп",
 					Year:   1994,
 					Genre:  "Драма",
 					Rating: 8.8,
+				},
+				{
+					ID:     filmID2,
+					Cover:  "film2.jpg",
+					Title:  "Зеленая миля",
+					Year:   1999,
+					Genre:  "Драма",
+					Rating: 8.6,
 				},
 			},
 		},
@@ -323,26 +424,7 @@ func TestGetFilmsByActor(t *testing.T) {
 			limit:   10,
 			offset:  0,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				actorRows := pgxpoolmock.NewRows(actorColumns).
-					AddRow(
-						actorID,
-						"Том Хэнкс",
-						&originalName,
-						"tom.jpg",
-						183,
-						birthDate,
-						nil,
-						"Козерог",
-						"Конкорд, Калифорния, США",
-						"Женат",
-					).ToPgxRows()
-				actorRows.Next()
-
 				filmRows := pgxpoolmock.NewRows(filmColumns).ToPgxRows()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetActorByID, actorID).
-					Return(actorRows)
 
 				mockPool.EXPECT().
 					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
@@ -350,6 +432,32 @@ func TestGetFilmsByActor(t *testing.T) {
 			},
 			wantErr:   false,
 			wantFilms: []models.MainPageFilm{},
+		},
+		{
+			name:    "QueryError",
+			actorID: actorID,
+			limit:   10,
+			offset:  0,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
+					Return(nil, assert.AnError)
+			},
+			wantErr:   true,
+			wantFilms: nil,
+		},
+		{
+			name:    "NoRowsError",
+			actorID: actorID,
+			limit:   10,
+			offset:  0,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
+					Return(nil, pgx.ErrNoRows)
+			},
+			wantErr:   true,
+			wantFilms: nil,
 		},
 	}
 
@@ -370,9 +478,14 @@ func TestGetFilmsByActor(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Len(t, films, len(tt.wantFilms))
 				if len(tt.wantFilms) > 0 {
-					assert.Equal(t, tt.wantFilms[0].ID, films[0].ID)
-					assert.Equal(t, tt.wantFilms[0].Title, films[0].Title)
-					assert.Equal(t, tt.wantFilms[0].Rating, films[0].Rating)
+					for i := range tt.wantFilms {
+						assert.Equal(t, tt.wantFilms[i].ID, films[i].ID)
+						assert.Equal(t, tt.wantFilms[i].Title, films[i].Title)
+						assert.Equal(t, tt.wantFilms[i].Cover, films[i].Cover)
+						assert.Equal(t, tt.wantFilms[i].Year, films[i].Year)
+						assert.Equal(t, tt.wantFilms[i].Genre, films[i].Genre)
+						assert.Equal(t, tt.wantFilms[i].Rating, films[i].Rating)
+					}
 				}
 			}
 		})

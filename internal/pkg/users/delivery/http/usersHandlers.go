@@ -118,7 +118,14 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	neededUser, err := u.uc.GetUser(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, users.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	neededUser.Sanitize()
@@ -157,7 +164,16 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, users.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -258,7 +274,16 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, users.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 

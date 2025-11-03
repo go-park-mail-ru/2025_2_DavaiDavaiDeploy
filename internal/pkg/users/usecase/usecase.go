@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/users"
@@ -105,35 +104,35 @@ func (uc *UserUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 
 	if token == "" {
 		logger.Error("no token")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	parsedToken, err := uc.ParseToken(token)
 	if err != nil || !parsedToken.Valid {
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		logger.Error("invalid claims")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok || int64(exp) < time.Now().Unix() {
 		logger.Error("invalid exp claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok || login == "" {
 		logger.Error("invalid login claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	user, err := uc.userRepo.GetUserByLogin(ctx, login)
 	if err != nil {
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	return user, nil
@@ -151,30 +150,30 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", errors.New("user is not authorized")
+		return models.User{}, "", err
 	}
 
 	if !CheckPass(neededUser.PasswordHash, oldPassword) {
 		logger.Error("wrong old password")
-		return models.User{}, "", errors.New("wrong password")
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	msg, passwordIsValid := ValidatePassword(newPassword)
 	if !passwordIsValid {
 		logger.Error(msg)
-		return models.User{}, "", errors.New(msg)
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	if newPassword == oldPassword {
 		logger.Error("passwords are equal")
-		return models.User{}, "", errors.New("the passwords should be different")
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	neededUser.Version += 1
 
 	err = uc.userRepo.UpdateUserPassword(ctx, neededUser.Version, neededUser.ID, HashPass(newPassword))
 	if err != nil {
-		return models.User{}, "", errors.New("failed to update the password")
+		return models.User{}, "", err
 	}
 
 	neededUser.PasswordHash = HashPass(newPassword)
@@ -192,7 +191,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", errors.New("user is not authorized")
+		return models.User{}, "", users.ErrorUnauthorized
 	}
 
 	fileFormat := http.DetectContentType(buffer)
@@ -206,7 +205,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		avatarExtension = ".webp"
 	default:
 		logger.Error("invalid format of file")
-		return models.User{}, "", errors.New("unsupported image format")
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	avatarPath := neededUser.ID.String() + avatarExtension
@@ -220,7 +219,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	err = os.WriteFile(filePath, buffer, 0644)
 	if err != nil {
 		logger.Error("failed to write file")
-		return models.User{}, "", err
+		return models.User{}, "", users.ErrorInternalServerError
 	}
 
 	neededUser.Version += 1
