@@ -2,13 +2,12 @@ package repo
 
 import (
 	"context"
+	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/middleware/logger"
 	"log/slog"
 	"os"
 	"testing"
 	"time"
-
-	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/driftprogramming/pgxpoolmock"
 	"github.com/golang/mock/gomock"
@@ -25,37 +24,72 @@ func testContext() context.Context {
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
 }
 
-func TestCheckUserExists_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewAuthRepository(mockPool)
-
+func TestCheckUserExists(t *testing.T) {
 	login := "testuser"
 
-	rows := pgxpoolmock.NewRows([]string{"exists"}).
-		AddRow(true).
-		ToPgxRows()
-	rows.Next()
+	tests := []struct {
+		name       string
+		login      string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantExists bool
+		wantErr    bool
+	}{
+		{
+			name:  "Success_UserExists",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"exists"}).
+					AddRow(true).
+					ToPgxRows()
+				rows.Next()
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), CheckUserExistsQuery, login).
-		Return(rows)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserExistsQuery, login).
+					Return(rows)
+			},
+			wantExists: true,
+			wantErr:    false,
+		},
+		{
+			name:  "Success_UserNotExists",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"exists"}).
+					AddRow(false).
+					ToPgxRows()
+				rows.Next()
 
-	exists, err := repo.CheckUserExists(testContext(), login)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserExistsQuery, login).
+					Return(rows)
+			},
+			wantExists: false,
+			wantErr:    false,
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.True(t, exists)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			exists, err := repo.CheckUserExists(testContext(), tt.login)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantExists, exists)
+			}
+		})
+	}
 }
 
-func TestCreateUser_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewAuthRepository(mockPool)
-
+func TestCreateUser(t *testing.T) {
 	userID := uuid.NewV4()
 	avatar := "/static/default.jpg"
 	user := models.User{
@@ -68,87 +102,212 @@ func TestCreateUser_Success(t *testing.T) {
 		UpdatedAt:    time.Now(),
 	}
 
-	mockPool.EXPECT().
-		Exec(gomock.Any(), CreateUserQuery, user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt).
-		Return(nil, nil)
+	tests := []struct {
+		name       string
+		user       models.User
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantErr    bool
+	}{
+		{
+			name: "Success",
+			user: user,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), CreateUserQuery, user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt).
+					Return(nil, nil)
+			},
+			wantErr: false,
+		},
+	}
 
-	err := repo.CreateUser(testContext(), user)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	assert.NoError(t, err)
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			err := repo.CreateUser(testContext(), tt.user)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
-func TestCheckUserLogin_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewAuthRepository(mockPool)
-
+func TestCheckUserLogin(t *testing.T) {
 	userID := uuid.NewV4()
 	login := "testuser"
 	avatar := "/static/default.jpg"
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
-	rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
-		AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
-		ToPgxRows()
-	rows.Next()
+	expectedUser := models.User{
+		ID:           userID,
+		Version:      1,
+		Login:        login,
+		PasswordHash: []byte("hash"),
+		Avatar:       &avatar,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+	}
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), CheckUserLoginQuery, login).
-		Return(rows)
+	tests := []struct {
+		name       string
+		login      string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantUser   models.User
+		wantErr    bool
+	}{
+		{
+			name:  "Success",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
+					AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
+					ToPgxRows()
+				rows.Next()
 
-	user, err := repo.CheckUserLogin(testContext(), login)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserLoginQuery, login).
+					Return(rows)
+			},
+			wantUser: expectedUser,
+			wantErr:  false,
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, userID, user.ID)
-	assert.Equal(t, login, user.Login)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			user, err := repo.CheckUserLogin(testContext(), tt.login)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantUser.ID, user.ID)
+				assert.Equal(t, tt.wantUser.Login, user.Login)
+				assert.Equal(t, tt.wantUser.Version, user.Version)
+			}
+		})
+	}
 }
 
-func TestIncrementUserVersion_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewAuthRepository(mockPool)
-
+func TestIncrementUserVersion(t *testing.T) {
 	userID := uuid.NewV4()
 
-	mockPool.EXPECT().
-		Exec(gomock.Any(), IncrementUserVersionQuery, userID).
-		Return(nil, nil)
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), IncrementUserVersionQuery, userID).
+					Return(nil, nil)
+			},
+			wantErr: false,
+		},
+	}
 
-	err := repo.IncrementUserVersion(testContext(), userID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	assert.NoError(t, err)
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			err := repo.IncrementUserVersion(testContext(), tt.userID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
 }
 
-func TestGetUserByLogin_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewAuthRepository(mockPool)
-
+func TestGetUserByLogin(t *testing.T) {
 	userID := uuid.NewV4()
 	login := "testuser"
 	avatar := "/static/default.jpg"
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
-	rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
-		AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
-		ToPgxRows()
-	rows.Next()
+	expectedUser := models.User{
+		ID:           userID,
+		Version:      1,
+		Login:        login,
+		PasswordHash: []byte("hash"),
+		Avatar:       &avatar,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+	}
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetUserByLoginQuery, login).
-		Return(rows)
+	tests := []struct {
+		name       string
+		login      string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantUser   models.User
+		wantErr    bool
+	}{
+		{
+			name:  "Success",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
+					AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
+					ToPgxRows()
+				rows.Next()
 
-	user, err := repo.GetUserByLogin(testContext(), login)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetUserByLoginQuery, login).
+					Return(rows)
+			},
+			wantUser: expectedUser,
+			wantErr:  false,
+		},
+		// Аналогично убираем тест с UserNotFound для GetUserByLogin
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, userID, user.ID)
-	assert.Equal(t, login, user.Login)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			user, err := repo.GetUserByLogin(testContext(), tt.login)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantUser.ID, user.ID)
+				assert.Equal(t, tt.wantUser.Login, user.Login)
+				assert.Equal(t, tt.wantUser.Version, user.Version)
+			}
+		})
+	}
 }

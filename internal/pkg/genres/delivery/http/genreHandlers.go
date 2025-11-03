@@ -35,13 +35,13 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	neededGenre, err := g.uc.GetGenre(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	neededGenre.Sanitize()
@@ -62,7 +62,7 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 
 	genres, err := g.uc.GetGenres(r.Context(), pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	for i := range genres {
@@ -89,7 +89,7 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	neededGenre, err := uuid.FromString(idStr)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -97,7 +97,7 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 
 	films, err := g.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	for i := range films {

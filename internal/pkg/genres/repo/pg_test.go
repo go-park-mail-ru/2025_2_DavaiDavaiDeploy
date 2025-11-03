@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/driftprogramming/pgxpoolmock"
@@ -24,51 +25,77 @@ func testContext() context.Context {
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
 }
 
-func TestGetGenreByID_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
+func TestGetGenreByID(t *testing.T) {
 	genreID := uuid.NewV4()
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
-	rows := pgxpoolmock.NewRows([]string{
-		"id", "title", "description", "icon", "created_at", "updated_at",
-	}).
-		AddRow(
-			genreID,
-			"Drama",
-			"Drama films description",
-			"/static/drama.png",
-			createdAt,
-			updatedAt,
-		).
-		ToPgxRows()
-	rows.Next()
+	tests := []struct {
+		name       string
+		genreID    uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantGenre  models.Genre
+		wantErr    bool
+	}{
+		{
+			name:    "Success",
+			genreID: genreID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{
+					"id", "title", "description", "icon", "created_at", "updated_at",
+				}).
+					AddRow(
+						genreID,
+						"Drama",
+						"Drama films description",
+						"/static/drama.png",
+						createdAt,
+						updatedAt,
+					).
+					ToPgxRows()
+				rows.Next()
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetGenreByIDQuery, genreID).
-		Return(rows)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetGenreByIDQuery, genreID).
+					Return(rows)
+			},
+			wantGenre: models.Genre{
+				ID:          genreID,
+				Title:       "Drama",
+				Description: "Drama films description",
+				Icon:        "/static/drama.png",
+				CreatedAt:   createdAt,
+				UpdatedAt:   updatedAt,
+			},
+			wantErr: false,
+		},
+	}
 
-	genre, err := repo.GetGenreByID(testContext(), genreID)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	assert.NoError(t, err)
-	assert.Equal(t, genreID, genre.ID)
-	assert.Equal(t, "Drama", genre.Title)
-	assert.Equal(t, "Drama films description", genre.Description)
-	assert.Equal(t, "/static/drama.png", genre.Icon)
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewGenreRepository(mockPool)
+			genre, err := repo.GetGenreByID(testContext(), tt.genreID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantGenre.ID, genre.ID)
+				assert.Equal(t, tt.wantGenre.Title, genre.Title)
+				assert.Equal(t, tt.wantGenre.Description, genre.Description)
+				assert.Equal(t, tt.wantGenre.Icon, genre.Icon)
+			}
+		})
+	}
 }
 
-func TestGetGenresWithPagination_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
+func TestGetGenresWithPagination(t *testing.T) {
 	genreID1 := uuid.NewV4()
 	genreID2 := uuid.NewV4()
 	limit := 10
@@ -76,195 +103,316 @@ func TestGetGenresWithPagination_Success(t *testing.T) {
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
-	rows := pgxpoolmock.NewRows([]string{
-		"id", "title", "description", "icon", "created_at", "updated_at",
-	}).
-		AddRow(
-			genreID1,
-			"Action",
-			"Action films description",
-			"/static/action.png",
-			createdAt,
-			updatedAt,
-		).
-		AddRow(
-			genreID2,
-			"Comedy",
-			"Comedy films description",
-			"/static/comedy.png",
-			createdAt,
-			updatedAt,
-		).
-		ToPgxRows()
+	tests := []struct {
+		name       string
+		limit      int
+		offset     int
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantGenres []models.Genre
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			limit:  limit,
+			offset: offset,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{
+					"id", "title", "description", "icon", "created_at", "updated_at",
+				}).
+					AddRow(
+						genreID1,
+						"Action",
+						"Action films description",
+						"/static/action.png",
+						createdAt,
+						updatedAt,
+					).
+					AddRow(
+						genreID2,
+						"Comedy",
+						"Comedy films description",
+						"/static/comedy.png",
+						createdAt,
+						updatedAt,
+					).
+					ToPgxRows()
 
-	mockPool.EXPECT().
-		Query(gomock.Any(), GetGenresWithPaginationQuery, limit, offset).
-		Return(rows, nil)
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetGenresWithPaginationQuery, limit, offset).
+					Return(rows, nil)
+			},
+			wantGenres: []models.Genre{
+				{
+					ID:          genreID1,
+					Title:       "Action",
+					Description: "Action films description",
+					Icon:        "/static/action.png",
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+				},
+				{
+					ID:          genreID2,
+					Title:       "Comedy",
+					Description: "Comedy films description",
+					Icon:        "/static/comedy.png",
+					CreatedAt:   createdAt,
+					UpdatedAt:   updatedAt,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:   "QueryError",
+			limit:  limit,
+			offset: offset,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetGenresWithPaginationQuery, limit, offset).
+					Return(nil, assert.AnError)
+			},
+			wantGenres: nil,
+			wantErr:    true,
+		},
+	}
 
-	genres, err := repo.GetGenresWithPagination(testContext(), limit, offset)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	assert.NoError(t, err)
-	assert.Len(t, genres, 2)
-	assert.Equal(t, genreID1, genres[0].ID)
-	assert.Equal(t, "Action", genres[0].Title)
-	assert.Equal(t, genreID2, genres[1].ID)
-	assert.Equal(t, "Comedy", genres[1].Title)
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewGenreRepository(mockPool)
+			genres, err := repo.GetGenresWithPagination(testContext(), tt.limit, tt.offset)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, genres)
+			} else {
+				assert.NoError(t, err)
+				assert.Len(t, genres, len(tt.wantGenres))
+				if len(genres) > 0 {
+					assert.Equal(t, tt.wantGenres[0].ID, genres[0].ID)
+					assert.Equal(t, tt.wantGenres[0].Title, genres[0].Title)
+					assert.Equal(t, tt.wantGenres[1].ID, genres[1].ID)
+					assert.Equal(t, tt.wantGenres[1].Title, genres[1].Title)
+				}
+			}
+		})
+	}
 }
 
-func TestGetFilmAvgRating_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
+func TestGetFilmAvgRating(t *testing.T) {
 	filmID := uuid.NewV4()
-	avgRating := 8.5
 
-	rows := pgxpoolmock.NewRows([]string{"coalesce"}).
-		AddRow(avgRating).
-		ToPgxRows()
-	rows.Next()
+	tests := []struct {
+		name       string
+		filmID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantRating float64
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			filmID: filmID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"coalesce"}).
+					AddRow(8.5).
+					ToPgxRows()
+				rows.Next()
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID).
-		Return(rows)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID).
+					Return(rows)
+			},
+			wantRating: 8.5,
+			wantErr:    false,
+		},
+		{
+			name:   "ZeroRating",
+			filmID: filmID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"coalesce"}).
+					AddRow(0.0).
+					ToPgxRows()
+				rows.Next()
 
-	rating, err := repo.GetFilmAvgRating(testContext(), filmID)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID).
+					Return(rows)
+			},
+			wantRating: 0.0,
+			wantErr:    false,
+		},
+	}
 
-	assert.NoError(t, err)
-	assert.Equal(t, 8.5, rating)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewGenreRepository(mockPool)
+			rating, err := repo.GetFilmAvgRating(testContext(), tt.filmID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantRating, rating)
+			}
+		})
+	}
 }
 
-func TestGetFilmsByGenre_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
+func TestGetFilmsByGenre(t *testing.T) {
 	genreID := uuid.NewV4()
 	filmID1 := uuid.NewV4()
 	filmID2 := uuid.NewV4()
 	limit := 10
 	offset := 0
 
-	mainRows := pgxpoolmock.NewRows([]string{
-		"id", "cover", "title", "year", "genre_title",
-	}).
-		AddRow(filmID1, "/static/cover1.jpg", "Film 1", 2023, "Drama").
-		AddRow(filmID2, "/static/cover2.jpg", "Film 2", 2022, "Drama").
-		ToPgxRows()
+	tests := []struct {
+		name       string
+		genreID    uuid.UUID
+		limit      int
+		offset     int
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantFilms  []models.MainPageFilm
+		wantErr    bool
+	}{
+		{
+			name:    "Success",
+			genreID: genreID,
+			limit:   limit,
+			offset:  offset,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mainRows := pgxpoolmock.NewRows([]string{
+					"id", "cover", "title", "year", "genre_title",
+				}).
+					AddRow(filmID1, "/static/cover1.jpg", "Film 1", 2023, "Drama").
+					AddRow(filmID2, "/static/cover2.jpg", "Film 2", 2022, "Drama").
+					ToPgxRows()
 
-	mockPool.EXPECT().
-		Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
-		Return(mainRows, nil)
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
+					Return(mainRows, nil)
 
-	ratingRows1 := pgxpoolmock.NewRows([]string{"coalesce"}).
-		AddRow(8.5).
-		ToPgxRows()
-	ratingRows1.Next()
+				ratingRows1 := pgxpoolmock.NewRows([]string{"coalesce"}).
+					AddRow(8.5).
+					ToPgxRows()
+				ratingRows1.Next()
 
-	ratingRows2 := pgxpoolmock.NewRows([]string{"coalesce"}).
-		AddRow(7.8).
-		ToPgxRows()
-	ratingRows2.Next()
+				ratingRows2 := pgxpoolmock.NewRows([]string{"coalesce"}).
+					AddRow(7.8).
+					ToPgxRows()
+				ratingRows2.Next()
 
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID1).
-		Return(ratingRows1)
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID2).
-		Return(ratingRows2)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID1).
+					Return(ratingRows1)
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID2).
+					Return(ratingRows2)
+			},
+			wantFilms: []models.MainPageFilm{
+				{
+					ID:     filmID1,
+					Cover:  "/static/cover1.jpg",
+					Title:  "Film 1",
+					Year:   2023,
+					Genre:  "Drama",
+					Rating: 8.5,
+				},
+				{
+					ID:     filmID2,
+					Cover:  "/static/cover2.jpg",
+					Title:  "Film 2",
+					Year:   2022,
+					Genre:  "Drama",
+					Rating: 7.8,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name:    "QueryError",
+			genreID: genreID,
+			limit:   limit,
+			offset:  offset,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
+					Return(nil, assert.AnError)
+			},
+			wantFilms: nil,
+			wantErr:   true,
+		},
+		{
+			name:    "ScanError",
+			genreID: genreID,
+			limit:   limit,
+			offset:  offset,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mainRows := pgxpoolmock.NewRows([]string{
+					"id", "cover", "title", "year", "genre_title",
+				}).
+					AddRow(filmID1, "", "", 0, "").
+					ToPgxRows()
 
-	films, err := repo.GetFilmsByGenre(testContext(), genreID, limit, offset)
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
+					Return(mainRows, nil)
 
-	assert.NoError(t, err)
-	assert.Len(t, films, 2)
-	assert.Equal(t, filmID1, films[0].ID)
-	assert.Equal(t, "Film 1", films[0].Title)
-	assert.Equal(t, 8.5, films[0].Rating)
-	assert.Equal(t, filmID2, films[1].ID)
-	assert.Equal(t, "Film 2", films[1].Title)
-	assert.Equal(t, 7.8, films[1].Rating)
-}
+				ratingRows := pgxpoolmock.NewRows([]string{"coalesce"}).
+					AddRow(0.0).
+					ToPgxRows()
+				ratingRows.Next()
 
-func TestGetGenresWithPagination_QueryError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID1).
+					Return(ratingRows)
+			},
+			wantFilms: []models.MainPageFilm{
+				{
+					ID:     filmID1,
+					Cover:  "",
+					Title:  "",
+					Year:   0,
+					Genre:  "",
+					Rating: 0.0,
+				},
+			},
+			wantErr: false,
+		},
+	}
 
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	limit := 10
-	offset := 0
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
 
-	mockPool.EXPECT().
-		Query(gomock.Any(), GetGenresWithPaginationQuery, limit, offset).
-		Return(nil, assert.AnError)
+			repo := NewGenreRepository(mockPool)
+			films, err := repo.GetFilmsByGenre(testContext(), tt.genreID, tt.limit, tt.offset)
 
-	genres, err := repo.GetGenresWithPagination(testContext(), limit, offset)
-
-	assert.Error(t, err)
-	assert.Nil(t, genres)
-}
-
-func TestGetFilmsByGenre_QueryError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
-	genreID := uuid.NewV4()
-	limit := 10
-	offset := 0
-
-	mockPool.EXPECT().
-		Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
-		Return(nil, assert.AnError)
-
-	films, err := repo.GetFilmsByGenre(testContext(), genreID, limit, offset)
-
-	assert.Error(t, err)
-	assert.Nil(t, films)
-}
-
-func TestGetFilmsByGenre_ScanError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
-	repo := NewGenreRepository(mockPool)
-
-	genreID := uuid.NewV4()
-	filmID := uuid.NewV4()
-	limit := 10
-	offset := 0
-
-	mainRows := pgxpoolmock.NewRows([]string{
-		"id", "cover", "title", "year", "genre_title",
-	}).
-		AddRow(filmID, "", "", 0, "").
-		ToPgxRows()
-
-	mockPool.EXPECT().
-		Query(gomock.Any(), GetFilmsByGenreQuery, genreID, limit, offset).
-		Return(mainRows, nil)
-
-	ratingRows := pgxpoolmock.NewRows([]string{"coalesce"}).
-		AddRow(0.0).
-		ToPgxRows()
-	ratingRows.Next()
-
-	mockPool.EXPECT().
-		QueryRow(gomock.Any(), GetFilmAvgRatingQuery, filmID).
-		Return(ratingRows)
-
-	films, err := repo.GetFilmsByGenre(testContext(), genreID, limit, offset)
-
-	assert.NoError(t, err)
-	assert.Len(t, films, 1)
-	assert.Equal(t, filmID, films[0].ID)
-	assert.Equal(t, 0.0, films[0].Rating)
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, films)
+			} else {
+				assert.NoError(t, err)
+				assert.Len(t, films, len(tt.wantFilms))
+				if len(films) > 0 {
+					assert.Equal(t, tt.wantFilms[0].ID, films[0].ID)
+					assert.Equal(t, tt.wantFilms[0].Title, films[0].Title)
+					assert.Equal(t, tt.wantFilms[0].Rating, films[0].Rating)
+				}
+			}
+		})
+	}
 }

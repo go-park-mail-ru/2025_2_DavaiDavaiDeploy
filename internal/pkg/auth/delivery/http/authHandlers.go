@@ -67,7 +67,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
@@ -76,13 +76,13 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, auth.ErrorBadRequest):
-			helpers.WriteError(w, http.StatusBadRequest, err)
+			helpers.WriteError(w, http.StatusBadRequest)
 		case errors.Is(err, auth.ErrorConflict):
-			helpers.WriteError(w, http.StatusConflict, err)
+			helpers.WriteError(w, http.StatusConflict)
 		case errors.Is(err, auth.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError, err)
+			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
-			helpers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
+			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -134,7 +134,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
@@ -143,11 +143,11 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, auth.ErrorBadRequest):
-			helpers.WriteError(w, http.StatusBadRequest, err)
+			helpers.WriteError(w, http.StatusBadRequest)
 		case errors.Is(err, auth.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError, err)
+			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
-			helpers.WriteError(w, http.StatusInternalServerError, errors.New("internal server error"))
+			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -186,7 +186,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
 			log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 		var csrfToken string
@@ -200,13 +200,13 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 				csrfToken = tokenFromForm
 			} else {
 				log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
-				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
+				helpers.WriteError(w, http.StatusUnauthorized)
 				return
 			}
 		}
 		if csrfCookie.Value != csrfToken {
 			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 
@@ -218,7 +218,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 		user.Sanitize()
@@ -243,9 +243,9 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
 		if errors.Is(err, auth.ErrorUnauthorized) {
-			helpers.WriteError(w, http.StatusUnauthorized, err)
+			helpers.WriteError(w, http.StatusUnauthorized)
 		} else {
-			helpers.WriteError(w, http.StatusInternalServerError, err)
+			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
@@ -267,9 +267,9 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	err := a.uc.LogOutUser(r.Context())
 	if err != nil {
 		if errors.Is(err, auth.ErrorUnauthorized) {
-			helpers.WriteError(w, http.StatusUnauthorized, err)
+			helpers.WriteError(w, http.StatusUnauthorized)
 		} else {
-			helpers.WriteError(w, http.StatusInternalServerError, err)
+			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}

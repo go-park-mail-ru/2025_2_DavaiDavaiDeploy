@@ -40,7 +40,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
-		helpers.WriteError(w, http.StatusNotFound, err)
+		helpers.WriteError(w, http.StatusNotFound)
 		return
 	}
 
@@ -64,7 +64,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 
 	films, err := c.uc.GetFilms(r.Context(), pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	for i := range films {
@@ -88,13 +88,13 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	film, err := c.uc.GetFilm(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	film.Sanitize()
@@ -140,7 +140,7 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	feedbacks, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	for i := range feedbacks {
@@ -176,7 +176,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -192,7 +192,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
 
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	feedback.Sanitize()
@@ -218,7 +218,7 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -226,14 +226,14 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
 
 	rating, err := c.uc.SetRating(r.Context(), req, filmID)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	rating.Sanitize()

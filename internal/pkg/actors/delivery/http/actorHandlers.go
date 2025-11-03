@@ -35,13 +35,20 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of actor"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	actor, err := a.uc.GetActor(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		switch {
+		case errors.Is(err, actors.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, actors.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	actor.Sanitize()
@@ -65,7 +72,7 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	neededActor, err := uuid.FromString(idStr)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of actor"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -73,7 +80,14 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		switch {
+		case errors.Is(err, actors.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, actors.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	for i := range films {

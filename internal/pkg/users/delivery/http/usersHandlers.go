@@ -54,7 +54,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 		csrfCookie, err := r.Cookie(CSRFCookieName)
 		if err != nil {
 			log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 		var csrfToken string
@@ -68,14 +68,14 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 				csrfToken = tokenFromForm
 			} else {
 				log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
-				helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+				helpers.WriteError(w, http.StatusUnauthorized)
 				return
 			}
 		}
 
 		if csrfCookie.Value != csrfToken {
 			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
-			helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 		var token string
@@ -86,7 +86,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 
 		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized, err)
+			helpers.WriteError(w, http.StatusUnauthorized)
 			return
 		}
 		user.Sanitize()
@@ -112,13 +112,13 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of user"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	neededUser, err := u.uc.GetUser(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	neededUser.Sanitize()
@@ -142,7 +142,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user is not authorized"))
+		helpers.WriteError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -150,14 +150,14 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	req.Sanitize()
 
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
@@ -205,7 +205,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusUnauthorized, errors.New("user not authenticated"))
+		helpers.WriteError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -224,10 +224,10 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
 			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
-			helpers.WriteError(w, http.StatusRequestEntityTooLarge, err)
+			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
 			return
 		}
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -239,7 +239,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	file, _, err := newReq.FormFile("avatar")
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 	defer func() {
@@ -252,13 +252,13 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	buffer, err := io.ReadAll(file)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest, err)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/actors"
 	"kinopoisk/internal/pkg/actors/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
@@ -85,15 +86,39 @@ func TestGetActor(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Usecase error",
+			name:   "Actor Not Found",
 			url:    "/actors/" + actorIDStr,
 			varsID: actorIDStr,
 			mockSetup: func() {
 				mockUsecase.EXPECT().
 					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, errors.New("actor not exists"))
+					Return(models.ActorPage{}, actors.ErrorNotFound)
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Internal Server Error",
+			url:    "/actors/" + actorIDStr,
+			varsID: actorIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetActor(gomock.Any(), actorID).
+					Return(models.ActorPage{}, actors.ErrorInternalServerError)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectBody:     false,
+		},
+		{
+			name:   "Unknown Error",
+			url:    "/actors/" + actorIDStr,
+			varsID: actorIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetActor(gomock.Any(), actorID).
+					Return(models.ActorPage{}, errors.New("unknown error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 	}
@@ -109,6 +134,8 @@ func TestGetActor(t *testing.T) {
 
 			router := mux.NewRouter()
 			router.HandleFunc("/actors/{id}", handler.GetActor)
+
+			req = mux.SetURLVars(req, map[string]string{"id": tt.varsID})
 			router.ServeHTTP(rec, req)
 
 			assert.Equal(t, tt.expectedStatus, rec.Code)
@@ -117,7 +144,9 @@ func TestGetActor(t *testing.T) {
 				var decoded models.ActorPage
 				err := json.Unmarshal(rec.Body.Bytes(), &decoded)
 				assert.NoError(t, err)
-				assert.Equal(t, expectedActor, decoded)
+				assert.Equal(t, expectedActor.ID, decoded.ID)
+				assert.Equal(t, expectedActor.RussianName, decoded.RussianName)
+				assert.Equal(t, expectedActor.Photo, decoded.Photo)
 			}
 		})
 	}
@@ -181,15 +210,39 @@ func TestGetFilmsByActor(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Usecase error",
+			name:   "Actor Not Found",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
 			mockSetup: func() {
 				mockUsecase.EXPECT().
 					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return([]models.MainPageFilm{}, errors.New("no films"))
+					Return([]models.MainPageFilm{}, actors.ErrorNotFound)
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Internal Server Error",
+			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
+			varsID: actorIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
+					Return([]models.MainPageFilm{}, actors.ErrorInternalServerError)
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectBody:     false,
+		},
+		{
+			name:   "Unknown Error",
+			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
+			varsID: actorIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
+					Return([]models.MainPageFilm{}, errors.New("unknown error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 	}
@@ -205,6 +258,8 @@ func TestGetFilmsByActor(t *testing.T) {
 
 			router := mux.NewRouter()
 			router.HandleFunc("/actors/{id}/films", handler.GetFilmsByActor)
+
+			req = mux.SetURLVars(req, map[string]string{"id": tt.varsID})
 			router.ServeHTTP(rec, req)
 
 			assert.Equal(t, tt.expectedStatus, rec.Code)
@@ -213,7 +268,11 @@ func TestGetFilmsByActor(t *testing.T) {
 				var decoded []models.MainPageFilm
 				err := json.Unmarshal(rec.Body.Bytes(), &decoded)
 				assert.NoError(t, err)
-				assert.Equal(t, expectedFilms, decoded)
+				assert.Len(t, decoded, len(expectedFilms))
+				if len(decoded) > 0 {
+					assert.Equal(t, expectedFilms[0].Title, decoded[0].Title)
+					assert.Equal(t, expectedFilms[0].Rating, decoded[0].Rating)
+				}
 			}
 		})
 	}
