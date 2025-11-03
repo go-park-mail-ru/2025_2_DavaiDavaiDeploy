@@ -558,7 +558,7 @@ INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES
 -- 16. Криминальное чтиво (7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f)
 INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES
 ('a111a2b3-c4d5-6789-abcd-ef0123456061', 'f8a9b0c1-d2e3-4567-8f90-89abcdef0123', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Тарантино в ударе', '«Рояль с сыром» — в сердце.', 10),
-('a113c4b4-d5e6-7890-bcde-f01234560621', 'a9b0c1d2-e3f4-5678-9f01-9abcdef01234', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Хронология бесит', 'Зачем так резать?', 6),
+('a113c4b4-d5e6-7890-bcde-f01234560621', 'a9b0c1d2-e3f4-5678-9f01-9abcdef01234', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Хронология бесит', 'Зачем так резать?', 3),
 ('a113c4d5-e6f7-8901-cdef-012345606311', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Диалоги — шедевр', 'Можно цитировать часами.', 9),
 ('a114d5e6-f7a8-9012-def0-123456606411', 'b2c3d4e5-f6a7-8901-bcde-f23456789012', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Культовый статус — по делу', '90-е в одной бутылке.', 10);
 
