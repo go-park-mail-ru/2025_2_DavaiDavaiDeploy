@@ -917,3 +917,21 @@ INSERT INTO film_feedback (id, user_id, film_id, title, text, rating) VALUES
 ('59d2e3f4-a5b6-7890-1234-567039411111', 'a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'd0e1f2a3-4b5c-6d7e-8f9a-0b1c2d3e4f5a', 'Отель Оверлук', 'Хочу туда… и не хочу одновременно.', 8),
 ('59e3f4a5-b6c7-8901-2345-678039511111', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'd0e1f2a3-4b5c-6d7e-8f9a-0b1c2d3e4f5a', 'Медленный темп', 'Атмосфера густая, но динамики маловато.', 7),
 ('59f4a5b6-c7d8-9012-3456-789039611111', 'b2c3d4e5-f6a7-8901-bcde-f23456789012', 'd0e1f2a3-4b5c-6d7e-8f9a-0b1c2d3e4f5a', 'Книга vs фильм', 'Кинг не доволен, но я в восторге!', 9);
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('0480c10b-58cc-0372-8567-0e02b2c3d555', '0480c10b-58cc-0372-8567-0e02b2c3d550', '4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d', 'Большой Джордж', 'Владелец подпольного оружейного склада');
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('0480c10b-58cc-0372-8567-0e02b2c3d556', '0480c10b-58cc-0372-8567-0e02b2c3d550', '3b4c5d6e-7f8a-9b0c-1d2e-3f4a5b6c7d8e', 'Тони "Лысый"', 'Представитель нью-йоркской мафии в Лондоне');
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('0480c10b-58cc-0372-8567-0e02b2c3d558', '0480c10b-58cc-0372-8567-0e02b2c3d550', '7e6d5c4b-3a2b-1c0d-9e8f-7a6b5c4d3e2f', 'Ник "Бочка"', 'Владелец подпольного бара, информатор криминального мира');
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('0480c10b-58cc-0372-8567-0e02b2c3d559', '0480c10b-58cc-0372-8567-0e02b2c3d550', '550e8400-e29b-41d4-a716-446655440000', 'Флойд', 'Пожилой заключенный, отбывающий длительный срок');
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('0480c10b-58cc-0372-8567-0e02b2c3d560', '0480c10b-58cc-0372-8567-0e02b2c3d550', '9f4e7a7c-8c5a-4e5a-9f3e-6e8a9b9c8d7e', 'Сержант Майки', 'Ветеран Вьетнамской войны, потерявший ногу');
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
+('a4bb189e-8bf9-3888-9912-6c2d5c7c5b9a', '0480c10b-58cc-0372-8567-0e02b2c3d550', '4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b', 'Корбен Даллас', 'Бывший военный, таксист, ставший защитником Пятого элемента');
