@@ -42,7 +42,7 @@ jobs:
           host: ${{ secrets.HOST }} 
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
-          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && git pull 
+          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && git stash && git pull 
       - name: Build containers 
         uses: appleboy/ssh-action@master
         with:
