@@ -10,43 +10,12 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
 )
-
-func ValidateLogin(login string) (string, bool) {
-	if len(login) < 6 || len(login) > 20 {
-		return "Invalid login length", false
-	}
-
-	for _, char := range login {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Login contains invalid characters", false
-		}
-	}
-	return "Ok", true
-}
-
-const (
-	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?`~"
-)
-
-func ValidatePassword(password string) (string, bool) {
-	if len(password) < 6 || len(password) > 20 {
-		return "Invalid password length", false
-	}
-
-	for _, char := range password {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Password contains invalid characters", false
-		}
-	}
-	return "Ok", true
-}
 
 func HashPass(plainPassword string) []byte {
 	salt := make([]byte, 8)
@@ -100,12 +69,8 @@ func (uc *AuthUsecase) ParseToken(token string) (*jwt.Token, error) {
 func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	if msg, passwordIsValid := ValidatePassword(req.Password); !passwordIsValid {
-		logger.Error(msg)
-		return models.User{}, "", auth.ErrorBadRequest
-	}
-
-	if msg, loginIsValid := ValidateLogin(req.Login); !loginIsValid {
+	msg, dataIsValid := auth.Validaton(req.Login, req.Password)
+	if !dataIsValid {
 		logger.Error(msg)
 		return models.User{}, "", auth.ErrorBadRequest
 	}

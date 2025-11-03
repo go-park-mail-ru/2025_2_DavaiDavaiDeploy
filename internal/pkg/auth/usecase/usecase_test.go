@@ -433,11 +433,8 @@ func TestValidateFunctions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, loginValid := ValidateLogin(tt.login)
-			_, passValid := ValidatePassword(tt.password)
-
-			assert.Equal(t, tt.loginValid, loginValid)
-			assert.Equal(t, tt.passwordValid, passValid)
+			_, dataIsValid := auth.Validaton(tt.login, tt.password)
+			assert.Equal(t, tt.loginValid, dataIsValid)
 		})
 	}
 }

@@ -12,44 +12,12 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
 )
-
-const (
-	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?`~"
-)
-
-func ValidateLogin(login string) (string, bool) {
-	if len(login) < 6 || len(login) > 20 {
-		return "Invalid login length", false
-	}
-
-	for _, char := range login {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Login contains invalid characters", false
-		}
-	}
-	return "Ok", true
-}
-
-func ValidatePassword(password string) (string, bool) {
-	if len(password) < 6 || len(password) > 20 {
-		return "Invalid password length", false
-	}
-
-	for _, char := range password {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Password contains invalid characters", false
-		}
-	}
-	return "Ok", true
-
-}
 
 func HashPass(plainPassword string) []byte {
 	salt := make([]byte, 8)
@@ -158,7 +126,7 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 		return models.User{}, "", users.ErrorBadRequest
 	}
 
-	msg, passwordIsValid := ValidatePassword(newPassword)
+	msg, passwordIsValid := users.Validaton(neededUser.Login, newPassword)
 	if !passwordIsValid {
 		logger.Error(msg)
 		return models.User{}, "", users.ErrorBadRequest
