@@ -108,7 +108,7 @@ INSERT INTO user_table (id, login, password_hash, avatar) VALUES
 ('f6a7b8c9-d0e1-2345-f678-678901234567', 'lisa_wilson',  E'\\x7e7d09aa98b6504de5302e89e53c9b3aaee0fc68ff5fb3809cf63118dd2c9807181efed7696d1f60', 'avatars/default-1.png'),
 ('a7b8c9d0-e1f2-3456-789a-789012345678', 'david_brown',  E'\\xd78159dd2a7640bbf0f7e4fdd17a2c62683399841396c4f1eb837b11b02ad50265980fb706056b65', 'avatars/default-2.png'),
 ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'ivan_ivanov',  E'\\xef0c1c587efa9cc0d9c1bd42415971636bd80d4cd615ddf3c8352fe05d73b10a23889704cf23f70b', 'avatars/default-3.png'),
-('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'emma_watson',  E'\\xfc1a23d4abf03c7e1b4ef6e5ab2195a2a81f78315906ce0495f898ebb03f4f178e68082bf54cb77f'a, 'avatars/default-4.png'),
+('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'emma_watson',  E'\\xfc1a23d4abf03c7e1b4ef6e5ab2195a2a81f78315906ce0495f898ebb03f4f178e68082bf54cb77f', 'avatars/default-4.png'),
 ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'harry_potter', E'\\x4ee6342828c81256bd9112519c80829eeeb04999d93b5e118b9a07a4cd6ae975f962afc35fdef40a', 'avatars/default-5.png'),
 ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'hans_muller',  E'\\x7df18e0995ee89132d0613a8afbcb96127cbc6b581d301d3e8f1896182f8946417764ce77233ab34', 'avatars/default-1.png'),
 ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'anna_schmidt', E'\\x9ccc8a866348dc9d61548d9de8f32d75d1c53e9486b4cda52472f2712c3faf620ab2b96ed1ca2647', 'avatars/default-2.png'),
