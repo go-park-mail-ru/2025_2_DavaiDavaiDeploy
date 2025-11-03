@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/genres"
 	"kinopoisk/internal/pkg/genres/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
@@ -75,15 +76,27 @@ func TestGetGenre(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Usecase error",
+			name:   "Usecase not found error",
 			url:    "/genres/" + genreIDStr,
 			varsID: genreIDStr,
 			mockSetup: func() {
 				mockUsecase.EXPECT().
 					GetGenre(gomock.Any(), genreID).
-					Return(models.Genre{}, errors.New("genre not exists"))
+					Return(models.Genre{}, genres.ErrorNotFound)
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Usecase internal error",
+			url:    "/genres/" + genreIDStr,
+			varsID: genreIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetGenre(gomock.Any(), genreID).
+					Return(models.Genre{}, errors.New("internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 	}
@@ -160,14 +173,25 @@ func TestGetGenres(t *testing.T) {
 			expectBody:     true,
 		},
 		{
-			name: "Usecase error",
+			name: "Usecase not found error",
 			url:  "/genres?count=10&offset=0",
 			mockSetup: func() {
 				mockUsecase.EXPECT().
 					GetGenres(gomock.Any(), models.Pager{Count: 10, Offset: 0}).
-					Return([]models.Genre{}, errors.New("no genres"))
+					Return([]models.Genre{}, genres.ErrorNotFound)
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name: "Usecase internal error",
+			url:  "/genres?count=10&offset=0",
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetGenres(gomock.Any(), models.Pager{Count: 10, Offset: 0}).
+					Return([]models.Genre{}, errors.New("internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 	}
@@ -255,15 +279,27 @@ func TestGetFilmsByGenre(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Usecase error",
+			name:   "Usecase not found error",
 			url:    "/genres/" + genreIDStr + "/films?count=10&offset=0",
 			varsID: genreIDStr,
 			mockSetup: func() {
 				mockUsecase.EXPECT().
 					GetFilmsByGenre(gomock.Any(), genreID, models.Pager{Count: 10, Offset: 0}).
-					Return([]models.MainPageFilm{}, errors.New("no films"))
+					Return([]models.MainPageFilm{}, genres.ErrorNotFound)
 			},
-			expectedStatus: http.StatusBadRequest,
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Usecase internal error",
+			url:    "/genres/" + genreIDStr + "/films?count=10&offset=0",
+			varsID: genreIDStr,
+			mockSetup: func() {
+				mockUsecase.EXPECT().
+					GetFilmsByGenre(gomock.Any(), genreID, models.Pager{Count: 10, Offset: 0}).
+					Return([]models.MainPageFilm{}, errors.New("internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 	}

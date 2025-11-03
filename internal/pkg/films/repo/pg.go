@@ -123,10 +123,6 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	if limit <= 0 || offset < 0 {
-		return nil, films.ErrorBadRequest
-	}
-
 	rows, err := r.db.Query(ctx, GetFilmsWithPaginationQuery, limit, offset)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())

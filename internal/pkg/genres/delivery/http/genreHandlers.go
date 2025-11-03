@@ -41,7 +41,14 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 
 	neededGenre, err := g.uc.GetGenre(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, genres.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, genres.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	neededGenre.Sanitize()
@@ -60,15 +67,22 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	genres, err := g.uc.GetGenres(r.Context(), pager)
+	allGenres, err := g.uc.GetGenres(r.Context(), pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, genres.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, genres.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
-	for i := range genres {
-		genres[i].Sanitize()
+	for i := range allGenres {
+		allGenres[i].Sanitize()
 	}
-	helpers.WriteJSON(w, genres)
+	helpers.WriteJSON(w, allGenres)
 	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
@@ -97,7 +111,14 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 
 	films, err := g.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, genres.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, genres.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	for i := range films {

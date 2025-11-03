@@ -69,7 +69,7 @@ func TestGenreUsecase_GetGenre(t *testing.T) {
 			genreID:     genreID,
 			expected:    models.Genre{},
 			expectError: true,
-			errorMsg:    "no such genre",
+			errorMsg:    "not found",
 		},
 	}
 
@@ -142,7 +142,7 @@ func TestGenreUsecase_GetGenres(t *testing.T) {
 			},
 			expected:    []models.Genre{},
 			expectError: true,
-			errorMsg:    "no genres",
+			errorMsg:    "database error",
 		},
 		{
 			name: "Error - no genres",
@@ -153,7 +153,7 @@ func TestGenreUsecase_GetGenres(t *testing.T) {
 			},
 			expected:    []models.Genre{},
 			expectError: true,
-			errorMsg:    "no genres",
+			errorMsg:    "not found",
 		},
 	}
 
@@ -235,7 +235,7 @@ func TestGenreUsecase_GetFilmsByGenre(t *testing.T) {
 			genreID:     genreID,
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
+			errorMsg:    "database error",
 		},
 		{
 			name: "Error - no films",
@@ -247,7 +247,7 @@ func TestGenreUsecase_GetFilmsByGenre(t *testing.T) {
 			genreID:     genreID,
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
+			errorMsg:    "not found",
 		},
 	}
 
