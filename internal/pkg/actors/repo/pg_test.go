@@ -459,6 +459,116 @@ func TestGetFilmsByActor(t *testing.T) {
 			wantErr:   true,
 			wantFilms: nil,
 		},
+		{
+			name:    "ScanError",
+			actorID: actorID,
+			limit:   10,
+			offset:  0,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				filmRows := pgxpoolmock.NewRows([]string{"id", "cover"}).
+					AddRow(filmID1, "film1.jpg").
+					ToPgxRows()
+
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
+					Return(filmRows, nil)
+			},
+			wantErr:   true,
+			wantFilms: nil,
+		},
+		{
+			name:    "RatingQueryError",
+			actorID: actorID,
+			limit:   10,
+			offset:  0,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				filmRows := pgxpoolmock.NewRows(filmColumns).
+					AddRow(filmID1, "film1.jpg", "Форрест Гамп", 1994, "Драма").
+					ToPgxRows()
+
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
+					Return(filmRows, nil)
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID1).
+					Return(MockRow{err: pgx.ErrNoRows})
+			},
+			wantErr: false,
+			wantFilms: []models.MainPageFilm{
+				{
+					ID:     filmID1,
+					Cover:  "film1.jpg",
+					Title:  "Форрест Гамп",
+					Year:   1994,
+					Genre:  "Драма",
+					Rating: 0.0,
+				},
+			},
+		},
+		{
+			name:    "RatingInternalError",
+			actorID: actorID,
+			limit:   10,
+			offset:  0,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				filmRows := pgxpoolmock.NewRows(filmColumns).
+					AddRow(filmID1, "film1.jpg", "Форрест Гамп", 1994, "Драма").
+					ToPgxRows()
+
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 10, 0).
+					Return(filmRows, nil)
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID1).
+					Return(MockRow{err: assert.AnError})
+			},
+			wantErr: false,
+			wantFilms: []models.MainPageFilm{
+				{
+					ID:     filmID1,
+					Cover:  "film1.jpg",
+					Title:  "Форрест Гамп",
+					Year:   1994,
+					Genre:  "Драма",
+					Rating: 0.0,
+				},
+			},
+		},
+		{
+			name:    "DifferentLimitOffset",
+			actorID: actorID,
+			limit:   5,
+			offset:  10,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				filmRows := pgxpoolmock.NewRows(filmColumns).
+					AddRow(filmID1, "film1.jpg", "Форрест Гамп", 1994, "Драма").
+					ToPgxRows()
+
+				ratingRows1 := pgxpoolmock.NewRows([]string{"avg"}).AddRow(8.8).ToPgxRows()
+				ratingRows1.Next()
+
+				mockPool.EXPECT().
+					Query(gomock.Any(), GetFilmsByActor, actorID, 5, 10).
+					Return(filmRows, nil)
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetFilmAvgRating, filmID1).
+					Return(ratingRows1)
+			},
+			wantErr: false,
+			wantFilms: []models.MainPageFilm{
+				{
+					ID:     filmID1,
+					Cover:  "film1.jpg",
+					Title:  "Форрест Гамп",
+					Year:   1994,
+					Genre:  "Драма",
+					Rating: 8.8,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
