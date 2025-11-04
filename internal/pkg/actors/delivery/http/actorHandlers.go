@@ -46,8 +46,6 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, actors.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, actors.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -55,7 +53,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 	}
 	actor.Sanitize()
 	helpers.WriteJSON(w, actor)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetFilmsByActor godoc
@@ -87,8 +85,6 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, actors.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, actors.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -99,5 +95,5 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, films)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

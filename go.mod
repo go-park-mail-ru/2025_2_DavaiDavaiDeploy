@@ -59,6 +59,7 @@ require (
 	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
+	go.uber.org/mock v0.6.0 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/mod v0.29.0 // indirect
 	golang.org/x/net v0.46.0 // indirect

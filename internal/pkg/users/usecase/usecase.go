@@ -160,7 +160,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", users.ErrorUnauthorized
+		return models.User{}, "", err
 	}
 
 	var avatarExtension string
@@ -179,7 +179,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer, fileFormat, avatarExtension)
 	if err != nil {
 		logger.Error("failed to upload avatar", "error", err)
-		return models.User{}, "", users.ErrorBadRequest
+		return models.User{}, "", users.ErrorInternalServerError
 	}
 
 	neededUser.Avatar = &avatarPath

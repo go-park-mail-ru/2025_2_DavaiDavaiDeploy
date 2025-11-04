@@ -44,8 +44,6 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -54,7 +52,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 
 	film.Sanitize()
 	helpers.WriteJSON(w, film)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetFilms godoc
@@ -79,8 +77,6 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, films.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -90,7 +86,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		mainPageFilms[i].Sanitize()
 	}
 	helpers.WriteJSON(w, mainPageFilms)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetFilm godoc
@@ -120,8 +116,6 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, films.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -129,7 +123,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	}
 	film.Sanitize()
 	helpers.WriteJSON(w, film)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
@@ -150,7 +144,7 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 			}
 		}
 
-		log.LogHandlerInfo(logger, "Success", http.StatusOK)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r)
 	})
 }
@@ -182,8 +176,6 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -194,7 +186,7 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, feedbacks)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // SendFeedback godoc
@@ -236,8 +228,6 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, films.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -245,7 +235,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 	feedback.Sanitize()
 	helpers.WriteJSON(w, feedback)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // SetRating godoc
@@ -287,8 +277,6 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusNotFound)
 		case errors.Is(err, films.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, films.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -296,5 +284,5 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	}
 	rating.Sanitize()
 	helpers.WriteJSON(w, rating)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

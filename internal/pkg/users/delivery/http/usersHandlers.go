@@ -92,7 +92,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 		user.Sanitize()
 		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
-		log.LogHandlerInfo(logger, "Success", http.StatusOK)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -122,8 +122,6 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, users.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, users.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -131,7 +129,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	neededUser.Sanitize()
 	helpers.WriteJSON(w, neededUser)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // ChangePassword godoc
@@ -166,8 +164,6 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
 	if err != nil {
 		switch {
-		case errors.Is(err, users.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		case errors.Is(err, users.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
@@ -200,7 +196,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize()
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // ChangeAvatar godoc
@@ -276,8 +272,6 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer, fileFormat)
 	if err != nil {
 		switch {
-		case errors.Is(err, users.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		case errors.Is(err, users.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
@@ -310,5 +304,5 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize()
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

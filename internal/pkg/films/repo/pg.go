@@ -52,6 +52,7 @@ func (r *FilmRepository) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mo
 		return models.PromoFilm{}, films.ErrorInternalServerError
 	}
 
+	logger.Info("succesfully got promo film from db")
 	return film, nil
 }
 
@@ -78,6 +79,8 @@ func (r *FilmRepository) GetFilmByID(ctx context.Context, id uuid.UUID) (models.
 		logger.Error("failed to scan film: " + err.Error())
 		return models.Film{}, films.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got film by id from db")
 	return film, nil
 }
 
@@ -97,6 +100,8 @@ func (r *FilmRepository) GetGenreTitle(ctx context.Context, genreID uuid.UUID) (
 		logger.Error("failed to scan genre: " + err.Error())
 		return "", films.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got title of genre from db")
 	return title, err
 }
 
@@ -117,6 +122,7 @@ func (r *FilmRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID)
 		return 0, films.ErrorInternalServerError
 	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+	logger.Info("succesfully got rating of film from db")
 	return roundedRating, err
 }
 
@@ -146,12 +152,11 @@ func (r *FilmRepository) GetFilmsWithPagination(ctx context.Context, limit, offs
 		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
 			logger.Error("failed to get rating: " + err.Error())
-			film.Rating = 0.0
-		} else {
-			film.Rating = rating
 		}
+		film.Rating = rating
 		films = append(films, film)
 	}
+	logger.Info("succesfully got films from db")
 	return films, nil
 }
 
@@ -202,6 +207,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		}
 	}
 
+	logger.Info("succesfully got film from db")
 	return result, nil
 }
 
@@ -234,6 +240,7 @@ func (r *FilmRepository) GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID,
 		feedbacks = append(feedbacks, feedback)
 	}
 
+	logger.Info("succesfully get feedbacks of film from db")
 	return feedbacks, nil
 }
 
@@ -257,6 +264,7 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 		logger.Error("failed to scan feedback: " + err.Error())
 		return models.FilmFeedback{}, films.ErrorInternalServerError
 	}
+	logger.Info("succesfully checked users feedback in db")
 	return feedback, nil
 }
 
@@ -271,6 +279,7 @@ func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.Fil
 		logger.Error("failed to update feedback: " + err.Error())
 		return films.ErrorInternalServerError
 	}
+	logger.Info("succesfully update feedback in db")
 	return err
 }
 
@@ -299,6 +308,7 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 		logger.Error("failed to set rating: " + err.Error())
 		return films.ErrorInternalServerError
 	}
+	logger.Info("succesfully set rating in db")
 	return err
 }
 
@@ -321,5 +331,6 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, films.ErrorInternalServerError
 	}
+	logger.Info("succesfully got user by login from db")
 	return user, nil
 }

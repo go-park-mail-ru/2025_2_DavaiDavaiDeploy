@@ -145,7 +145,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
-	if len(req.Text) < 1 || len(req.Text) > 1000 {
+	if len(req.Text) < 30 || len(req.Text) > 1000 {
 		logger.Error("invalid length of text")
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}

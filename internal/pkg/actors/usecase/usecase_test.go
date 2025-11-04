@@ -12,9 +12,9 @@ import (
 	"kinopoisk/internal/pkg/actors/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
-	"github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
+	gomock "go.uber.org/mock/gomock"
 )
 
 func testLogger() *slog.Logger {

@@ -40,6 +40,8 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, users.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got user by id from db")
 	return user, nil
 }
 
@@ -62,6 +64,8 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, users.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got user by login from db")
 	return user, nil
 }
 
@@ -76,6 +80,8 @@ func (u *UserRepository) UpdateUserPassword(ctx context.Context, version int, us
 		logger.Error("failed to update password: " + err.Error())
 		return users.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully updated password of user from db")
 	return err
 }
 
@@ -90,5 +96,7 @@ func (u *UserRepository) UpdateUserAvatar(ctx context.Context, version int, user
 		logger.Error("failed to update avatar: " + err.Error())
 		return users.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully updated avatar from db")
 	return nil
 }
