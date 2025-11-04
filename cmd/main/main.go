@@ -1,6 +1,3 @@
-//go:build !lint
-// +build !lint
-
 // @title           Kinopoisk API
 // @version         1.0
 // @description     API для авторизации пользователей и получения фильмов/жанров/актеров.
