@@ -12,10 +12,12 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
@@ -73,12 +75,16 @@ func CheckPass(passHash []byte, plainPassword string) bool {
 type UserUsecase struct {
 	secret   string
 	userRepo users.UsersRepo
+	s3Client *s3.Client
+	s3Bucket string
 }
 
-func NewUserUsecase(userRepo users.UsersRepo) *UserUsecase {
+func NewUserUsecase(userRepo users.UsersRepo, s3Client *s3.Client, s3Bucket string) *UserUsecase {
 	return &UserUsecase{
 		secret:   os.Getenv("JWT_SECRET"),
 		userRepo: userRepo,
+		s3Client: s3Client,
+		s3Bucket: s3Bucket,
 	}
 }
 
@@ -209,31 +215,34 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", errors.New("unsupported image format")
 	}
 
-	avatarPath := neededUser.ID.String() + avatarExtension
-	neededUser.Avatar = &avatarPath
+	avatarKey := "static/avatars/" + neededUser.ID.String() + avatarExtension
+	avatarDBKey := "avatars/" + neededUser.ID.String() + avatarExtension
 
-	avatarsDir := os.Getenv("AVATARS_DIR")
+	if uc.s3Client != nil && uc.s3Bucket != "" {
+		_, err = uc.s3Client.PutObject(ctx, &s3.PutObjectInput{
+			Bucket:      aws.String(uc.s3Bucket),
+			Key:         aws.String(avatarKey),
+			Body:        bytes.NewReader(buffer),
+			ContentType: aws.String(fileFormat),
+			ACL:         types.ObjectCannedACLPublicRead,
+		})
+		if err != nil {
+			logger.Error("failed to upload avatar to S3", "error", err)
+			return models.User{}, "", errors.New("failed to upload avatar")
+		}
 
-	filePath := filepath.Join(avatarsDir, avatarPath)
-	filePath = filepath.ToSlash(filePath)
-
-	err = os.WriteFile(filePath, buffer, 0644)
-	if err != nil {
-		logger.Error("failed to write file")
-		return models.User{}, "", err
+		neededUser.Avatar = &avatarDBKey
 	}
 
 	neededUser.Version += 1
 
-	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, filePath)
+	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, *neededUser.Avatar)
 	if err != nil {
-		_ = os.Remove(filePath)
 		return models.User{}, "", err
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
 	if err != nil {
-		_ = os.Remove(filePath)
 		return models.User{}, "", err
 	}
 
