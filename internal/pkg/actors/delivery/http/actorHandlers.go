@@ -46,8 +46,6 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, actors.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, actors.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -87,8 +85,6 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, actors.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, actors.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}

@@ -45,8 +45,6 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, genres.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, genres.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -74,8 +72,6 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, genres.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, genres.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -117,8 +113,6 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, genres.ErrorNotFound):
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, genres.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}

@@ -80,8 +80,6 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusBadRequest)
 		case errors.Is(err, auth.ErrorConflict):
 			helpers.WriteError(w, http.StatusConflict)
-		case errors.Is(err, auth.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -145,8 +143,6 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, auth.ErrorBadRequest):
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, auth.ErrorInternalServerError):
-			helpers.WriteError(w, http.StatusInternalServerError)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -243,9 +239,10 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	user, err := a.uc.CheckAuth(r.Context())
 	if err != nil {
-		if errors.Is(err, auth.ErrorUnauthorized) {
+		switch {
+		case errors.Is(err, auth.ErrorUnauthorized):
 			helpers.WriteError(w, http.StatusUnauthorized)
-		} else {
+		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
