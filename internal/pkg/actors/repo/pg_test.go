@@ -145,13 +145,6 @@ func TestGetActorByID(t *testing.T) {
 
 func TestGetActorFilmsCount(t *testing.T) {
 	actorID := uuid.NewV4()
-	birthDate := time.Date(1980, 1, 1, 0, 0, 0, 0, time.UTC)
-	originalName := "Tom Hanks"
-
-	actorColumns := []string{
-		"id", "russian_name", "original_name", "photo", "height",
-		"birth_date", "death_date", "zodiac_sign", "birth_place", "marital_status",
-	}
 
 	tests := []struct {
 		name       string
@@ -159,34 +152,16 @@ func TestGetActorFilmsCount(t *testing.T) {
 		repoMocker func(*pgxpoolmock.MockPgxPool)
 		wantErr    bool
 		wantCount  int
+		errorType  error
 	}{
 		{
 			name:    "Success",
 			actorID: actorID,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				actorRows := pgxpoolmock.NewRows(actorColumns).
-					AddRow(
-						actorID,
-						"Том Хэнкс",
-						&originalName,
-						"tom.jpg",
-						183,
-						birthDate,
-						nil,
-						"Козерог",
-						"Конкорд, Калифорния, США",
-						"Женат",
-					).ToPgxRows()
-				actorRows.Next()
-
 				countRows := pgxpoolmock.NewRows([]string{"count"}).
 					AddRow(15).
 					ToPgxRows()
 				countRows.Next()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetActorByID, actorID).
-					Return(actorRows)
 
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), GetActorFilmsCount, actorID).
@@ -196,44 +171,43 @@ func TestGetActorFilmsCount(t *testing.T) {
 			wantCount: 15,
 		},
 		{
-			name:    "ActorNotFound",
-			actorID: actorID,
-			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetActorByID, actorID).
-					Return(MockRow{err: pgx.ErrNoRows})
-			},
-			wantErr:   true,
-			wantCount: 0,
-		},
-		{
 			name:    "NoFilmsFound",
 			actorID: actorID,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				actorRows := pgxpoolmock.NewRows(actorColumns).
-					AddRow(
-						actorID,
-						"Том Хэнкс",
-						&originalName,
-						"tom.jpg",
-						183,
-						birthDate,
-						nil,
-						"Козерог",
-						"Конкорд, Калифорния, США",
-						"Женат",
-					).ToPgxRows()
-				actorRows.Next()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetActorByID, actorID).
-					Return(actorRows)
-
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), GetActorFilmsCount, actorID).
 					Return(MockRow{err: pgx.ErrNoRows})
 			},
 			wantErr:   true,
+			wantCount: 0,
+			errorType: actors.ErrorNotFound,
+		},
+		{
+			name:    "DatabaseError",
+			actorID: actorID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorFilmsCount, actorID).
+					Return(MockRow{err: errors.New("database connection failed")})
+			},
+			wantErr:   true,
+			wantCount: 0,
+			errorType: actors.ErrorInternalServerError,
+		},
+		{
+			name:    "ZeroFilms",
+			actorID: actorID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				countRows := pgxpoolmock.NewRows([]string{"count"}).
+					AddRow(0).
+					ToPgxRows()
+				countRows.Next()
+
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetActorFilmsCount, actorID).
+					Return(countRows)
+			},
+			wantErr:   false,
 			wantCount: 0,
 		},
 	}
@@ -251,6 +225,10 @@ func TestGetActorFilmsCount(t *testing.T) {
 
 			if tt.wantErr {
 				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.True(t, errors.Is(err, tt.errorType),
+						"Expected error type: %v, got: %v", tt.errorType, err)
+				}
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.wantCount, count)
