@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/users"
@@ -155,14 +156,27 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	return neededUser, token, nil
 }
 
-func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffer []byte) (models.User, string, error) {
+func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffer []byte, fileFormat string) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
 		return models.User{}, "", users.ErrorUnauthorized
 	}
 
-	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer)
+	var avatarExtension string
+	switch fileFormat {
+	case "image/jpeg":
+		avatarExtension = ".jpg"
+	case "image/png":
+		avatarExtension = ".png"
+	case "image/webp":
+		avatarExtension = ".webp"
+	default:
+		logger.Error("invalid format of file")
+		return models.User{}, "", errors.New("invalid file format")
+	}
+
+	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer, fileFormat, avatarExtension)
 	if err != nil {
 		logger.Error("failed to upload avatar", "error", err)
 		return models.User{}, "", users.ErrorBadRequest

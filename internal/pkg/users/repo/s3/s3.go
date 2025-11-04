@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
-	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -26,25 +25,11 @@ func NewS3Repository(client *s3.Client, bucket string) *S3Repository {
 	}
 }
 
-func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer []byte) (string, error) {
+func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat string, avatarExtension string) (string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	if r.client == nil || r.bucket == "" {
 		return "", errors.New("S3 client not configured")
-	}
-
-	fileFormat := http.DetectContentType(buffer)
-	var avatarExtension string
-	switch fileFormat {
-	case "image/jpeg":
-		avatarExtension = ".jpg"
-	case "image/png":
-		avatarExtension = ".png"
-	case "image/webp":
-		avatarExtension = ".webp"
-	default:
-		logger.Error("invalid format of file")
-		return "", errors.New("invalid file format")
 	}
 
 	avatarKey := "static/avatars/" + userID + avatarExtension

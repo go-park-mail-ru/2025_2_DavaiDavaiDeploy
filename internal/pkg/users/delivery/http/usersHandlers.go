@@ -271,7 +271,9 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer)
+	fileFormat := http.DetectContentType(buffer)
+
+	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer, fileFormat)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrorInternalServerError):

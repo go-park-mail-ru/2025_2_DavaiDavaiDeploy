@@ -8,6 +8,7 @@ import (
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"math/rand"
 	"os"
 	"time"
 
@@ -28,7 +29,12 @@ func NewFilmUsecase(repo films.FilmRepo) *FilmUsecase {
 }
 
 func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, error) {
-	film, err := uc.filmRepo.GetPromoFilmByID(ctx, uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c"))
+	films := []string{"8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c", "2f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c", "6ba7b810-9dad-11d1-80b4-00c04fd430c8"}
+
+	randomIndex := rand.Intn(len(films))
+	randomFilmID := films[randomIndex]
+
+	film, err := uc.filmRepo.GetPromoFilmByID(ctx, uuid.FromStringOrNil(randomFilmID))
 	if err != nil {
 		return models.PromoFilm{}, err
 	}
@@ -91,12 +97,12 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	user, _ := ctx.Value(auth.UserKey).(models.User)
 	result := make([]models.FilmFeedback, 0, pager.Count+1)
 	emptyFeedback := ""
-	usersFeedbackLogin := "" // !!!
+	usersFeedbackLogin := ""
 	if user.ID != uuid.Nil {
 		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
 		if err == nil && feedback.Text != &emptyFeedback && feedback.Text != nil {
 			feedback.IsMine = true
-			usersFeedbackLogin = feedback.UserLogin // !!!
+			usersFeedbackLogin = feedback.UserLogin
 			result = append(result, feedback)
 		}
 	}
@@ -113,14 +119,10 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 
 	for i := range feedbacks {
 		feedbacks[i].IsMine = false
-		if feedbacks[i].UserLogin != usersFeedbackLogin { // !!!
-			result = append(result, feedbacks[i]) // !!!
+		if feedbacks[i].UserLogin != usersFeedbackLogin {
+			result = append(result, feedbacks[i])
 		}
 	}
-
-	//if len(result) > pager.Count {
-	//result = result[:pager.Count]
-	//}
 
 	return result, nil
 }
