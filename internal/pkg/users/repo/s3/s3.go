@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	uuid "github.com/satori/go.uuid"
 )
 
 type S3Repository struct {
@@ -33,8 +34,10 @@ func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer [
 		return "", errors.New("S3 client not configured")
 	}
 
-	avatarKey := filepath.Join("static", "avatars", userID+avatarExtension)
-	avatarDBKey := filepath.Join("avatars", userID+avatarExtension)
+	picID := uuid.NewV4().String()
+
+	avatarKey := filepath.Join("static", "avatars", picID+avatarExtension)
+	avatarDBKey := filepath.Join("avatars", picID+avatarExtension)
 
 	_, err := r.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(r.bucket),
