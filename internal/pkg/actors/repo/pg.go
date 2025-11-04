@@ -93,11 +93,6 @@ func (r *ActorRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID
 func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID, limit, offset int) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	_, err := r.GetActorByID(ctx, actorID)
-	if err != nil {
-		return nil, err
-	}
-
 	rows, err := r.db.Query(ctx, GetFilmsByActor, actorID, limit, offset)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

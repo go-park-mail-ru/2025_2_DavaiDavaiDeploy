@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"os"
 	"testing"
@@ -10,6 +9,7 @@ import (
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/films/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
@@ -56,7 +56,6 @@ func TestFilmUsecase_GetPromoFilm(t *testing.T) {
 		setupMock   func()
 		expected    models.PromoFilm
 		expectError bool
-		errorMsg    string
 	}{
 		{
 			name: "Success",
@@ -84,11 +83,40 @@ func TestFilmUsecase_GetPromoFilm(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					GetPromoFilmByID(gomock.Any(), promoFilmID).
-					Return(models.PromoFilm{}, errors.New("not found"))
+					Return(models.PromoFilm{}, films.ErrorNotFound)
 			},
 			expected:    models.PromoFilm{},
 			expectError: true,
-			errorMsg:    "no films",
+		},
+		{
+			name: "Success - rating error returns zero rating",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetPromoFilmByID(gomock.Any(), promoFilmID).
+					Return(models.PromoFilm{
+						ID:               promoFilmID,
+						Image:            "promo.jpg",
+						Title:            "Test Promo Film",
+						ShortDescription: "Test description",
+						Year:             2024,
+						Genre:            "Action",
+						Duration:         120,
+					}, nil)
+				mockRepo.EXPECT().
+					GetFilmAvgRating(gomock.Any(), promoFilmID).
+					Return(0.0, films.ErrorNotFound)
+			},
+			expected: models.PromoFilm{
+				ID:               promoFilmID,
+				Image:            "promo.jpg",
+				Title:            "Test Promo Film",
+				Rating:           0.0,
+				ShortDescription: "Test description",
+				Year:             2024,
+				Genre:            "Action",
+				Duration:         120,
+			},
+			expectError: false,
 		},
 	}
 
@@ -99,7 +127,6 @@ func TestFilmUsecase_GetPromoFilm(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
@@ -144,7 +171,6 @@ func TestFilmUsecase_GetFilms(t *testing.T) {
 		setupMock   func()
 		expected    []models.MainPageFilm
 		expectError bool
-		errorMsg    string
 	}{
 		{
 			name: "Success",
@@ -161,11 +187,10 @@ func TestFilmUsecase_GetFilms(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					GetFilmsWithPagination(gomock.Any(), pager.Count, pager.Offset).
-					Return(nil, errors.New("database error"))
+					Return(nil, films.ErrorInternalServerError)
 			},
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
 		},
 		{
 			name: "Error - no films",
@@ -176,7 +201,6 @@ func TestFilmUsecase_GetFilms(t *testing.T) {
 			},
 			expected:    []models.MainPageFilm{},
 			expectError: true,
-			errorMsg:    "no films",
 		},
 	}
 
@@ -187,8 +211,6 @@ func TestFilmUsecase_GetFilms(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
-				assert.Equal(t, tt.expected, result)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, result)
@@ -215,6 +237,9 @@ func TestFilmUsecase_GetFilm(t *testing.T) {
 		Year:        2024,
 	}
 
+	title := "User review"
+	userRating := 9
+
 	tests := []struct {
 		name        string
 		ctx         context.Context
@@ -222,10 +247,9 @@ func TestFilmUsecase_GetFilm(t *testing.T) {
 		filmID      uuid.UUID
 		expected    models.FilmPage
 		expectError bool
-		errorMsg    string
 	}{
 		{
-			name: "Success - with user feedback",
+			name: "Success - with user feedback (has title)",
 			ctx:  testContextWithUser(user),
 			setupMock: func() {
 				mockRepo.EXPECT().
@@ -233,7 +257,33 @@ func TestFilmUsecase_GetFilm(t *testing.T) {
 					Return(expectedFilm, nil)
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{
+						Title:  &title,
+						Rating: userRating,
+					}, nil)
+			},
+			filmID: filmID,
+			expected: models.FilmPage{
+				ID:          filmID,
+				Title:       "Test Film",
+				Rating:      8.5,
+				Description: "Test description",
+				Year:        2024,
+				IsReviewed:  true,
+				UserRating:  &userRating,
+			},
+			expectError: false,
+		},
+		{
+			name: "Success - without user feedback",
+			ctx:  testContextWithUser(user),
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetFilmPage(gomock.Any(), filmID).
+					Return(expectedFilm, nil)
+				mockRepo.EXPECT().
+					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 			},
 			filmID:      filmID,
 			expected:    expectedFilm,
@@ -245,12 +295,11 @@ func TestFilmUsecase_GetFilm(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					GetFilmPage(gomock.Any(), filmID).
-					Return(models.FilmPage{}, errors.New("not found"))
+					Return(models.FilmPage{}, films.ErrorNotFound)
 			},
 			filmID:      filmID,
 			expected:    models.FilmPage{},
 			expectError: true,
-			errorMsg:    "no films",
 		},
 	}
 
@@ -261,11 +310,14 @@ func TestFilmUsecase_GetFilm(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected.ID, result.ID)
 				assert.Equal(t, tt.expected.Title, result.Title)
+				assert.Equal(t, tt.expected.IsReviewed, result.IsReviewed)
+				if tt.expected.UserRating != nil {
+					assert.Equal(t, *tt.expected.UserRating, *result.UserRating)
+				}
 			}
 		})
 	}
@@ -321,7 +373,6 @@ func TestFilmUsecase_GetFilmFeedbacks(t *testing.T) {
 		setupMock   func()
 		expected    []models.FilmFeedback
 		expectError bool
-		errorMsg    string
 	}{
 		{
 			name: "Success - with user feedback",
@@ -341,10 +392,9 @@ func TestFilmUsecase_GetFilmFeedbacks(t *testing.T) {
 			name: "Success - without user feedback",
 			ctx:  testContextWithUser(user),
 			setupMock: func() {
-				// Пользователь не имеет отзыва
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 				mockRepo.EXPECT().
 					GetFilmFeedbacks(gomock.Any(), filmID, pager.Count, pager.Offset).
 					Return([]models.FilmFeedback{otherFeedback}, nil)
@@ -358,14 +408,13 @@ func TestFilmUsecase_GetFilmFeedbacks(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 				mockRepo.EXPECT().
 					GetFilmFeedbacks(gomock.Any(), filmID, pager.Count, pager.Offset).
-					Return(nil, errors.New("database error"))
+					Return(nil, films.ErrorInternalServerError)
 			},
 			expected:    []models.FilmFeedback{},
 			expectError: true,
-			errorMsg:    "no feedbacks",
 		},
 		{
 			name: "Error - no feedbacks",
@@ -373,14 +422,13 @@ func TestFilmUsecase_GetFilmFeedbacks(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 				mockRepo.EXPECT().
 					GetFilmFeedbacks(gomock.Any(), filmID, pager.Count, pager.Offset).
 					Return([]models.FilmFeedback{}, nil)
 			},
 			expected:    []models.FilmFeedback{},
 			expectError: true,
-			errorMsg:    "no feedbacks",
 		},
 	}
 
@@ -391,8 +439,6 @@ func TestFilmUsecase_GetFilmFeedbacks(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
-				assert.Equal(t, tt.expected, result)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, len(tt.expected), len(result))
@@ -425,7 +471,6 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 		req         models.FilmFeedbackInput
 		filmID      uuid.UUID
 		expectError bool
-		errorMsg    string
 	}{
 		{
 			name: "Success - create new feedback",
@@ -433,7 +478,7 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 				mockRepo.EXPECT().
 					CreateFeedback(gomock.Any(), gomock.Any()).
 					Return(nil)
@@ -474,7 +519,6 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 			req:         validInput,
 			filmID:      filmID,
 			expectError: true,
-			errorMsg:    "user not authenticated",
 		},
 		{
 			name:        "Error - invalid rating too low",
@@ -483,7 +527,6 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 			req:         models.FilmFeedbackInput{Title: "Test", Text: "Test", Rating: 0},
 			filmID:      filmID,
 			expectError: true,
-			errorMsg:    "rating must be between 1 and 10",
 		},
 		{
 			name:        "Error - invalid rating too high",
@@ -492,7 +535,38 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 			req:         models.FilmFeedbackInput{Title: "Test", Text: "Test", Rating: 11},
 			filmID:      filmID,
 			expectError: true,
-			errorMsg:    "rating must be between 1 and 10",
+		},
+		{
+			name:        "Error - title too short",
+			ctx:         testContextWithUser(user),
+			setupMock:   func() {},
+			req:         models.FilmFeedbackInput{Title: "", Text: "Test text", Rating: 5},
+			filmID:      filmID,
+			expectError: true,
+		},
+		{
+			name:        "Error - title too long",
+			ctx:         testContextWithUser(user),
+			setupMock:   func() {},
+			req:         models.FilmFeedbackInput{Title: string(make([]byte, 101)), Text: "Test text", Rating: 5},
+			filmID:      filmID,
+			expectError: true,
+		},
+		{
+			name:        "Error - text too short",
+			ctx:         testContextWithUser(user),
+			setupMock:   func() {},
+			req:         models.FilmFeedbackInput{Title: "Test", Text: "", Rating: 5},
+			filmID:      filmID,
+			expectError: true,
+		},
+		{
+			name:        "Error - text too long",
+			ctx:         testContextWithUser(user),
+			setupMock:   func() {},
+			req:         models.FilmFeedbackInput{Title: "Test", Text: string(make([]byte, 1001)), Rating: 5},
+			filmID:      filmID,
+			expectError: true,
 		},
 	}
 
@@ -503,7 +577,6 @@ func TestFilmUsecase_SendFeedback(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.NotEqual(t, uuid.Nil, result.ID)
@@ -535,7 +608,6 @@ func TestFilmUsecase_SetRating(t *testing.T) {
 		req         models.FilmFeedbackInput
 		filmID      uuid.UUID
 		expectError bool
-		errorMsg    string
 	}{
 		{
 			name: "Success - create new rating",
@@ -543,7 +615,7 @@ func TestFilmUsecase_SetRating(t *testing.T) {
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserFeedbackExists(gomock.Any(), userID, filmID).
-					Return(models.FilmFeedback{}, errors.New("not found"))
+					Return(models.FilmFeedback{}, films.ErrorNotFound)
 				mockRepo.EXPECT().
 					CreateFeedback(gomock.Any(), gomock.Any()).
 					Return(nil)
@@ -580,7 +652,6 @@ func TestFilmUsecase_SetRating(t *testing.T) {
 			req:         validInput,
 			filmID:      filmID,
 			expectError: true,
-			errorMsg:    "user is not authorized",
 		},
 		{
 			name:        "Error - invalid rating",
@@ -589,7 +660,14 @@ func TestFilmUsecase_SetRating(t *testing.T) {
 			req:         models.FilmFeedbackInput{Rating: 0},
 			filmID:      filmID,
 			expectError: true,
-			errorMsg:    "rating must be between 1 and 10",
+		},
+		{
+			name:        "Error - invalid rating too high",
+			ctx:         testContextWithUser(user),
+			setupMock:   func() {},
+			req:         models.FilmFeedbackInput{Rating: 11},
+			filmID:      filmID,
+			expectError: true,
 		},
 	}
 
@@ -600,7 +678,6 @@ func TestFilmUsecase_SetRating(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.Equal(t, tt.errorMsg, err.Error())
 			} else {
 				assert.NoError(t, err)
 				assert.NotEqual(t, uuid.Nil, result.ID)

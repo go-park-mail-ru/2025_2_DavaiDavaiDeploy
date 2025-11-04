@@ -14,7 +14,7 @@ type UsersUsecase interface {
 	GetUser(ctx context.Context, id uuid.UUID) (models.User, error)
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	ChangePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (models.User, string, error)
-	ChangeUserAvatar(ctx context.Context, userID uuid.UUID, fileBytes []byte) (models.User, string, error)
+	ChangeUserAvatar(ctx context.Context, userID uuid.UUID, fileBytes []byte, fileFormat string) (models.User, string, error)
 }
 
 type UsersRepo interface {
@@ -22,4 +22,8 @@ type UsersRepo interface {
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 	UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error
 	UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error
+}
+
+type StorageRepo interface {
+	UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat string, avatarExtension string) (string, error)
 }

@@ -26,7 +26,9 @@ func NewActorHandler(uc actors.ActorUsecase) *ActorHandler {
 // @Produce      json
 // @Param        id   path      string  true  "Actor ID"
 // @Success      200  {object}  models.ActorPage
-// @Failure      400  {object}  models.Error
+// @Failure      400
+// @Failure      404
+// @Failure      500
 // @Router       /actors/{id} [get]
 func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -62,7 +64,9 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      string  true  "Actor ID"
 // @Success      200  {array}   models.MainPageFilm
-// @Failure      400  {object}  models.Error
+// @Failure      400
+// @Failure      404
+// @Failure      500
 // @Router       /actors/{id}/films [get]
 func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))

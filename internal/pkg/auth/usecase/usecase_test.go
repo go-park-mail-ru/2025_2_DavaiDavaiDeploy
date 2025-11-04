@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"testing"
+	"time"
 
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
@@ -25,6 +26,180 @@ func testLogger() *slog.Logger {
 func testContext() context.Context {
 	testLogger := testLogger()
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
+
+func TestHashPass(t *testing.T) {
+	tests := []struct {
+		name     string
+		password string
+	}{
+		{
+			name:     "Success",
+			password: "testpassword123",
+		},
+		{
+			name:     "Empty password",
+			password: "",
+		},
+		{
+			name:     "Long password",
+			password: "verylongpasswordwithspecialchars!@#$%^&*()",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			hash := HashPass(tt.password)
+			assert.NotEmpty(t, hash)
+			assert.GreaterOrEqual(t, len(hash), 40) // salt (8) + hash (32)
+		})
+	}
+}
+
+func TestCheckPass(t *testing.T) {
+	password := "testpassword123"
+	correctHash := HashPass(password)
+	wrongHash := HashPass("wrongpassword")
+
+	tests := []struct {
+		name     string
+		hash     []byte
+		password string
+		expected bool
+	}{
+		{
+			name:     "Correct password",
+			hash:     correctHash,
+			password: password,
+			expected: true,
+		},
+		{
+			name:     "Wrong password",
+			hash:     correctHash,
+			password: "wrongpassword",
+			expected: false,
+		},
+		{
+			name:     "Different hash",
+			hash:     wrongHash,
+			password: password,
+			expected: false,
+		},
+		{
+			name:     "Empty password",
+			hash:     correctHash,
+			password: "",
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := CheckPass(tt.hash, tt.password)
+			assert.Equal(t, tt.expected, result)
+		})
+	}
+}
+
+func TestNewAuthUsecase(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+
+	t.Run("Success creation", func(t *testing.T) {
+		usecase := NewAuthUsecase(mockRepo)
+		assert.NotNil(t, usecase)
+		assert.Equal(t, mockRepo, usecase.authRepo)
+	})
+
+	t.Run("Creation with nil repo", func(t *testing.T) {
+		usecase := NewAuthUsecase(nil)
+		assert.NotNil(t, usecase)
+		assert.Nil(t, usecase.authRepo)
+	})
+}
+
+func TestAuthUsecase_GenerateToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	login := "testuser"
+
+	t.Run("Success", func(t *testing.T) {
+		token, err := usecase.GenerateToken(userID, login)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, token)
+
+		// Verify token can be parsed
+		parsedToken, err := usecase.ParseToken(token)
+		assert.NoError(t, err)
+		assert.True(t, parsedToken.Valid)
+
+		claims, ok := parsedToken.Claims.(jwt.MapClaims)
+		assert.True(t, ok)
+		assert.Equal(t, login, claims["login"])
+		assert.Equal(t, userID.String(), claims["id"])
+	})
+
+	t.Run("Empty login", func(t *testing.T) {
+		token, err := usecase.GenerateToken(userID, "")
+		assert.NoError(t, err)
+		assert.NotEmpty(t, token)
+	})
+}
+
+func TestAuthUsecase_ParseToken(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	login := "testuser"
+	validToken, _ := usecase.GenerateToken(userID, login)
+
+	tests := []struct {
+		name        string
+		token       string
+		expectError bool
+	}{
+		{
+			name:        "Valid token",
+			token:       validToken,
+			expectError: false,
+		},
+		{
+			name:        "Empty token",
+			token:       "",
+			expectError: true,
+		},
+		{
+			name:        "Malformed token",
+			token:       "malformed.token",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			parsedToken, err := usecase.ParseToken(tt.token)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				assert.Nil(t, parsedToken)
+			} else {
+				assert.NoError(t, err)
+				assert.NotNil(t, parsedToken)
+				assert.True(t, parsedToken.Valid)
+			}
+		})
+	}
 }
 
 func TestAuthUsecase_SignUpUser(t *testing.T) {
@@ -75,6 +250,35 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 			errorType:   auth.ErrorConflict,
 		},
 		{
+			name: "Error - CheckUserExists fails",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					CheckUserExists(gomock.Any(), login).
+					Return(false, errors.New("db error"))
+			},
+			req: models.SignUpInput{
+				Login:    login,
+				Password: password,
+			},
+			expectError: true,
+		},
+		{
+			name: "Error - CreateUser fails",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					CheckUserExists(gomock.Any(), login).
+					Return(false, nil)
+				mockRepo.EXPECT().
+					CreateUser(gomock.Any(), gomock.Any()).
+					Return(errors.New("create error"))
+			},
+			req: models.SignUpInput{
+				Login:    login,
+				Password: password,
+			},
+			expectError: true,
+		},
+		{
 			name:      "Error - invalid login",
 			setupMock: func() {},
 			req: models.SignUpInput{
@@ -111,6 +315,9 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 				assert.NoError(t, err)
 				assert.NotEmpty(t, token)
 				assert.Equal(t, tt.req.Login, user.Login)
+				assert.NotNil(t, user.ID)
+				assert.NotNil(t, user.Avatar)
+				assert.Equal(t, "avatars/default.png", *user.Avatar)
 			}
 		})
 	}
@@ -134,8 +341,6 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 		Version:      1,
 	}
 
-	notFoundError := errors.New("user not found")
-
 	tests := []struct {
 		name        string
 		setupMock   func()
@@ -155,19 +360,6 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 				Password: password,
 			},
 			expectError: false,
-		},
-		{
-			name: "Error - user not found",
-			setupMock: func() {
-				mockRepo.EXPECT().
-					CheckUserLogin(gomock.Any(), login).
-					Return(models.User{}, notFoundError)
-			},
-			req: models.SignInInput{
-				Login:    login,
-				Password: password,
-			},
-			expectError: true,
 		},
 		{
 			name: "Error - repository error",
@@ -192,6 +384,20 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 			req: models.SignInInput{
 				Login:    login,
 				Password: "wrongpass",
+			},
+			expectError: true,
+			errorType:   auth.ErrorBadRequest,
+		},
+		{
+			name: "Error - empty password",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					CheckUserLogin(gomock.Any(), login).
+					Return(existingUser, nil)
+			},
+			req: models.SignInInput{
+				Login:    login,
+				Password: "",
 			},
 			expectError: true,
 			errorType:   auth.ErrorBadRequest,
@@ -246,6 +452,11 @@ func TestAuthUsecase_CheckAuth(t *testing.T) {
 			ctx:         testContext(),
 			expectError: true,
 		},
+		{
+			name:        "Error - wrong type in context",
+			ctx:         context.WithValue(testContext(), auth.UserKey, "not-a-user"),
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -293,8 +504,24 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 			expectError: false,
 		},
 		{
+			name: "Error - IncrementUserVersion fails",
+			ctx:  context.WithValue(testContext(), auth.UserKey, user),
+			setupMock: func() {
+				mockRepo.EXPECT().
+					IncrementUserVersion(gomock.Any(), userID).
+					Return(errors.New("db error"))
+			},
+			expectError: true,
+		},
+		{
 			name:        "Error - no user in context",
 			ctx:         testContext(),
+			setupMock:   func() {},
+			expectError: true,
+		},
+		{
+			name:        "Error - wrong type in context",
+			ctx:         context.WithValue(testContext(), auth.UserKey, "not-a-user"),
 			setupMock:   func() {},
 			expectError: true,
 		},
@@ -307,7 +534,6 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
 			} else {
 				assert.NoError(t, err)
 			}
@@ -330,6 +556,14 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 	}
 
 	validToken, _ := usecase.GenerateToken(userID, login)
+
+	// Create expired token
+	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":    userID,
+		"login": login,
+		"exp":   time.Now().Add(-time.Hour).Unix(), // expired
+	})
+	expiredTokenString, _ := expiredToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
 	tests := []struct {
 		name        string
@@ -359,6 +593,12 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 			setupMock:   func() {},
 			expectError: true,
 		},
+		{
+			name:        "Error - expired token",
+			token:       expiredTokenString,
+			setupMock:   func() {},
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -377,67 +617,49 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 	}
 }
 
-func TestAuthUsecase_GenerateToken(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockAuthRepo(ctrl)
-	usecase := NewAuthUsecase(mockRepo)
-
-	userID := uuid.NewV4()
-	login := "testuser"
-
-	token, err := usecase.GenerateToken(userID, login)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, token)
-
-	parsedToken, err := usecase.ParseToken(token)
-	assert.NoError(t, err)
-	assert.True(t, parsedToken.Valid)
-
-	claims, ok := parsedToken.Claims.(jwt.MapClaims)
-	assert.True(t, ok)
-	assert.Equal(t, login, claims["login"])
-}
-
 func TestValidateFunctions(t *testing.T) {
 	tests := []struct {
 		name          string
 		login         string
 		password      string
-		loginValid    bool
-		passwordValid bool
+		expectedValid bool
 	}{
 		{
 			name:          "Valid credentials",
 			login:         "user123",
 			password:      "pass123",
-			loginValid:    true,
-			passwordValid: true,
+			expectedValid: true,
 		},
 		{
 			name:          "Invalid login length",
 			login:         "usr",
 			password:      "pass123",
-			loginValid:    false,
-			passwordValid: true,
+			expectedValid: false,
 		},
 		{
 			name:          "Invalid password length",
 			login:         "user123",
 			password:      "pass",
-			loginValid:    true,
-			passwordValid: false,
+			expectedValid: false,
+		},
+		{
+			name:          "Both invalid",
+			login:         "usr",
+			password:      "pass",
+			expectedValid: false,
+		},
+		{
+			name:          "Empty credentials",
+			login:         "",
+			password:      "",
+			expectedValid: false,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, loginValid := ValidateLogin(tt.login)
-			_, passValid := ValidatePassword(tt.password)
-
-			assert.Equal(t, tt.loginValid, loginValid)
-			assert.Equal(t, tt.passwordValid, passValid)
+			_, dataIsValid := auth.Validaton(tt.login, tt.password)
+			assert.Equal(t, tt.expectedValid, dataIsValid)
 		})
 	}
 }

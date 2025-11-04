@@ -83,11 +83,6 @@ definitions:
     - new_password
     - old_password
     type: object
-  models.Error:
-    properties:
-      message:
-        type: string
-    type: object
   models.FilmFeedback:
     properties:
       created_at:
@@ -174,6 +169,8 @@ definitions:
         type: string
       image3:
         type: string
+      is_reviewed:
+        type: boolean
       number_of_ratings:
         type: integer
       original_title:
@@ -190,6 +187,8 @@ definitions:
         type: string
       trailer_url:
         type: string
+      user_rating:
+        type: integer
       worldwide_fees:
         type: integer
       year:
@@ -204,6 +203,7 @@ definitions:
     - duration
     - genre
     - id
+    - is_reviewed
     - number_of_ratings
     - poster
     - rating
@@ -351,8 +351,10 @@ paths:
             $ref: '#/definitions/models.ActorPage'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
       summary: Get actor by ID
       tags:
       - actors
@@ -375,8 +377,10 @@ paths:
             type: array
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
       summary: Get films by actor ID
       tags:
       - actors
@@ -392,12 +396,8 @@ paths:
             $ref: '#/definitions/models.User'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Error'
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Check authentication status
       tags:
       - auth
@@ -413,10 +413,10 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: User logout
       tags:
       - auth
@@ -441,16 +441,10 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Error'
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: User login
       tags:
       - auth
@@ -475,12 +469,10 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "409":
+          description: Conflict
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: User registration
       tags:
       - auth
@@ -508,8 +500,10 @@ paths:
             type: array
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
       summary: List films
       tags:
       - films
@@ -530,8 +524,10 @@ paths:
             $ref: '#/definitions/models.FilmPage'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
       summary: Get film by ID
       tags:
       - films
@@ -554,12 +550,10 @@ paths:
             type: array
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get film reviews
       tags:
       - films
@@ -575,22 +569,18 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/models.FilmFeedback'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Add film review
       tags:
       - films
@@ -619,16 +609,12 @@ paths:
             $ref: '#/definitions/models.FilmFeedback'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Rate a film
       tags:
       - films
@@ -642,10 +628,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.PromoFilm'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get promotional film
       tags:
       - films
@@ -660,10 +646,10 @@ paths:
             items:
               $ref: '#/definitions/models.Genre'
             type: array
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get list of all genres
       tags:
       - genres
@@ -684,12 +670,10 @@ paths:
             $ref: '#/definitions/models.Genre'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get genre by ID
       tags:
       - genres
@@ -712,12 +696,10 @@ paths:
             type: array
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get films by genre
       tags:
       - genres
@@ -738,12 +720,10 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
+        "404":
+          description: Not Found
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Get user by ID
       tags:
       - users
@@ -766,20 +746,12 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
         "401":
           description: Unauthorized
-          schema:
-            $ref: '#/definitions/models.Error'
         "413":
           description: Request Entity Too Large
-          schema:
-            $ref: '#/definitions/models.Error'
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Change user avatar
       tags:
       - users
@@ -803,16 +775,10 @@ paths:
             $ref: '#/definitions/models.User'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/models.Error'
         "401":
-          description: User not authenticated
-          schema:
-            $ref: '#/definitions/models.Error'
+          description: Unauthorized
         "500":
           description: Internal Server Error
-          schema:
-            $ref: '#/definitions/models.Error'
       summary: Change user password
       tags:
       - users

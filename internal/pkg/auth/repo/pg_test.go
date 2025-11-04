@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/middleware/logger"
 	"log/slog"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/driftprogramming/pgxpoolmock"
 	"github.com/golang/mock/gomock"
+	"github.com/jackc/pgx/v4"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 )
@@ -22,6 +24,14 @@ func testLogger() *slog.Logger {
 func testContext() context.Context {
 	testLogger := testLogger()
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
+
+type errorRow struct {
+	err error
+}
+
+func (r errorRow) Scan(dest ...interface{}) error {
+	return r.err
 }
 
 func TestCheckUserExists(t *testing.T) {
@@ -38,11 +48,8 @@ func TestCheckUserExists(t *testing.T) {
 			name:  "Success_UserExists",
 			login: login,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{"exists"}).
-					AddRow(true).
-					ToPgxRows()
+				rows := pgxpoolmock.NewRows([]string{"exists"}).AddRow(true).ToPgxRows()
 				rows.Next()
-
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), CheckUserExistsQuery, login).
 					Return(rows)
@@ -54,11 +61,8 @@ func TestCheckUserExists(t *testing.T) {
 			name:  "Success_UserNotExists",
 			login: login,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{"exists"}).
-					AddRow(false).
-					ToPgxRows()
+				rows := pgxpoolmock.NewRows([]string{"exists"}).AddRow(false).ToPgxRows()
 				rows.Next()
-
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), CheckUserExistsQuery, login).
 					Return(rows)
@@ -118,6 +122,16 @@ func TestCreateUser(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Error_DatabaseError",
+			user: user,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), CreateUserQuery, user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt).
+					Return(nil, errors.New("database error"))
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -172,13 +186,23 @@ func TestCheckUserLogin(t *testing.T) {
 					AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
 					ToPgxRows()
 				rows.Next()
-
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), CheckUserLoginQuery, login).
 					Return(rows)
 			},
 			wantUser: expectedUser,
 			wantErr:  false,
+		},
+		{
+			name:  "Error_UserNotFound",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserLoginQuery, login).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantUser: models.User{},
+			wantErr:  true,
 		},
 	}
 
@@ -223,6 +247,16 @@ func TestIncrementUserVersion(t *testing.T) {
 					Return(nil, nil)
 			},
 			wantErr: false,
+		},
+		{
+			name:   "Error_DatabaseError",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), IncrementUserVersionQuery, userID).
+					Return(nil, errors.New("database error"))
+			},
+			wantErr: true,
 		},
 	}
 
@@ -278,7 +312,6 @@ func TestGetUserByLogin(t *testing.T) {
 					AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
 					ToPgxRows()
 				rows.Next()
-
 				mockPool.EXPECT().
 					QueryRow(gomock.Any(), GetUserByLoginQuery, login).
 					Return(rows)
@@ -286,7 +319,17 @@ func TestGetUserByLogin(t *testing.T) {
 			wantUser: expectedUser,
 			wantErr:  false,
 		},
-		// Аналогично убираем тест с UserNotFound для GetUserByLogin
+		{
+			name:  "Error_UserNotFound",
+			login: login,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetUserByLoginQuery, login).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantUser: models.User{},
+			wantErr:  true,
+		},
 	}
 
 	for _, tt := range tests {

@@ -10,47 +10,13 @@ import (
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
-	"net/http"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
 )
-
-const (
-	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?`~"
-)
-
-func ValidateLogin(login string) (string, bool) {
-	if len(login) < 6 || len(login) > 20 {
-		return "Invalid login length", false
-	}
-
-	for _, char := range login {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Login contains invalid characters", false
-		}
-	}
-	return "Ok", true
-}
-
-func ValidatePassword(password string) (string, bool) {
-	if len(password) < 6 || len(password) > 20 {
-		return "Invalid password length", false
-	}
-
-	for _, char := range password {
-		if !strings.ContainsRune(ValidChars, char) {
-			return "Password contains invalid characters", false
-		}
-	}
-	return "Ok", true
-
-}
 
 func HashPass(plainPassword string) []byte {
 	salt := make([]byte, 8)
@@ -71,14 +37,16 @@ func CheckPass(passHash []byte, plainPassword string) bool {
 }
 
 type UserUsecase struct {
-	secret   string
-	userRepo users.UsersRepo
+	secret      string
+	userRepo    users.UsersRepo
+	storageRepo users.StorageRepo
 }
 
-func NewUserUsecase(userRepo users.UsersRepo) *UserUsecase {
+func NewUserUsecase(userRepo users.UsersRepo, storageRepo users.StorageRepo) *UserUsecase {
 	return &UserUsecase{
-		secret:   os.Getenv("JWT_SECRET"),
-		userRepo: userRepo,
+		secret:      os.Getenv("JWT_SECRET"),
+		userRepo:    userRepo,
+		storageRepo: storageRepo,
 	}
 }
 
@@ -105,35 +73,35 @@ func (uc *UserUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 
 	if token == "" {
 		logger.Error("no token")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	parsedToken, err := uc.ParseToken(token)
 	if err != nil || !parsedToken.Valid {
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	claims, ok := parsedToken.Claims.(jwt.MapClaims)
 	if !ok {
 		logger.Error("invalid claims")
-		return models.User{}, errors.New("user is not authorized")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	exp, ok := claims["exp"].(float64)
 	if !ok || int64(exp) < time.Now().Unix() {
 		logger.Error("invalid exp claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	login, ok := claims["login"].(string)
 	if !ok || login == "" {
 		logger.Error("invalid login claim")
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	user, err := uc.userRepo.GetUserByLogin(ctx, login)
 	if err != nil {
-		return models.User{}, errors.New("user not authenticated")
+		return models.User{}, users.ErrorUnauthorized
 	}
 
 	return user, nil
@@ -151,30 +119,30 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", errors.New("user is not authorized")
+		return models.User{}, "", err
 	}
 
 	if !CheckPass(neededUser.PasswordHash, oldPassword) {
 		logger.Error("wrong old password")
-		return models.User{}, "", errors.New("wrong password")
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
-	msg, passwordIsValid := ValidatePassword(newPassword)
+	msg, passwordIsValid := users.Validaton(neededUser.Login, newPassword)
 	if !passwordIsValid {
 		logger.Error(msg)
-		return models.User{}, "", errors.New(msg)
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	if newPassword == oldPassword {
 		logger.Error("passwords are equal")
-		return models.User{}, "", errors.New("the passwords should be different")
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
 	neededUser.Version += 1
 
 	err = uc.userRepo.UpdateUserPassword(ctx, neededUser.Version, neededUser.ID, HashPass(newPassword))
 	if err != nil {
-		return models.User{}, "", errors.New("failed to update the password")
+		return models.User{}, "", err
 	}
 
 	neededUser.PasswordHash = HashPass(newPassword)
@@ -188,14 +156,13 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	return neededUser, token, nil
 }
 
-func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffer []byte) (models.User, string, error) {
+func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffer []byte, fileFormat string) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	neededUser, err := uc.userRepo.GetUserByID(ctx, id)
 	if err != nil {
-		return models.User{}, "", errors.New("user is not authorized")
+		return models.User{}, "", users.ErrorUnauthorized
 	}
 
-	fileFormat := http.DetectContentType(buffer)
 	var avatarExtension string
 	switch fileFormat {
 	case "image/jpeg":
@@ -206,36 +173,28 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		avatarExtension = ".webp"
 	default:
 		logger.Error("invalid format of file")
-		return models.User{}, "", errors.New("unsupported image format")
+		return models.User{}, "", errors.New("invalid file format")
 	}
 
-	avatarPath := neededUser.ID.String() + avatarExtension
-	neededUser.Avatar = &avatarPath
-
-	avatarsDir := os.Getenv("AVATARS_DIR")
-
-	filePath := filepath.Join(avatarsDir, avatarPath)
-	filePath = filepath.ToSlash(filePath)
-
-	err = os.WriteFile(filePath, buffer, 0644)
+	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer, fileFormat, avatarExtension)
 	if err != nil {
-		logger.Error("failed to write file")
-		return models.User{}, "", err
+		logger.Error("failed to upload avatar", "error", err)
+		return models.User{}, "", users.ErrorBadRequest
 	}
 
-	neededUser.Version += 1
-
-	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, filePath)
+	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, *neededUser.Avatar)
 	if err != nil {
-		_ = os.Remove(filePath)
 		return models.User{}, "", err
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
 	if err != nil {
-		_ = os.Remove(filePath)
 		return models.User{}, "", err
 	}
+
+	neededUser.Version += 1
+	neededUser.Avatar = &avatarPath
+	neededUser.UpdatedAt = time.Now().UTC()
 
 	return neededUser, token, nil
 }

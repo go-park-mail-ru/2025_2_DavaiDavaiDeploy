@@ -34,13 +34,21 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 // @Tags films
 // @Produce json
 // @Success 200 {object} models.PromoFilm
-// @Failure 500 {object} models.Error
+// @Failure 404
+// @Failure 500
 // @Router /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	film, err := c.uc.GetPromoFilm(r.Context())
 	if err != nil {
-		helpers.WriteError(w, http.StatusNotFound)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -56,21 +64,32 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Param        count   query     int  false  "Number of films" default(10)
 // @Param        offset  query     int  false  "Offset" default(0)
 // @Success      200     {array}   models.MainPageFilm
-// @Failure      400     {object}  models.Error
+// @Failure      400
+// @Failure 	 404
+// @Failure 	 500
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := c.uc.GetFilms(r.Context(), pager)
+	mainPageFilms, err := c.uc.GetFilms(r.Context(), pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
-	for i := range films {
-		films[i].Sanitize()
+	for i := range mainPageFilms {
+		mainPageFilms[i].Sanitize()
 	}
-	helpers.WriteJSON(w, films)
+	helpers.WriteJSON(w, mainPageFilms)
 	log.LogHandlerInfo(logger, "Success", http.StatusOK)
 }
 
@@ -80,7 +99,9 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 // @Produce      json
 // @Param        id   path      string  true  "Film ID"
 // @Success      200  {object}  models.FilmPage
-// @Failure      400  {object}  models.Error
+// @Failure      400
+// @Failure 	 404
+// @Failure 	 500
 // @Router       /films/{id} [get]
 func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -94,7 +115,16 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 	film, err := c.uc.GetFilm(r.Context(), id)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	film.Sanitize()
@@ -131,8 +161,9 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
 // @Success 200 {array} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/feedbacks [get]
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -148,7 +179,14 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 
 	feedbacks, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	for i := range feedbacks {
@@ -165,10 +203,11 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
-// @Success 201 {object} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Success 200 {object} models.FilmFeedback
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -192,7 +231,16 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
 
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	feedback.Sanitize()
@@ -208,9 +256,10 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Param        id   path      string  true  "Film ID"
 // @Param input body models.FilmFeedbackInput true "Rating data (rating 1-10 is required)"
 // @Success 200 {object} models.FilmFeedback
-// @Failure 400 {object} models.Error
-// @Failure 401 {object} models.Error
-// @Failure 500 {object} models.Error
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
 // @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
@@ -233,7 +282,16 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 
 	rating, err := c.uc.SetRating(r.Context(), req, filmID)
 	if err != nil {
-		helpers.WriteError(w, http.StatusBadRequest)
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, films.ErrorInternalServerError):
+			helpers.WriteError(w, http.StatusInternalServerError)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
 		return
 	}
 	rating.Sanitize()
