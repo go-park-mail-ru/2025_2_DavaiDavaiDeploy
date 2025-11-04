@@ -42,6 +42,8 @@ func (g *GenreRepository) GetGenreByID(ctx context.Context, id uuid.UUID) (model
 		logger.Error("failed to scan actor: " + err.Error())
 		return models.Genre{}, genres.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got genre by id from db")
 	return genre, nil
 }
 
@@ -71,6 +73,8 @@ func (g *GenreRepository) GetGenresWithPagination(ctx context.Context, limit, of
 		}
 		genres = append(genres, genre)
 	}
+
+	logger.Info("succesfully got genres from db")
 	return genres, nil
 }
 
@@ -91,6 +95,8 @@ func (g *GenreRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID
 		return 0, genres.ErrorInternalServerError
 	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+
+	logger.Info("succesfully got rating of film from db")
 	return roundedRating, err
 }
 
@@ -130,5 +136,7 @@ func (g *GenreRepository) GetFilmsByGenre(ctx context.Context, genreID uuid.UUID
 		}
 		films = append(films, film)
 	}
+
+	logger.Info("succesfully got films by genre from db")
 	return films, nil
 }

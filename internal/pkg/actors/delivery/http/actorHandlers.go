@@ -53,7 +53,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 	}
 	actor.Sanitize()
 	helpers.WriteJSON(w, actor)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetFilmsByActor godoc
@@ -95,5 +95,5 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, films)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

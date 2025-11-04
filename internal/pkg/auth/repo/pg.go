@@ -33,6 +33,7 @@ func (r *AuthRepository) CheckUserExists(ctx context.Context, login string) (boo
 		logger.Error("failed to scan user: " + err.Error())
 		return false, auth.ErrorInternalServerError
 	}
+	logger.Info("succesfully checked user")
 	return exists, nil
 }
 
@@ -47,6 +48,7 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user models.User) error
 		logger.Error("failed to create user: " + err.Error())
 		return auth.ErrorInternalServerError
 	}
+	logger.Info("succesfully created user")
 	return nil
 }
 
@@ -71,6 +73,7 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, auth.ErrorInternalServerError
 	}
+	logger.Info("succesfully got user by login from db")
 	return user, nil
 }
 
@@ -85,6 +88,7 @@ func (r *AuthRepository) IncrementUserVersion(ctx context.Context, userID uuid.U
 		logger.Error("failed to increment version: " + err.Error())
 		return auth.ErrorInternalServerError
 	}
+	logger.Info("succesfully incremented version of personal data")
 	return nil
 }
 
@@ -107,5 +111,6 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		logger.Error("failed to scan user: " + err.Error())
 		return models.User{}, auth.ErrorInternalServerError
 	}
+	logger.Info("succesfully got user by login from db")
 	return user, nil
 }

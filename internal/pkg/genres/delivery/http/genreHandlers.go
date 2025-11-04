@@ -52,7 +52,7 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	}
 	neededGenre.Sanitize()
 	helpers.WriteJSON(w, neededGenre)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetGenres godoc
@@ -81,7 +81,7 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 		allGenres[i].Sanitize()
 	}
 	helpers.WriteJSON(w, allGenres)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // GetFilmsByGenre godoc
@@ -122,5 +122,5 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		films[i].Sanitize()
 	}
 	helpers.WriteJSON(w, films)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

@@ -111,7 +111,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // SignInUser godoc
@@ -174,7 +174,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
 
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
@@ -221,7 +221,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 		user.Sanitize()
 		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
-		log.LogHandlerInfo(logger, "Success", http.StatusOK)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -249,7 +249,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 	user.Sanitize()
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // LogOutUser godoc
@@ -293,5 +293,5 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

@@ -92,7 +92,7 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 		user.Sanitize()
 		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
-		log.LogHandlerInfo(logger, "Success", http.StatusOK)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -129,7 +129,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	neededUser.Sanitize()
 	helpers.WriteJSON(w, neededUser)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // ChangePassword godoc
@@ -196,7 +196,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize()
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 // ChangeAvatar godoc
@@ -304,5 +304,5 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	user.Sanitize()
 	w.Header().Set("X-CSRF-Token", csrfToken)
 	helpers.WriteJSON(w, user)
-	log.LogHandlerInfo(logger, "Success", http.StatusOK)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

@@ -61,6 +61,8 @@ func (r *ActorRepository) GetActorFilmsCount(ctx context.Context, actorID uuid.U
 		logger.Error("failed to scan films of actor: " + err.Error())
 		return 0, actors.ErrorInternalServerError
 	}
+
+	logger.Info("succesfully got number of films by actor from db")
 	return count, nil
 }
 
@@ -81,6 +83,7 @@ func (r *ActorRepository) GetFilmAvgRating(ctx context.Context, filmID uuid.UUID
 		return 0, actors.ErrorInternalServerError
 	}
 	roundedRating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", avgRating), 64)
+	logger.Info("succesfully got rating of film from db")
 	return roundedRating, nil
 }
 
@@ -120,6 +123,6 @@ func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID
 
 		films = append(films, film)
 	}
-
+	logger.Info("succesfully got films by actor from db")
 	return films, nil
 }
