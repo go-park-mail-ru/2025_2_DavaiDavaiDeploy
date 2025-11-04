@@ -162,6 +162,9 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 			return models.FilmFeedback{}, err
 		}
 
+		updatedFilm, _ := uc.filmRepo.GetFilmPage(ctx, filmID)
+		existingFeedback.NewFilmRating = updatedFilm.Rating
+
 		return existingFeedback, nil
 	}
 
@@ -180,6 +183,9 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	if err := uc.filmRepo.CreateFeedback(ctx, feedback); err != nil {
 		return models.FilmFeedback{}, err
 	}
+
+	updatedFilm, _ := uc.filmRepo.GetFilmPage(ctx, filmID)
+	feedback.NewFilmRating = updatedFilm.Rating
 	return feedback, nil
 }
 
@@ -206,6 +212,9 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 			return models.FilmFeedback{}, err
 		}
 
+		updatedFilm, _ := uc.filmRepo.GetFilmPage(ctx, filmID)
+		existingFeedback.NewFilmRating = updatedFilm.Rating
+
 		return existingFeedback, nil
 	}
 
@@ -222,6 +231,9 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 	if err != nil {
 		return models.FilmFeedback{}, err
 	}
+
+	updatedFilm, _ := uc.filmRepo.GetFilmPage(ctx, filmID)
+	newFeedback.NewFilmRating = updatedFilm.Rating
 
 	return newFeedback, nil
 }
