@@ -47,14 +47,8 @@ func (r *ActorRepository) GetActorByID(ctx context.Context, id uuid.UUID) (model
 
 func (r *ActorRepository) GetActorFilmsCount(ctx context.Context, actorID uuid.UUID) (int, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	_, err := r.GetActorByID(ctx, actorID)
-	if err != nil {
-		return 0, err
-	}
-
 	var count int
-	err = r.db.QueryRow(
+	err := r.db.QueryRow(
 		ctx,
 		GetActorFilmsCount,
 		actorID,
