@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -32,8 +33,8 @@ func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer [
 		return "", errors.New("S3 client not configured")
 	}
 
-	avatarKey := "static/avatars/" + userID + avatarExtension
-	avatarDBKey := "avatars/" + userID + avatarExtension
+	avatarKey := filepath.Join("static", "avatars", userID+avatarExtension)
+	avatarDBKey := filepath.Join("avatars", userID+avatarExtension)
 
 	_, err := r.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(r.bucket),

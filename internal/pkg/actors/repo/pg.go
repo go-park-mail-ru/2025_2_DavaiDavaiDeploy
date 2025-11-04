@@ -121,10 +121,8 @@ func (r *ActorRepository) GetFilmsByActor(ctx context.Context, actorID uuid.UUID
 		rating, err := r.GetFilmAvgRating(ctx, film.ID)
 		if err != nil {
 			logger.Error("failed to scan rating of film: " + err.Error())
-			film.Rating = 0.0
-		} else {
-			film.Rating = rating
 		}
+		film.Rating = rating
 
 		films = append(films, film)
 	}
