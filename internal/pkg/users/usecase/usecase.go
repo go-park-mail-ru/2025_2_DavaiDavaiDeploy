@@ -182,6 +182,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", users.ErrorBadRequest
 	}
 
+	neededUser.Avatar = &avatarPath
 	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, *neededUser.Avatar)
 	if err != nil {
 		return models.User{}, "", err
@@ -191,9 +192,6 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	if err != nil {
 		return models.User{}, "", err
 	}
-
-	neededUser.Version += 1
-	neededUser.Avatar = &avatarPath
 	neededUser.UpdatedAt = time.Now().UTC()
 
 	return neededUser, token, nil

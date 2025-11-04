@@ -7,6 +7,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"log/slog"
@@ -93,10 +94,19 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
 	})
 
+	customHTTPClient := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true, // Пропускаем проверку SSL
+			},
+		},
+	}
+
 	cfg, err := config.LoadDefaultConfig(ctx,
 		config.WithRegion(region),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
 		config.WithEndpointResolverWithOptions(customResolver),
+		config.WithHTTPClient(customHTTPClient),
 	)
 	if err != nil {
 		return nil, "", err
