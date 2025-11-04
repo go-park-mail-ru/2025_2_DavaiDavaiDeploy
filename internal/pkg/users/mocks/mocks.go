@@ -209,3 +209,41 @@ func (mr *MockUsersRepoMockRecorder) UpdateUserPassword(ctx, version, userID, pa
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUserPassword", reflect.TypeOf((*MockUsersRepo)(nil).UpdateUserPassword), ctx, version, userID, passwordHash)
 }
+
+// MockStorageRepo is a mock of StorageRepo interface.
+type MockStorageRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockStorageRepoMockRecorder
+}
+
+// MockStorageRepoMockRecorder is the mock recorder for MockStorageRepo.
+type MockStorageRepoMockRecorder struct {
+	mock *MockStorageRepo
+}
+
+// NewMockStorageRepo creates a new mock instance.
+func NewMockStorageRepo(ctrl *gomock.Controller) *MockStorageRepo {
+	mock := &MockStorageRepo{ctrl: ctrl}
+	mock.recorder = &MockStorageRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockStorageRepo) EXPECT() *MockStorageRepoMockRecorder {
+	return m.recorder
+}
+
+// UploadAvatar mocks base method.
+func (m *MockStorageRepo) UploadAvatar(ctx context.Context, userID string, buffer []byte) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UploadAvatar", ctx, userID, buffer)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UploadAvatar indicates an expected call of UploadAvatar.
+func (mr *MockStorageRepoMockRecorder) UploadAvatar(ctx, userID, buffer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadAvatar", reflect.TypeOf((*MockStorageRepo)(nil).UploadAvatar), ctx, userID, buffer)
+}

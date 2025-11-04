@@ -30,7 +30,8 @@ import (
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
-	userRepo "kinopoisk/internal/pkg/users/repo"
+	userRepo "kinopoisk/internal/pkg/users/repo/pg"
+	storageRepo "kinopoisk/internal/pkg/users/repo/s3"
 	userUsecase "kinopoisk/internal/pkg/users/usecase"
 	"os"
 
@@ -151,7 +152,8 @@ func main() {
 	actorHandler := actorHandlers.NewActorHandler(actorUsecase)
 
 	userRepo := userRepo.NewUserRepository(dbpool)
-	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Client, s3Bucket)
+	s3Repo := storageRepo.NewS3Repository(s3Client, s3Bucket)
+	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Repo)
 	userHandler := userHandlers.NewUserHandler(userUsecase)
 
 	// Auth routes

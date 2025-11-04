@@ -23,3 +23,7 @@ type UsersRepo interface {
 	UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error
 	UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error
 }
+
+type StorageRepo interface {
+	UploadAvatar(ctx context.Context, userID string, buffer []byte) (string, error)
+}

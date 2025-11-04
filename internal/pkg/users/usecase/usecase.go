@@ -4,19 +4,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
-	"net/http"
 	"os"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
@@ -41,18 +36,16 @@ func CheckPass(passHash []byte, plainPassword string) bool {
 }
 
 type UserUsecase struct {
-	secret   string
-	userRepo users.UsersRepo
-	s3Client *s3.Client
-	s3Bucket string
+	secret      string
+	userRepo    users.UsersRepo
+	storageRepo users.StorageRepo
 }
 
-func NewUserUsecase(userRepo users.UsersRepo, s3Client *s3.Client, s3Bucket string) *UserUsecase {
+func NewUserUsecase(userRepo users.UsersRepo, storageRepo users.StorageRepo) *UserUsecase {
 	return &UserUsecase{
-		secret:   os.Getenv("JWT_SECRET"),
-		userRepo: userRepo,
-		s3Client: s3Client,
-		s3Bucket: s3Bucket,
+		secret:      os.Getenv("JWT_SECRET"),
+		userRepo:    userRepo,
+		storageRepo: storageRepo,
 	}
 }
 
@@ -169,40 +162,11 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", users.ErrorUnauthorized
 	}
 
-	fileFormat := http.DetectContentType(buffer)
-	var avatarExtension string
-	switch fileFormat {
-	case "image/jpeg":
-		avatarExtension = ".jpg"
-	case "image/png":
-		avatarExtension = ".png"
-	case "image/webp":
-		avatarExtension = ".webp"
-	default:
-		logger.Error("invalid format of file")
+	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer)
+	if err != nil {
+		logger.Error("failed to upload avatar", "error", err)
 		return models.User{}, "", users.ErrorBadRequest
 	}
-
-	avatarKey := "static/avatars/" + neededUser.ID.String() + avatarExtension
-	avatarDBKey := "avatars/" + neededUser.ID.String() + avatarExtension
-
-	if uc.s3Client != nil && uc.s3Bucket != "" {
-		_, err = uc.s3Client.PutObject(ctx, &s3.PutObjectInput{
-			Bucket:      aws.String(uc.s3Bucket),
-			Key:         aws.String(avatarKey),
-			Body:        bytes.NewReader(buffer),
-			ContentType: aws.String(fileFormat),
-			ACL:         types.ObjectCannedACLPublicRead,
-		})
-		if err != nil {
-			logger.Error("failed to upload avatar to S3", "error", err)
-			return models.User{}, "", errors.New("failed to upload avatar")
-		}
-
-		neededUser.Avatar = &avatarDBKey
-	}
-
-	neededUser.Version += 1
 
 	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, *neededUser.Avatar)
 	if err != nil {
@@ -213,6 +177,10 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	if err != nil {
 		return models.User{}, "", err
 	}
+
+	neededUser.Version += 1
+	neededUser.Avatar = &avatarPath
+	neededUser.UpdatedAt = time.Now().UTC()
 
 	return neededUser, token, nil
 }
