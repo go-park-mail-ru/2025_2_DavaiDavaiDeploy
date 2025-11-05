@@ -132,6 +132,21 @@ func (mr *MockFilmUsecaseMockRecorder) SetRating(ctx, req, filmID any) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRating", reflect.TypeOf((*MockFilmUsecase)(nil).SetRating), ctx, req, filmID)
 }
 
+// SiteMap mocks base method.
+func (m *MockFilmUsecase) SiteMap(ctx context.Context) (models.Urlset, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SiteMap", ctx)
+	ret0, _ := ret[0].(models.Urlset)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SiteMap indicates an expected call of SiteMap.
+func (mr *MockFilmUsecaseMockRecorder) SiteMap(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SiteMap", reflect.TypeOf((*MockFilmUsecase)(nil).SiteMap), ctx)
+}
+
 // ValidateAndGetUser mocks base method.
 func (m *MockFilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {
 	m.ctrl.T.Helper()

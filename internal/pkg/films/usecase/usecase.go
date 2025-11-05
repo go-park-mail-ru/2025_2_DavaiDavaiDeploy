@@ -9,6 +9,7 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"math/rand"
+	"net/url"
 	"os"
 	"time"
 
@@ -285,4 +286,22 @@ func (uc *FilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 	}
 
 	return user, nil
+}
+
+func (uc *FilmUsecase) SiteMap(ctx context.Context) (models.Urlset, error) {
+	var urlSet models.Urlset
+
+	urlSet.Xmlns = "https://www.sitemaps.org/schemas/sitemap/0.9/"
+	urlSet.URL = append(urlSet.URL, models.URLItem{Loc: "https://ddfilms.online/"})
+	mainPageFilms, err := uc.filmRepo.GetFilmsWithPagination(ctx, 10, 0)
+	if err != nil {
+		return models.Urlset{}, err
+	}
+	for _, v := range mainPageFilms {
+		var item models.URLItem
+		item.Loc, _ = url.JoinPath("https://ddfilms.online/films/", v.ID.String())
+		item.Priority = 1.0
+		urlSet.URL = append(urlSet.URL, item)
+	}
+	return urlSet, nil
 }

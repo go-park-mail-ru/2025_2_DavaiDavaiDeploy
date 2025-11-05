@@ -15,6 +15,7 @@ type FilmUsecase interface {
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error)
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
+	SiteMap(ctx context.Context) (models.Urlset, error)
 }
 
 type FilmRepo interface {
