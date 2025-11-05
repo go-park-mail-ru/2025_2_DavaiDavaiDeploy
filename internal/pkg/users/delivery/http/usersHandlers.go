@@ -1,0 +1,308 @@
+package http
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"io"
+	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/users"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
+	"net/http"
+	"os"
+	"time"
+
+	"github.com/gorilla/mux"
+	uuid "github.com/satori/go.uuid"
+)
+
+const (
+	CookieName     = "DDFilmsJWT"
+	CSRFCookieName = "DDFilmsCSRF"
+)
+
+type UserHandler struct {
+	uc             users.UsersUsecase
+	cookieSecure   bool
+	cookieSamesite http.SameSite
+}
+
+func NewUserHandler(uc users.UsersUsecase) *UserHandler {
+	secure := false
+	cookieValue := os.Getenv("COOKIE_SECURE")
+	if cookieValue == "true" {
+		secure = true
+	}
+
+	samesite := http.SameSiteLaxMode
+	samesiteValue := os.Getenv("COOKIE_SAMESITE")
+	if samesiteValue == "Strict" {
+		samesite = http.SameSiteStrictMode
+	}
+	return &UserHandler{
+		uc:             uc,
+		cookieSecure:   secure,
+		cookieSamesite: samesite,
+	}
+}
+
+func (u *UserHandler) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+		csrfCookie, err := r.Cookie(CSRFCookieName)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+		var csrfToken string
+
+		tokenFromHeader := r.Header.Get("X-CSRF-Token")
+		if tokenFromHeader != "" {
+			csrfToken = tokenFromHeader
+		} else {
+			tokenFromForm := r.FormValue("csrftoken")
+			if tokenFromForm != "" {
+				csrfToken = tokenFromForm
+			} else {
+				log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
+				helpers.WriteError(w, http.StatusUnauthorized)
+				return
+			}
+		}
+
+		if csrfCookie.Value != csrfToken {
+			log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
+		}
+
+		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
+		if err != nil {
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+		user.Sanitize()
+		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
+
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// GetUser godoc
+// @Summary Get user by ID
+// @Tags users
+// @Produce json
+// @Param        id   path      string  true  "Genre ID"
+// @Success 200 {object} models.User
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /users/{id} [get]
+func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of user"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	neededUser, err := u.uc.GetUser(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+	neededUser.Sanitize()
+	helpers.WriteJSON(w, neededUser)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// ChangePassword godoc
+// @Summary Change user password
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param input body models.ChangePasswordInput true "Password data (old_password and new_password are required)"
+// @Success 200 {object} models.User
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Router /users/password [put]
+func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var req models.ChangePasswordInput
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	req.Sanitize()
+
+	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CookieName,
+		Value:    token,
+		HttpOnly: true,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+	user.Sanitize()
+	w.Header().Set("X-CSRF-Token", csrfToken)
+	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// ChangeAvatar godoc
+// @Summary Change user avatar
+// @Tags users
+// @Accept multipart/form-data
+// @Produce json
+// @Param avatar formData file true "Avatar image file (required, max 10MB, formats: jpg, png, webp)"
+// @Success 200 {object} models.User
+// @Failure 400
+// @Failure 401
+// @Failure 413
+// @Failure 500
+// @Router /users/avatar [put]
+func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	const maxRequestBodySize = 10 * 1024 * 1024
+	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
+	defer func() {
+		if limitedReader.Close() != nil {
+			_ = limitedReader.Close()
+
+		}
+	}()
+	newReq := *r
+	newReq.Body = limitedReader
+
+	err := newReq.ParseMultipartForm(maxRequestBodySize)
+	if err != nil {
+		if errors.As(err, new(*http.MaxBytesError)) {
+			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
+			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
+			return
+		}
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	defer func() {
+		if newReq.MultipartForm != nil {
+			_ = newReq.MultipartForm.RemoveAll()
+		}
+	}()
+
+	file, _, err := newReq.FormFile("avatar")
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	defer func() {
+		if file.Close() != nil {
+			_ = file.Close()
+
+		}
+	}()
+
+	buffer, err := io.ReadAll(file)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to read file"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	fileFormat := http.DetectContentType(buffer)
+
+	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer, fileFormat)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	csrfToken := uuid.NewV4().String()
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    csrfToken,
+		HttpOnly: false,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CookieName,
+		Value:    token,
+		HttpOnly: true,
+		Secure:   u.cookieSecure,
+		SameSite: u.cookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+	user.Sanitize()
+	w.Header().Set("X-CSRF-Token", csrfToken)
+	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}

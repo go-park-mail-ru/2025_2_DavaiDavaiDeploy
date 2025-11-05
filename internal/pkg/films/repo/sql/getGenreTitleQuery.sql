@@ -1,0 +1,1 @@
+SELECT title FROM genre WHERE id = $1
