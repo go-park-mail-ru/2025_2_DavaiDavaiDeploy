@@ -4,9 +4,9 @@ services:
   main:
     build:
       context: .
-      dockerfile: ./build/main.Dockerfile 
+      dockerfile: ./build/main.Dockerfile
     ports:
-      - 5458:5458 
+      - 5458:5458
     volumes:
       - ./static/:/opt/static/
     environment:
@@ -41,14 +41,19 @@ services:
     image: nginx:latest
     container_name: nginx
     ports:
-      - "80:80"  
+      - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - /etc/letsencrypt:/etc/letsencrypt:ro  
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       main:
         condition: service_started
 
 volumes:
   postgres_data:
+
+networks:
+  ddd-network:
+    name: ddd-network
+    driver: bridge
