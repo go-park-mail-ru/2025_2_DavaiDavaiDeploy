@@ -241,6 +241,20 @@ func (m *MockStorageRepo) EXPECT() *MockStorageRepoMockRecorder {
 	return m.recorder
 }
 
+// DeleteAvatar mocks base method.
+func (m *MockStorageRepo) DeleteAvatar(ctx context.Context, avatarPath string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteAvatar", ctx, avatarPath)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteAvatar indicates an expected call of DeleteAvatar.
+func (mr *MockStorageRepoMockRecorder) DeleteAvatar(ctx, avatarPath any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAvatar", reflect.TypeOf((*MockStorageRepo)(nil).DeleteAvatar), ctx, avatarPath)
+}
+
 // UploadAvatar mocks base method.
 func (m *MockStorageRepo) UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat, avatarExtension string) (string, error) {
 	m.ctrl.T.Helper()
