@@ -961,7 +961,7 @@ func TestGetUserByLogin(t *testing.T) {
 				Version:      1,
 				Login:        login,
 				PasswordHash: []byte("hash"),
-				Avatar:       &avatar,
+				Avatar:       avatar,
 				CreatedAt:    createdAt,
 				UpdatedAt:    updatedAt,
 			},

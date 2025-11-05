@@ -40,7 +40,7 @@ func TestUserUsecase_GetUser(t *testing.T) {
 		ID:        userID,
 		Version:   1,
 		Login:     "testuser",
-		Avatar:    nil,
+		Avatar:    "avatars/default.png",
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}
@@ -77,7 +77,7 @@ func TestUserUsecase_ChangePassword(t *testing.T) {
 		Version:      1,
 		Login:        "testuser",
 		PasswordHash: HashPass(oldPassword),
-		Avatar:       nil,
+		Avatar:       "avatars/default.png",
 		CreatedAt:    time.Now().UTC(),
 		UpdatedAt:    time.Now().UTC(),
 	}
@@ -163,7 +163,7 @@ func TestUserUsecase_ValidateAndGetUser(t *testing.T) {
 		ID:        userID,
 		Version:   1,
 		Login:     login,
-		Avatar:    nil,
+		Avatar:    "avatars/default.png",
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
 	}

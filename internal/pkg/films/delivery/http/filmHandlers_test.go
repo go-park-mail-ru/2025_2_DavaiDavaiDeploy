@@ -512,7 +512,7 @@ func TestSendFeedback(t *testing.T) {
 	user := models.User{
 		ID:     userID,
 		Login:  "testuser",
-		Avatar: &avatar,
+		Avatar: avatar,
 	}
 
 	feedbackInput := models.FilmFeedbackInput{
@@ -669,7 +669,7 @@ func TestSetRating(t *testing.T) {
 	user := models.User{
 		ID:     userID,
 		Login:  "testuser",
-		Avatar: &avatar,
+		Avatar: avatar,
 	}
 
 	ratingInput := models.FilmFeedbackInput{
@@ -820,7 +820,7 @@ func TestMiddleware(t *testing.T) {
 	user := models.User{
 		ID:     userID,
 		Login:  "testuser",
-		Avatar: &avatar,
+		Avatar: avatar,
 	}
 
 	tests := []struct {

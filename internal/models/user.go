@@ -12,15 +12,12 @@ type User struct {
 	Version      int       `json:"version" binding:"required"`
 	Login        string    `json:"login" binding:"required"`
 	PasswordHash []byte    `json:"-"`
-	Avatar       *string   `json:"avatar" binding:"required"`
+	Avatar       string    `json:"avatar" binding:"required"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
 func (u *User) Sanitize() {
 	u.Login = html.EscapeString(u.Login)
-	if u.Avatar != nil {
-		sanitized := html.EscapeString(*u.Avatar)
-		u.Avatar = &sanitized
-	}
+	u.Avatar = html.EscapeString(u.Avatar)
 }
