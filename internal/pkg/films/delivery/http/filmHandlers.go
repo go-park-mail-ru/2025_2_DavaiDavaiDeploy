@@ -286,3 +286,19 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, rating)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+func (c *FilmHandler) SiteMap(w http.ResponseWriter, r *http.Request) {
+	urlSet, err := c.uc.SiteMap(r.Context())
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, films.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+	helpers.WriteXML(w, urlSet)
+}
