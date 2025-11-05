@@ -176,8 +176,8 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", users.ErrorBadRequest
 	}
 
-	if neededUser.Avatar != &defaultPath {
-		err := uc.storageRepo.DeleteAvatar(ctx, *neededUser.Avatar)
+	if neededUser.Avatar != defaultPath {
+		err := uc.storageRepo.DeleteAvatar(ctx, neededUser.Avatar)
 		if err != nil {
 			logger.Warn("failed to delete old avatar", "error", err)
 		}
@@ -189,8 +189,8 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", users.ErrorInternalServerError
 	}
 
-	neededUser.Avatar = &avatarPath
-	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, *neededUser.Avatar)
+	neededUser.Avatar = avatarPath
+	err = uc.userRepo.UpdateUserAvatar(ctx, neededUser.Version, neededUser.ID, neededUser.Avatar)
 	if err != nil {
 		return models.User{}, "", err
 	}

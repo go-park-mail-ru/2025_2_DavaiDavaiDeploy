@@ -317,7 +317,7 @@ func TestAuthUsecase_SignUpUser(t *testing.T) {
 				assert.Equal(t, tt.req.Login, user.Login)
 				assert.NotNil(t, user.ID)
 				assert.NotNil(t, user.Avatar)
-				assert.Equal(t, "avatars/default.png", *user.Avatar)
+				assert.Equal(t, "avatars/default.png", user.Avatar)
 			}
 		})
 	}

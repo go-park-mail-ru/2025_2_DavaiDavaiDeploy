@@ -100,7 +100,7 @@ func TestCreateUser(t *testing.T) {
 		ID:           userID,
 		Login:        "testuser",
 		PasswordHash: []byte("hash"),
-		Avatar:       &avatar,
+		Avatar:       avatar,
 		Version:      1,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
@@ -166,7 +166,7 @@ func TestCheckUserLogin(t *testing.T) {
 		Version:      1,
 		Login:        login,
 		PasswordHash: []byte("hash"),
-		Avatar:       &avatar,
+		Avatar:       avatar,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 	}
@@ -292,7 +292,7 @@ func TestGetUserByLogin(t *testing.T) {
 		Version:      1,
 		Login:        login,
 		PasswordHash: []byte("hash"),
-		Avatar:       &avatar,
+		Avatar:       avatar,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 	}
