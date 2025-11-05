@@ -937,7 +937,7 @@ INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
 ('0480c10b-58cc-0372-8567-0e02b2c3d560', '0480c10b-58cc-0372-8567-0e02b2c3d550', '9f4e7a7c-8c5a-4e5a-9f3e-6e8a9b9c8d7e', 'Сержант Майки', 'Ветеран Вьетнамской войны, потерявший ногу');
 
 INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
-('a4bb189e-8bf9-3888-9912-6c2d5c7c5b9a', '0480c10b-58cc-0372-8567-0e02b2c3d550', '4e5f6a7b-8c9d-0e1f-2a3b-4c5d6e7f8a9b', 'Корбен Даллас', 'Бывший военный, таксист, ставший защитником Пятого элемента');
+('a4bb189e-8bf9-3888-9912-6c2d5c7c5b9a', '0480c10b-58cc-0372-8567-0e02b2c3d550', '6e7f8a9b-0c1d-2e3f-4a5b-6c7d8e9f0a1b', 'Альфред Пенниуорт', 'Дворецкий дома Уэйнов');
 
 
 INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
