@@ -16,6 +16,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - ddd-network
 
   postgres:
     image: postgres:17.0
@@ -49,6 +51,8 @@ services:
     depends_on:
       main:
         condition: service_started
+    networks:
+      - ddd-network
 
 volumes:
   postgres_data:
