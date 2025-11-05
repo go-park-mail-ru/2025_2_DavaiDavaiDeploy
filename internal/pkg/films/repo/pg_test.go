@@ -948,7 +948,7 @@ func TestGetUserByLogin(t *testing.T) {
 				rows := pgxpoolmock.NewRows([]string{
 					"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at",
 				}).
-					AddRow(userID, 1, login, []byte("hash"), &avatar, createdAt, updatedAt).
+					AddRow(userID, 1, login, []byte("hash"), avatar, createdAt, updatedAt).
 					ToPgxRows()
 				rows.Next()
 

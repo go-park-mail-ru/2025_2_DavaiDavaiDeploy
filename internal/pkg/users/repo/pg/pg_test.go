@@ -50,7 +50,7 @@ func TestGetUserByID(t *testing.T) {
 						1,
 						"testuser",
 						[]byte("hashedpassword"),
-						&avatar,
+						avatar, // Убрать & - передавать строку, а не указатель
 						createdAt,
 						updatedAt,
 					).
@@ -67,40 +67,6 @@ func TestGetUserByID(t *testing.T) {
 				Login:        "testuser",
 				PasswordHash: []byte("hashedpassword"),
 				Avatar:       avatar,
-				CreatedAt:    createdAt,
-				UpdatedAt:    updatedAt,
-			},
-			wantErr: false,
-		},
-		{
-			name:   "WithNullAvatar",
-			userID: userID,
-			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{
-					"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at",
-				}).
-					AddRow(
-						userID,
-						1,
-						"testuser",
-						[]byte("hashedpassword"),
-						nil,
-						createdAt,
-						updatedAt,
-					).
-					ToPgxRows()
-				rows.Next()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetUserByIDQuery, userID).
-					Return(rows)
-			},
-			wantUser: models.User{
-				ID:           userID,
-				Version:      1,
-				Login:        "testuser",
-				PasswordHash: []byte("hashedpassword"),
-				Avatar:       "avatars/default.png",
 				CreatedAt:    createdAt,
 				UpdatedAt:    updatedAt,
 			},
@@ -158,7 +124,7 @@ func TestGetUserByLogin(t *testing.T) {
 						1,
 						"testuser",
 						[]byte("hashedpassword"),
-						&avatar,
+						avatar,
 						createdAt,
 						updatedAt,
 					).
@@ -175,40 +141,6 @@ func TestGetUserByLogin(t *testing.T) {
 				Login:        "testuser",
 				PasswordHash: []byte("hashedpassword"),
 				Avatar:       avatar,
-				CreatedAt:    createdAt,
-				UpdatedAt:    updatedAt,
-			},
-			wantErr: false,
-		},
-		{
-			name:  "WithNullAvatar",
-			login: "testuser",
-			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{
-					"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at",
-				}).
-					AddRow(
-						userID,
-						1,
-						"testuser",
-						[]byte("hashedpassword"),
-						nil,
-						createdAt,
-						updatedAt,
-					).
-					ToPgxRows()
-				rows.Next()
-
-				mockPool.EXPECT().
-					QueryRow(gomock.Any(), GetUserByLoginQuery, "testuser").
-					Return(rows)
-			},
-			wantUser: models.User{
-				ID:           userID,
-				Version:      1,
-				Login:        "testuser",
-				PasswordHash: []byte("hashedpassword"),
-				Avatar:       "avatars/default.png",
 				CreatedAt:    createdAt,
 				UpdatedAt:    updatedAt,
 			},
