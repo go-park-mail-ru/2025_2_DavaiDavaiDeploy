@@ -27,6 +27,28 @@ func NewS3Repository(client *s3.Client, bucket string) *S3Repository {
 	}
 }
 
+func (r *S3Repository) DeleteAvatar(ctx context.Context, avatarPath string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	if r.client == nil || r.bucket == "" {
+		return errors.New("S3 client not configured")
+	}
+
+	s3Key := filepath.Join("static", avatarPath)
+
+	_, err := r.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(r.bucket),
+		Key:    aws.String(s3Key),
+	})
+
+	if err != nil {
+		logger.Warn("failed to delete old avatar from S3", "error", err, "avatar_path", avatarPath)
+		return fmt.Errorf("failed to delete old avatar: %w", err)
+	}
+	logger.Info("successfully deleted old avatar from S3", "avatar_path", avatarPath)
+	return nil
+}
+
 func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat string, avatarExtension string) (string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 

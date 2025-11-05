@@ -25,5 +25,6 @@ type UsersRepo interface {
 }
 
 type StorageRepo interface {
+	DeleteAvatar(ctx context.Context, avatarPath string) error
 	UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat string, avatarExtension string) (string, error)
 }

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/users"
@@ -163,6 +162,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", err
 	}
 
+	defaultPath := "avatars/default.png"
 	var avatarExtension string
 	switch fileFormat {
 	case "image/jpeg":
@@ -173,7 +173,14 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		avatarExtension = ".webp"
 	default:
 		logger.Error("invalid format of file")
-		return models.User{}, "", errors.New("invalid file format")
+		return models.User{}, "", users.ErrorBadRequest
+	}
+
+	if neededUser.Avatar != &defaultPath {
+		err := uc.storageRepo.DeleteAvatar(ctx, *neededUser.Avatar)
+		if err != nil {
+			logger.Warn("failed to delete old avatar", "error", err)
+		}
 	}
 
 	avatarPath, err := uc.storageRepo.UploadAvatar(ctx, neededUser.ID.String(), buffer, fileFormat, avatarExtension)
