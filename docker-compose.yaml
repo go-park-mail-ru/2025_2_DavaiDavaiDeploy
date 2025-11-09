@@ -4,9 +4,9 @@ services:
   main:
     build:
       context: .
-      dockerfile: ./build/main.Dockerfile 
+      dockerfile: ./build/main.Dockerfile
     ports:
-      - 5458:5458 
+      - 5458:5458
     volumes:
       - ./static/:/opt/static/
     environment:
@@ -45,17 +45,27 @@ services:
     image: nginx:latest
     container_name: nginx
     ports:
-      - "80:80"  
+      - "80:80"
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - /opt/public:/opt/public  
-      - /etc/letsencrypt:/etc/letsencrypt:ro  
+      - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       main:
         condition: service_started
     networks:
       - ddd-network
+
+  telegram-notifier:
+    image: lorcas/docker-telegram-notifier:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      TELEGRAM_NOTIFIER_BOT_TOKEN: ${TELEGRAM_TOKEN}
+      TELEGRAM_NOTIFIER_CHAT_ID: ${TELEGRAM_CHAT_ID}
+      TELEGRAM_NOTIFIER_TOPIC_ID: ${TELEGRAM_TOPIC_ID}
+    labels:
+      telegram-notifier.monitor: false
 
 volumes:
   postgres_data:
