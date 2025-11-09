@@ -234,7 +234,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
-			log.LogHandlerError(logger, err, http.StatusRequestEntityTooLarge)
+			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
 			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
 			return
 		}
