@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/helpers"
@@ -234,6 +235,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
 		if errors.As(err, new(*http.MaxBytesError)) {
+			fmt.Println(err)
 			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
 			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
 			return
