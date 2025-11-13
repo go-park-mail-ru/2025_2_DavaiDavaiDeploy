@@ -1,0 +1,210 @@
+syntax = "proto3";
+package films;
+option go_package = "./internal/pkg/films/delivery/grpc/gen/;gen";
+
+service Films {
+  rpc GetPromoFilm(EmptyRequest) returns (GetPromoFilmResponse) {}
+  rpc GetFilms(GetFilmsRequest) returns (GetFilmsResponse) {}
+  rpc GetFilm(GetFilmRequest) returns (GetFilmResponse) {}
+  rpc GetFilmFeedbacks(GetFilmFeedbacksRequest) returns (GetFilmFeedbacksResponse) {}
+  rpc SendFeedback(SendFeedbackRequest) returns (SendFeedbackResponse) {}
+  rpc SetRating(SetRatingRequest) returns (SetRatingResponse) {}
+  rpc SiteMap(EmptyRequest) returns (SiteMapResponse) {}
+  
+  rpc GetGenre(GetGenreRequest) returns (GetGenreResponse) {}
+  rpc GetGenres(GetGenresRequest) returns (GetGenresResponse) {}
+  rpc GetFilmsByGenre(GetFilmsByGenreRequest) returns (GetFilmsByGenreResponse) {}
+  
+  rpc GetActor(GetActorRequest) returns (GetActorResponse) {}
+  rpc GetFilmsByActor(GetFilmsByActorRequest) returns (GetFilmsByActorResponse) {}
+}
+
+message EmptyRequest {}
+
+message GetPromoFilmResponse {
+  PromoFilm promo_film = 1;
+}
+
+message GetFilmsRequest {
+  Pager pager = 1;
+}
+
+message GetFilmsResponse {
+  repeated MainPageFilm films = 1;
+}
+
+message GetFilmRequest {
+  string film_id = 1;
+}
+
+message GetFilmResponse {
+  FilmPage film = 1;
+}
+
+message GetFilmFeedbacksRequest {
+  string film_id = 1;
+  Pager pager = 2;
+}
+
+message GetFilmFeedbacksResponse {
+  repeated FilmFeedback feedbacks = 1;
+}
+
+message SendFeedbackRequest {
+  string film_id = 1;
+  FilmFeedbackInput feedback = 2;
+}
+
+message SendFeedbackResponse {
+  FilmFeedback feedback = 1;
+}
+
+message SetRatingRequest {
+  string film_id = 1;
+  FilmFeedbackInput rating_input = 2;
+}
+
+message SetRatingResponse {
+  FilmFeedback feedback = 1;
+}
+
+message SiteMapResponse {
+  Urlset urlset = 1;
+}
+
+message GetGenreRequest {
+  string genre_id = 1;
+}
+
+message GetGenreResponse {
+  Genre genre = 1;
+}
+
+message GetGenresRequest {
+  Pager pager = 1;
+}
+
+message GetGenresResponse {
+  repeated Genre genres = 1;
+}
+
+message GetFilmsByGenreRequest {
+  string genre_id = 1;
+  Pager pager = 2;
+}
+
+message GetFilmsByGenreResponse {
+  repeated MainPageFilm films = 1;
+}
+
+message GetActorRequest {
+  string actor_id = 1;
+}
+
+message GetActorResponse {
+  ActorPage actor = 1;
+}
+
+message GetFilmsByActorRequest {
+  string actor_id = 1;
+  Pager pager = 2;
+}
+
+message GetFilmsByActorResponse {
+  repeated MainPageFilm films = 1;
+}
+
+message Pager {
+  int count = 1;
+  int offset = 2;
+}
+
+message PromoFilm {
+  string id = 1;
+  string image = 2;
+  string title = 3;
+  double rating = 4;
+  string short_description = 5;
+  int year = 6;
+  string genre = 7;
+  int duration = 8;
+}
+
+message MainPageFilm {
+  string id = 1;
+  string image = 2;
+  string title = 3;
+  double rating = 4;
+  string short_description = 5;
+  int year = 6;
+  string genre = 7;
+  int duration = 8;
+}
+
+message FilmPage {
+  string id = 1;
+  string image = 2;
+  string title = 3;
+  double rating = 4;
+  string short_description = 5;
+  int year = 6;
+  string genre = 7;
+  int duration = 8;
+  string description = 9;
+  string country = 10;
+  string director = 11;
+  int budget = 12;
+  int fees = 13;
+  int age_restriction = 14;
+  bool is_reviewed = 15;
+  optional int user_rating = 16;
+}
+
+message FilmFeedback {
+  string id = 1;
+  string user_id = 2;
+  string film_id = 3;
+  optional string title = 4;
+  optional string text = 5;
+  int rating = 6;
+  string created_at = 7;
+  string updated_at = 8;
+  bool is_mine = 9;
+  string user_login = 10;
+  double new_film_rating = 11;
+}
+
+message FilmFeedbackInput {
+  string title = 1;
+  string text = 2;
+  int rating = 3;
+}
+
+message Urlset {
+  string xmlns = 1;
+  repeated URLItem url = 2;
+}
+
+message URLItem {
+  string loc = 1;
+  double priority = 2;
+}
+
+message Genre {
+  string id = 1;
+  string name = 2;
+}
+
+message ActorPage {
+  string id = 1;
+  string russian_name = 2;
+  string original_name = 3;
+  string photo = 4;
+  double height = 5;
+  string birth_date = 6;
+  int age = 7;
+  string zodiac_sign = 8;
+  repeated string birth_place = 9;
+  string marital_status = 10;
+  int films_number = 11;
+}
