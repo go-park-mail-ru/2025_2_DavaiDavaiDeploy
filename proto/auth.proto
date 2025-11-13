@@ -14,7 +14,7 @@ service Auth {
 
 message UserResponse {
   string ID = 1;       
-  int Version = 2;  
+  int32 Version = 2;  
   string Login = 3;
   string Avatar = 4;
 }

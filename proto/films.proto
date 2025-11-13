@@ -115,8 +115,8 @@ message GetFilmsByActorResponse {
 }
 
 message Pager {
-  int count = 1;
-  int offset = 2;
+  int32 count = 1;
+  int32 offset = 2;
 }
 
 message PromoFilm {
@@ -125,9 +125,9 @@ message PromoFilm {
   string title = 3;
   double rating = 4;
   string short_description = 5;
-  int year = 6;
+  int32 year = 6;
   string genre = 7;
-  int duration = 8;
+  int32 duration = 8;
 }
 
 message MainPageFilm {
@@ -136,9 +136,9 @@ message MainPageFilm {
   string title = 3;
   double rating = 4;
   string short_description = 5;
-  int year = 6;
+  int32 year = 6;
   string genre = 7;
-  int duration = 8;
+  int32 duration = 8;
 }
 
 message FilmPage {
@@ -147,17 +147,17 @@ message FilmPage {
   string title = 3;
   double rating = 4;
   string short_description = 5;
-  int year = 6;
+  int32 year = 6;
   string genre = 7;
-  int duration = 8;
+  int32 duration = 8;
   string description = 9;
   string country = 10;
   string director = 11;
-  int budget = 12;
-  int fees = 13;
-  int age_restriction = 14;
+  int32 budget = 12;
+  int32 fees = 13;
+  int32 age_restriction = 14;
   bool is_reviewed = 15;
-  optional int user_rating = 16;
+  optional int32 user_rating = 16;
 }
 
 message FilmFeedback {
@@ -166,7 +166,7 @@ message FilmFeedback {
   string film_id = 3;
   optional string title = 4;
   optional string text = 5;
-  int rating = 6;
+  int32 rating = 6;
   string created_at = 7;
   string updated_at = 8;
   bool is_mine = 9;
@@ -177,7 +177,7 @@ message FilmFeedback {
 message FilmFeedbackInput {
   string title = 1;
   string text = 2;
-  int rating = 3;
+  int32 rating = 3;
 }
 
 message Urlset {
@@ -202,9 +202,9 @@ message ActorPage {
   string photo = 4;
   double height = 5;
   string birth_date = 6;
-  int age = 7;
+  int32 age = 7;
   string zodiac_sign = 8;
   repeated string birth_place = 9;
   string marital_status = 10;
-  int films_number = 11;
+  int32 films_number = 11;
 }
