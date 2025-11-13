@@ -58,10 +58,17 @@ func (*EmptyRequest) Descriptor() ([]byte, []int) {
 }
 
 type GetPromoFilmResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PromoFilm     *PromoFilm             `protobuf:"bytes,1,opt,name=promo_film,json=promoFilm,proto3" json:"promo_film,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Image            string                 `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
+	Title            string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Rating           float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
+	ShortDescription string                 `protobuf:"bytes,5,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
+	Year             int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
+	Genre            string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
+	Duration         int32                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GetPromoFilmResponse) Reset() {
@@ -94,11 +101,60 @@ func (*GetPromoFilmResponse) Descriptor() ([]byte, []int) {
 	return file_films_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetPromoFilmResponse) GetPromoFilm() *PromoFilm {
+func (x *GetPromoFilmResponse) GetId() string {
 	if x != nil {
-		return x.PromoFilm
+		return x.Id
 	}
-	return nil
+	return ""
+}
+
+func (x *GetPromoFilmResponse) GetImage() string {
+	if x != nil {
+		return x.Image
+	}
+	return ""
+}
+
+func (x *GetPromoFilmResponse) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *GetPromoFilmResponse) GetRating() float64 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
+func (x *GetPromoFilmResponse) GetShortDescription() string {
+	if x != nil {
+		return x.ShortDescription
+	}
+	return ""
+}
+
+func (x *GetPromoFilmResponse) GetYear() int32 {
+	if x != nil {
+		return x.Year
+	}
+	return 0
+}
+
+func (x *GetPromoFilmResponse) GetGenre() string {
+	if x != nil {
+		return x.Genre
+	}
+	return ""
+}
+
+func (x *GetPromoFilmResponse) GetDuration() int32 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
 }
 
 type GetFilmsRequest struct {
@@ -234,10 +290,33 @@ func (x *GetFilmRequest) GetFilmId() string {
 }
 
 type GetFilmResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Film          *FilmPage              `protobuf:"bytes,1,opt,name=film,proto3" json:"film,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Title            string                 `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	OriginalTitle    *string                `protobuf:"bytes,3,opt,name=original_title,json=originalTitle,proto3,oneof" json:"original_title,omitempty"`
+	Cover            string                 `protobuf:"bytes,4,opt,name=cover,proto3" json:"cover,omitempty"`
+	Poster           string                 `protobuf:"bytes,5,opt,name=poster,proto3" json:"poster,omitempty"`
+	Genre            string                 `protobuf:"bytes,6,opt,name=genre,proto3" json:"genre,omitempty"`
+	ShortDescription string                 `protobuf:"bytes,7,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
+	Description      string                 `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
+	AgeCategory      string                 `protobuf:"bytes,9,opt,name=age_category,json=ageCategory,proto3" json:"age_category,omitempty"`
+	Budget           int32                  `protobuf:"varint,10,opt,name=budget,proto3" json:"budget,omitempty"`
+	WorldwideFees    int32                  `protobuf:"varint,11,opt,name=worldwide_fees,json=worldwideFees,proto3" json:"worldwide_fees,omitempty"`
+	TrailerUrl       *string                `protobuf:"bytes,12,opt,name=trailer_url,json=trailerUrl,proto3,oneof" json:"trailer_url,omitempty"`
+	NumberOfRatings  int32                  `protobuf:"varint,13,opt,name=number_of_ratings,json=numberOfRatings,proto3" json:"number_of_ratings,omitempty"`
+	Year             int32                  `protobuf:"varint,14,opt,name=year,proto3" json:"year,omitempty"`
+	Rating           float64                `protobuf:"fixed64,15,opt,name=rating,proto3" json:"rating,omitempty"`
+	Country          string                 `protobuf:"bytes,16,opt,name=country,proto3" json:"country,omitempty"`
+	Slogan           *string                `protobuf:"bytes,17,opt,name=slogan,proto3,oneof" json:"slogan,omitempty"`
+	Duration         int32                  `protobuf:"varint,18,opt,name=duration,proto3" json:"duration,omitempty"`
+	Image1           *string                `protobuf:"bytes,19,opt,name=image1,proto3,oneof" json:"image1,omitempty"`
+	Image2           *string                `protobuf:"bytes,20,opt,name=image2,proto3,oneof" json:"image2,omitempty"`
+	Image3           *string                `protobuf:"bytes,21,opt,name=image3,proto3,oneof" json:"image3,omitempty"`
+	Actors           []*Actor               `protobuf:"bytes,22,rep,name=actors,proto3" json:"actors,omitempty"`
+	IsReviewed       bool                   `protobuf:"varint,23,opt,name=is_reviewed,json=isReviewed,proto3" json:"is_reviewed,omitempty"`
+	UserRating       *int32                 `protobuf:"varint,24,opt,name=user_rating,json=userRating,proto3,oneof" json:"user_rating,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GetFilmResponse) Reset() {
@@ -270,11 +349,172 @@ func (*GetFilmResponse) Descriptor() ([]byte, []int) {
 	return file_films_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *GetFilmResponse) GetFilm() *FilmPage {
+func (x *GetFilmResponse) GetId() string {
 	if x != nil {
-		return x.Film
+		return x.Id
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetOriginalTitle() string {
+	if x != nil && x.OriginalTitle != nil {
+		return *x.OriginalTitle
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetCover() string {
+	if x != nil {
+		return x.Cover
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetPoster() string {
+	if x != nil {
+		return x.Poster
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetGenre() string {
+	if x != nil {
+		return x.Genre
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetShortDescription() string {
+	if x != nil {
+		return x.ShortDescription
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetAgeCategory() string {
+	if x != nil {
+		return x.AgeCategory
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetBudget() int32 {
+	if x != nil {
+		return x.Budget
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetWorldwideFees() int32 {
+	if x != nil {
+		return x.WorldwideFees
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetTrailerUrl() string {
+	if x != nil && x.TrailerUrl != nil {
+		return *x.TrailerUrl
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetNumberOfRatings() int32 {
+	if x != nil {
+		return x.NumberOfRatings
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetYear() int32 {
+	if x != nil {
+		return x.Year
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetRating() float64 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetCountry() string {
+	if x != nil {
+		return x.Country
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetSlogan() string {
+	if x != nil && x.Slogan != nil {
+		return *x.Slogan
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetDuration() int32 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+func (x *GetFilmResponse) GetImage1() string {
+	if x != nil && x.Image1 != nil {
+		return *x.Image1
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetImage2() string {
+	if x != nil && x.Image2 != nil {
+		return *x.Image2
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetImage3() string {
+	if x != nil && x.Image3 != nil {
+		return *x.Image3
+	}
+	return ""
+}
+
+func (x *GetFilmResponse) GetActors() []*Actor {
+	if x != nil {
+		return x.Actors
 	}
 	return nil
+}
+
+func (x *GetFilmResponse) GetIsReviewed() bool {
+	if x != nil {
+		return x.IsReviewed
+	}
+	return false
+}
+
+func (x *GetFilmResponse) GetUserRating() int32 {
+	if x != nil && x.UserRating != nil {
+		return *x.UserRating
+	}
+	return 0
 }
 
 type GetFilmFeedbacksRequest struct {
@@ -472,7 +712,7 @@ func (x *SendFeedbackResponse) GetFeedback() *FilmFeedback {
 type SetRatingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FilmId        string                 `protobuf:"bytes,1,opt,name=film_id,json=filmId,proto3" json:"film_id,omitempty"`
-	RatingInput   *FilmFeedbackInput     `protobuf:"bytes,2,opt,name=rating_input,json=ratingInput,proto3" json:"rating_input,omitempty"`
+	RatingInput   *FilmRatingInput       `protobuf:"bytes,2,opt,name=rating_input,json=ratingInput,proto3" json:"rating_input,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -514,7 +754,7 @@ func (x *SetRatingRequest) GetFilmId() string {
 	return ""
 }
 
-func (x *SetRatingRequest) GetRatingInput() *FilmFeedbackInput {
+func (x *SetRatingRequest) GetRatingInput() *FilmRatingInput {
 	if x != nil {
 		return x.RatingInput
 	}
@@ -1117,123 +1357,21 @@ func (x *Pager) GetOffset() int32 {
 	return 0
 }
 
-type PromoFilm struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Image            string                 `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
-	Title            string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Rating           float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
-	ShortDescription string                 `protobuf:"bytes,5,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
-	Year             int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
-	Genre            string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
-	Duration         int32                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *PromoFilm) Reset() {
-	*x = PromoFilm{}
-	mi := &file_films_proto_msgTypes[24]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PromoFilm) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PromoFilm) ProtoMessage() {}
-
-func (x *PromoFilm) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[24]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PromoFilm.ProtoReflect.Descriptor instead.
-func (*PromoFilm) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{24}
-}
-
-func (x *PromoFilm) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *PromoFilm) GetImage() string {
-	if x != nil {
-		return x.Image
-	}
-	return ""
-}
-
-func (x *PromoFilm) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *PromoFilm) GetRating() float64 {
-	if x != nil {
-		return x.Rating
-	}
-	return 0
-}
-
-func (x *PromoFilm) GetShortDescription() string {
-	if x != nil {
-		return x.ShortDescription
-	}
-	return ""
-}
-
-func (x *PromoFilm) GetYear() int32 {
-	if x != nil {
-		return x.Year
-	}
-	return 0
-}
-
-func (x *PromoFilm) GetGenre() string {
-	if x != nil {
-		return x.Genre
-	}
-	return ""
-}
-
-func (x *PromoFilm) GetDuration() int32 {
-	if x != nil {
-		return x.Duration
-	}
-	return 0
-}
-
 type MainPageFilm struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Image            string                 `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
-	Title            string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Rating           float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
-	ShortDescription string                 `protobuf:"bytes,5,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
-	Year             int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
-	Genre            string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
-	Duration         int32                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Cover         string                 `protobuf:"bytes,2,opt,name=cover,proto3" json:"cover,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
+	Rating        float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
+	Year          int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
+	Genre         string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MainPageFilm) Reset() {
 	*x = MainPageFilm{}
-	mi := &file_films_proto_msgTypes[25]
+	mi := &file_films_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1245,7 +1383,7 @@ func (x *MainPageFilm) String() string {
 func (*MainPageFilm) ProtoMessage() {}
 
 func (x *MainPageFilm) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[25]
+	mi := &file_films_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1258,7 +1396,7 @@ func (x *MainPageFilm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MainPageFilm.ProtoReflect.Descriptor instead.
 func (*MainPageFilm) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{25}
+	return file_films_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *MainPageFilm) GetId() string {
@@ -1268,9 +1406,9 @@ func (x *MainPageFilm) GetId() string {
 	return ""
 }
 
-func (x *MainPageFilm) GetImage() string {
+func (x *MainPageFilm) GetCover() string {
 	if x != nil {
-		return x.Image
+		return x.Cover
 	}
 	return ""
 }
@@ -1289,13 +1427,6 @@ func (x *MainPageFilm) GetRating() float64 {
 	return 0
 }
 
-func (x *MainPageFilm) GetShortDescription() string {
-	if x != nil {
-		return x.ShortDescription
-	}
-	return ""
-}
-
 func (x *MainPageFilm) GetYear() int32 {
 	if x != nil {
 		return x.Year
@@ -1310,177 +1441,6 @@ func (x *MainPageFilm) GetGenre() string {
 	return ""
 }
 
-func (x *MainPageFilm) GetDuration() int32 {
-	if x != nil {
-		return x.Duration
-	}
-	return 0
-}
-
-type FilmPage struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Id               string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Image            string                 `protobuf:"bytes,2,opt,name=image,proto3" json:"image,omitempty"`
-	Title            string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Rating           float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
-	ShortDescription string                 `protobuf:"bytes,5,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
-	Year             int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
-	Genre            string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
-	Duration         int32                  `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
-	Description      string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
-	Country          string                 `protobuf:"bytes,10,opt,name=country,proto3" json:"country,omitempty"`
-	Director         string                 `protobuf:"bytes,11,opt,name=director,proto3" json:"director,omitempty"`
-	Budget           int32                  `protobuf:"varint,12,opt,name=budget,proto3" json:"budget,omitempty"`
-	Fees             int32                  `protobuf:"varint,13,opt,name=fees,proto3" json:"fees,omitempty"`
-	AgeRestriction   int32                  `protobuf:"varint,14,opt,name=age_restriction,json=ageRestriction,proto3" json:"age_restriction,omitempty"`
-	IsReviewed       bool                   `protobuf:"varint,15,opt,name=is_reviewed,json=isReviewed,proto3" json:"is_reviewed,omitempty"`
-	UserRating       *int32                 `protobuf:"varint,16,opt,name=user_rating,json=userRating,proto3,oneof" json:"user_rating,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
-}
-
-func (x *FilmPage) Reset() {
-	*x = FilmPage{}
-	mi := &file_films_proto_msgTypes[26]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *FilmPage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*FilmPage) ProtoMessage() {}
-
-func (x *FilmPage) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[26]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use FilmPage.ProtoReflect.Descriptor instead.
-func (*FilmPage) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{26}
-}
-
-func (x *FilmPage) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
-}
-
-func (x *FilmPage) GetImage() string {
-	if x != nil {
-		return x.Image
-	}
-	return ""
-}
-
-func (x *FilmPage) GetTitle() string {
-	if x != nil {
-		return x.Title
-	}
-	return ""
-}
-
-func (x *FilmPage) GetRating() float64 {
-	if x != nil {
-		return x.Rating
-	}
-	return 0
-}
-
-func (x *FilmPage) GetShortDescription() string {
-	if x != nil {
-		return x.ShortDescription
-	}
-	return ""
-}
-
-func (x *FilmPage) GetYear() int32 {
-	if x != nil {
-		return x.Year
-	}
-	return 0
-}
-
-func (x *FilmPage) GetGenre() string {
-	if x != nil {
-		return x.Genre
-	}
-	return ""
-}
-
-func (x *FilmPage) GetDuration() int32 {
-	if x != nil {
-		return x.Duration
-	}
-	return 0
-}
-
-func (x *FilmPage) GetDescription() string {
-	if x != nil {
-		return x.Description
-	}
-	return ""
-}
-
-func (x *FilmPage) GetCountry() string {
-	if x != nil {
-		return x.Country
-	}
-	return ""
-}
-
-func (x *FilmPage) GetDirector() string {
-	if x != nil {
-		return x.Director
-	}
-	return ""
-}
-
-func (x *FilmPage) GetBudget() int32 {
-	if x != nil {
-		return x.Budget
-	}
-	return 0
-}
-
-func (x *FilmPage) GetFees() int32 {
-	if x != nil {
-		return x.Fees
-	}
-	return 0
-}
-
-func (x *FilmPage) GetAgeRestriction() int32 {
-	if x != nil {
-		return x.AgeRestriction
-	}
-	return 0
-}
-
-func (x *FilmPage) GetIsReviewed() bool {
-	if x != nil {
-		return x.IsReviewed
-	}
-	return false
-}
-
-func (x *FilmPage) GetUserRating() int32 {
-	if x != nil && x.UserRating != nil {
-		return *x.UserRating
-	}
-	return 0
-}
-
 type FilmFeedback struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -1491,16 +1451,17 @@ type FilmFeedback struct {
 	Rating        int32                  `protobuf:"varint,6,opt,name=rating,proto3" json:"rating,omitempty"`
 	CreatedAt     string                 `protobuf:"bytes,7,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     string                 `protobuf:"bytes,8,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	IsMine        bool                   `protobuf:"varint,9,opt,name=is_mine,json=isMine,proto3" json:"is_mine,omitempty"`
-	UserLogin     string                 `protobuf:"bytes,10,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
-	NewFilmRating float64                `protobuf:"fixed64,11,opt,name=new_film_rating,json=newFilmRating,proto3" json:"new_film_rating,omitempty"`
+	UserLogin     string                 `protobuf:"bytes,9,opt,name=user_login,json=userLogin,proto3" json:"user_login,omitempty"`
+	UserAvatar    string                 `protobuf:"bytes,10,opt,name=user_avatar,json=userAvatar,proto3" json:"user_avatar,omitempty"`
+	IsMine        bool                   `protobuf:"varint,11,opt,name=is_mine,json=isMine,proto3" json:"is_mine,omitempty"`
+	NewFilmRating float64                `protobuf:"fixed64,12,opt,name=new_film_rating,json=newFilmRating,proto3" json:"new_film_rating,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FilmFeedback) Reset() {
 	*x = FilmFeedback{}
-	mi := &file_films_proto_msgTypes[27]
+	mi := &file_films_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1512,7 +1473,7 @@ func (x *FilmFeedback) String() string {
 func (*FilmFeedback) ProtoMessage() {}
 
 func (x *FilmFeedback) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[27]
+	mi := &file_films_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1525,7 +1486,7 @@ func (x *FilmFeedback) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilmFeedback.ProtoReflect.Descriptor instead.
 func (*FilmFeedback) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{27}
+	return file_films_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *FilmFeedback) GetId() string {
@@ -1584,18 +1545,25 @@ func (x *FilmFeedback) GetUpdatedAt() string {
 	return ""
 }
 
-func (x *FilmFeedback) GetIsMine() bool {
-	if x != nil {
-		return x.IsMine
-	}
-	return false
-}
-
 func (x *FilmFeedback) GetUserLogin() string {
 	if x != nil {
 		return x.UserLogin
 	}
 	return ""
+}
+
+func (x *FilmFeedback) GetUserAvatar() string {
+	if x != nil {
+		return x.UserAvatar
+	}
+	return ""
+}
+
+func (x *FilmFeedback) GetIsMine() bool {
+	if x != nil {
+		return x.IsMine
+	}
+	return false
 }
 
 func (x *FilmFeedback) GetNewFilmRating() float64 {
@@ -1616,7 +1584,7 @@ type FilmFeedbackInput struct {
 
 func (x *FilmFeedbackInput) Reset() {
 	*x = FilmFeedbackInput{}
-	mi := &file_films_proto_msgTypes[28]
+	mi := &file_films_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1628,7 +1596,7 @@ func (x *FilmFeedbackInput) String() string {
 func (*FilmFeedbackInput) ProtoMessage() {}
 
 func (x *FilmFeedbackInput) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[28]
+	mi := &file_films_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1641,7 +1609,7 @@ func (x *FilmFeedbackInput) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FilmFeedbackInput.ProtoReflect.Descriptor instead.
 func (*FilmFeedbackInput) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{28}
+	return file_films_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *FilmFeedbackInput) GetTitle() string {
@@ -1665,6 +1633,50 @@ func (x *FilmFeedbackInput) GetRating() int32 {
 	return 0
 }
 
+type FilmRatingInput struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rating        int32                  `protobuf:"varint,1,opt,name=rating,proto3" json:"rating,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FilmRatingInput) Reset() {
+	*x = FilmRatingInput{}
+	mi := &file_films_proto_msgTypes[27]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FilmRatingInput) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FilmRatingInput) ProtoMessage() {}
+
+func (x *FilmRatingInput) ProtoReflect() protoreflect.Message {
+	mi := &file_films_proto_msgTypes[27]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FilmRatingInput.ProtoReflect.Descriptor instead.
+func (*FilmRatingInput) Descriptor() ([]byte, []int) {
+	return file_films_proto_rawDescGZIP(), []int{27}
+}
+
+func (x *FilmRatingInput) GetRating() int32 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
 type Urlset struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Xmlns         string                 `protobuf:"bytes,1,opt,name=xmlns,proto3" json:"xmlns,omitempty"`
@@ -1675,7 +1687,7 @@ type Urlset struct {
 
 func (x *Urlset) Reset() {
 	*x = Urlset{}
-	mi := &file_films_proto_msgTypes[29]
+	mi := &file_films_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1687,7 +1699,7 @@ func (x *Urlset) String() string {
 func (*Urlset) ProtoMessage() {}
 
 func (x *Urlset) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[29]
+	mi := &file_films_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1700,7 +1712,7 @@ func (x *Urlset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Urlset.ProtoReflect.Descriptor instead.
 func (*Urlset) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{29}
+	return file_films_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *Urlset) GetXmlns() string {
@@ -1727,7 +1739,7 @@ type URLItem struct {
 
 func (x *URLItem) Reset() {
 	*x = URLItem{}
-	mi := &file_films_proto_msgTypes[30]
+	mi := &file_films_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1739,7 +1751,7 @@ func (x *URLItem) String() string {
 func (*URLItem) ProtoMessage() {}
 
 func (x *URLItem) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[30]
+	mi := &file_films_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1752,7 +1764,7 @@ func (x *URLItem) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use URLItem.ProtoReflect.Descriptor instead.
 func (*URLItem) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{30}
+	return file_films_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *URLItem) GetLoc() string {
@@ -1773,13 +1785,15 @@ type Genre struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
+	Icon          string                 `protobuf:"bytes,4,opt,name=icon,proto3" json:"icon,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Genre) Reset() {
 	*x = Genre{}
-	mi := &file_films_proto_msgTypes[31]
+	mi := &file_films_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1791,7 +1805,7 @@ func (x *Genre) String() string {
 func (*Genre) ProtoMessage() {}
 
 func (x *Genre) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[31]
+	mi := &file_films_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1804,7 +1818,7 @@ func (x *Genre) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Genre.ProtoReflect.Descriptor instead.
 func (*Genre) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{31}
+	return file_films_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Genre) GetId() string {
@@ -1821,17 +1835,31 @@ func (x *Genre) GetName() string {
 	return ""
 }
 
+func (x *Genre) GetDescription() string {
+	if x != nil {
+		return x.Description
+	}
+	return ""
+}
+
+func (x *Genre) GetIcon() string {
+	if x != nil {
+		return x.Icon
+	}
+	return ""
+}
+
 type ActorPage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	RussianName   string                 `protobuf:"bytes,2,opt,name=russian_name,json=russianName,proto3" json:"russian_name,omitempty"`
-	OriginalName  string                 `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	OriginalName  *string                `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3,oneof" json:"original_name,omitempty"`
 	Photo         string                 `protobuf:"bytes,4,opt,name=photo,proto3" json:"photo,omitempty"`
-	Height        float64                `protobuf:"fixed64,5,opt,name=height,proto3" json:"height,omitempty"`
+	Height        int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
 	BirthDate     string                 `protobuf:"bytes,6,opt,name=birth_date,json=birthDate,proto3" json:"birth_date,omitempty"`
 	Age           int32                  `protobuf:"varint,7,opt,name=age,proto3" json:"age,omitempty"`
 	ZodiacSign    string                 `protobuf:"bytes,8,opt,name=zodiac_sign,json=zodiacSign,proto3" json:"zodiac_sign,omitempty"`
-	BirthPlace    []string               `protobuf:"bytes,9,rep,name=birth_place,json=birthPlace,proto3" json:"birth_place,omitempty"`
+	BirthPlace    string                 `protobuf:"bytes,9,opt,name=birth_place,json=birthPlace,proto3" json:"birth_place,omitempty"`
 	MaritalStatus string                 `protobuf:"bytes,10,opt,name=marital_status,json=maritalStatus,proto3" json:"marital_status,omitempty"`
 	FilmsNumber   int32                  `protobuf:"varint,11,opt,name=films_number,json=filmsNumber,proto3" json:"films_number,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -1840,7 +1868,7 @@ type ActorPage struct {
 
 func (x *ActorPage) Reset() {
 	*x = ActorPage{}
-	mi := &file_films_proto_msgTypes[32]
+	mi := &file_films_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1852,7 +1880,7 @@ func (x *ActorPage) String() string {
 func (*ActorPage) ProtoMessage() {}
 
 func (x *ActorPage) ProtoReflect() protoreflect.Message {
-	mi := &file_films_proto_msgTypes[32]
+	mi := &file_films_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1865,7 +1893,7 @@ func (x *ActorPage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActorPage.ProtoReflect.Descriptor instead.
 func (*ActorPage) Descriptor() ([]byte, []int) {
-	return file_films_proto_rawDescGZIP(), []int{32}
+	return file_films_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ActorPage) GetId() string {
@@ -1883,8 +1911,8 @@ func (x *ActorPage) GetRussianName() string {
 }
 
 func (x *ActorPage) GetOriginalName() string {
-	if x != nil {
-		return x.OriginalName
+	if x != nil && x.OriginalName != nil {
+		return *x.OriginalName
 	}
 	return ""
 }
@@ -1896,7 +1924,7 @@ func (x *ActorPage) GetPhoto() string {
 	return ""
 }
 
-func (x *ActorPage) GetHeight() float64 {
+func (x *ActorPage) GetHeight() int32 {
 	if x != nil {
 		return x.Height
 	}
@@ -1924,11 +1952,11 @@ func (x *ActorPage) GetZodiacSign() string {
 	return ""
 }
 
-func (x *ActorPage) GetBirthPlace() []string {
+func (x *ActorPage) GetBirthPlace() string {
 	if x != nil {
 		return x.BirthPlace
 	}
-	return nil
+	return ""
 }
 
 func (x *ActorPage) GetMaritalStatus() string {
@@ -1945,23 +1973,179 @@ func (x *ActorPage) GetFilmsNumber() int32 {
 	return 0
 }
 
+type Actor struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	RussianName   *string                `protobuf:"bytes,2,opt,name=russian_name,json=russianName,proto3,oneof" json:"russian_name,omitempty"`
+	OriginalName  string                 `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	Photo         string                 `protobuf:"bytes,4,opt,name=photo,proto3" json:"photo,omitempty"`
+	Height        int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
+	BirthDate     string                 `protobuf:"bytes,6,opt,name=birth_date,json=birthDate,proto3" json:"birth_date,omitempty"`
+	DeathDate     *string                `protobuf:"bytes,7,opt,name=death_date,json=deathDate,proto3,oneof" json:"death_date,omitempty"`
+	ZodiacSign    string                 `protobuf:"bytes,8,opt,name=zodiac_sign,json=zodiacSign,proto3" json:"zodiac_sign,omitempty"`
+	BirthPlace    string                 `protobuf:"bytes,9,opt,name=birth_place,json=birthPlace,proto3" json:"birth_place,omitempty"`
+	MaritalStatus string                 `protobuf:"bytes,10,opt,name=marital_status,json=maritalStatus,proto3" json:"marital_status,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Actor) Reset() {
+	*x = Actor{}
+	mi := &file_films_proto_msgTypes[32]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Actor) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Actor) ProtoMessage() {}
+
+func (x *Actor) ProtoReflect() protoreflect.Message {
+	mi := &file_films_proto_msgTypes[32]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Actor.ProtoReflect.Descriptor instead.
+func (*Actor) Descriptor() ([]byte, []int) {
+	return file_films_proto_rawDescGZIP(), []int{32}
+}
+
+func (x *Actor) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *Actor) GetRussianName() string {
+	if x != nil && x.RussianName != nil {
+		return *x.RussianName
+	}
+	return ""
+}
+
+func (x *Actor) GetOriginalName() string {
+	if x != nil {
+		return x.OriginalName
+	}
+	return ""
+}
+
+func (x *Actor) GetPhoto() string {
+	if x != nil {
+		return x.Photo
+	}
+	return ""
+}
+
+func (x *Actor) GetHeight() int32 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+func (x *Actor) GetBirthDate() string {
+	if x != nil {
+		return x.BirthDate
+	}
+	return ""
+}
+
+func (x *Actor) GetDeathDate() string {
+	if x != nil && x.DeathDate != nil {
+		return *x.DeathDate
+	}
+	return ""
+}
+
+func (x *Actor) GetZodiacSign() string {
+	if x != nil {
+		return x.ZodiacSign
+	}
+	return ""
+}
+
+func (x *Actor) GetBirthPlace() string {
+	if x != nil {
+		return x.BirthPlace
+	}
+	return ""
+}
+
+func (x *Actor) GetMaritalStatus() string {
+	if x != nil {
+		return x.MaritalStatus
+	}
+	return ""
+}
+
 var File_films_proto protoreflect.FileDescriptor
 
 const file_films_proto_rawDesc = "" +
 	"\n" +
 	"\vfilms.proto\x12\x05films\"\x0e\n" +
-	"\fEmptyRequest\"G\n" +
-	"\x14GetPromoFilmResponse\x12/\n" +
-	"\n" +
-	"promo_film\x18\x01 \x01(\v2\x10.films.PromoFilmR\tpromoFilm\"5\n" +
+	"\fEmptyRequest\"\xdd\x01\n" +
+	"\x14GetPromoFilmResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05image\x18\x02 \x01(\tR\x05image\x12\x14\n" +
+	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
+	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12+\n" +
+	"\x11short_description\x18\x05 \x01(\tR\x10shortDescription\x12\x12\n" +
+	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
+	"\x05genre\x18\a \x01(\tR\x05genre\x12\x1a\n" +
+	"\bduration\x18\b \x01(\x05R\bduration\"5\n" +
 	"\x0fGetFilmsRequest\x12\"\n" +
 	"\x05pager\x18\x01 \x01(\v2\f.films.PagerR\x05pager\"=\n" +
 	"\x10GetFilmsResponse\x12)\n" +
 	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\")\n" +
 	"\x0eGetFilmRequest\x12\x17\n" +
-	"\afilm_id\x18\x01 \x01(\tR\x06filmId\"6\n" +
-	"\x0fGetFilmResponse\x12#\n" +
-	"\x04film\x18\x01 \x01(\v2\x0f.films.FilmPageR\x04film\"V\n" +
+	"\afilm_id\x18\x01 \x01(\tR\x06filmId\"\xcc\x06\n" +
+	"\x0fGetFilmResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12*\n" +
+	"\x0eoriginal_title\x18\x03 \x01(\tH\x00R\roriginalTitle\x88\x01\x01\x12\x14\n" +
+	"\x05cover\x18\x04 \x01(\tR\x05cover\x12\x16\n" +
+	"\x06poster\x18\x05 \x01(\tR\x06poster\x12\x14\n" +
+	"\x05genre\x18\x06 \x01(\tR\x05genre\x12+\n" +
+	"\x11short_description\x18\a \x01(\tR\x10shortDescription\x12 \n" +
+	"\vdescription\x18\b \x01(\tR\vdescription\x12!\n" +
+	"\fage_category\x18\t \x01(\tR\vageCategory\x12\x16\n" +
+	"\x06budget\x18\n" +
+	" \x01(\x05R\x06budget\x12%\n" +
+	"\x0eworldwide_fees\x18\v \x01(\x05R\rworldwideFees\x12$\n" +
+	"\vtrailer_url\x18\f \x01(\tH\x01R\n" +
+	"trailerUrl\x88\x01\x01\x12*\n" +
+	"\x11number_of_ratings\x18\r \x01(\x05R\x0fnumberOfRatings\x12\x12\n" +
+	"\x04year\x18\x0e \x01(\x05R\x04year\x12\x16\n" +
+	"\x06rating\x18\x0f \x01(\x01R\x06rating\x12\x18\n" +
+	"\acountry\x18\x10 \x01(\tR\acountry\x12\x1b\n" +
+	"\x06slogan\x18\x11 \x01(\tH\x02R\x06slogan\x88\x01\x01\x12\x1a\n" +
+	"\bduration\x18\x12 \x01(\x05R\bduration\x12\x1b\n" +
+	"\x06image1\x18\x13 \x01(\tH\x03R\x06image1\x88\x01\x01\x12\x1b\n" +
+	"\x06image2\x18\x14 \x01(\tH\x04R\x06image2\x88\x01\x01\x12\x1b\n" +
+	"\x06image3\x18\x15 \x01(\tH\x05R\x06image3\x88\x01\x01\x12$\n" +
+	"\x06actors\x18\x16 \x03(\v2\f.films.ActorR\x06actors\x12\x1f\n" +
+	"\vis_reviewed\x18\x17 \x01(\bR\n" +
+	"isReviewed\x12$\n" +
+	"\vuser_rating\x18\x18 \x01(\x05H\x06R\n" +
+	"userRating\x88\x01\x01B\x11\n" +
+	"\x0f_original_titleB\x0e\n" +
+	"\f_trailer_urlB\t\n" +
+	"\a_sloganB\t\n" +
+	"\a_image1B\t\n" +
+	"\a_image2B\t\n" +
+	"\a_image3B\x0e\n" +
+	"\f_user_rating\"V\n" +
 	"\x17GetFilmFeedbacksRequest\x12\x17\n" +
 	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\"\n" +
 	"\x05pager\x18\x02 \x01(\v2\f.films.PagerR\x05pager\"M\n" +
@@ -1971,10 +2155,10 @@ const file_films_proto_rawDesc = "" +
 	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x124\n" +
 	"\bfeedback\x18\x02 \x01(\v2\x18.films.FilmFeedbackInputR\bfeedback\"G\n" +
 	"\x14SendFeedbackResponse\x12/\n" +
-	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"h\n" +
+	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"f\n" +
 	"\x10SetRatingRequest\x12\x17\n" +
-	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12;\n" +
-	"\frating_input\x18\x02 \x01(\v2\x18.films.FilmFeedbackInputR\vratingInput\"D\n" +
+	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x129\n" +
+	"\frating_input\x18\x02 \x01(\v2\x16.films.FilmRatingInputR\vratingInput\"D\n" +
 	"\x11SetRatingResponse\x12/\n" +
 	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"8\n" +
 	"\x0fSiteMapResponse\x12%\n" +
@@ -2003,46 +2187,14 @@ const file_films_proto_rawDesc = "" +
 	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\"5\n" +
 	"\x05Pager\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\xd2\x01\n" +
-	"\tPromoFilm\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05image\x18\x02 \x01(\tR\x05image\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12+\n" +
-	"\x11short_description\x18\x05 \x01(\tR\x10shortDescription\x12\x12\n" +
-	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
-	"\x05genre\x18\a \x01(\tR\x05genre\x12\x1a\n" +
-	"\bduration\x18\b \x01(\x05R\bduration\"\xd5\x01\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\x8c\x01\n" +
 	"\fMainPageFilm\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05image\x18\x02 \x01(\tR\x05image\x12\x14\n" +
+	"\x05cover\x18\x02 \x01(\tR\x05cover\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12+\n" +
-	"\x11short_description\x18\x05 \x01(\tR\x10shortDescription\x12\x12\n" +
+	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12\x12\n" +
 	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
-	"\x05genre\x18\a \x01(\tR\x05genre\x12\x1a\n" +
-	"\bduration\x18\b \x01(\x05R\bduration\"\xd5\x03\n" +
-	"\bFilmPage\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05image\x18\x02 \x01(\tR\x05image\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12+\n" +
-	"\x11short_description\x18\x05 \x01(\tR\x10shortDescription\x12\x12\n" +
-	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
-	"\x05genre\x18\a \x01(\tR\x05genre\x12\x1a\n" +
-	"\bduration\x18\b \x01(\x05R\bduration\x12 \n" +
-	"\vdescription\x18\t \x01(\tR\vdescription\x12\x18\n" +
-	"\acountry\x18\n" +
-	" \x01(\tR\acountry\x12\x1a\n" +
-	"\bdirector\x18\v \x01(\tR\bdirector\x12\x16\n" +
-	"\x06budget\x18\f \x01(\x05R\x06budget\x12\x12\n" +
-	"\x04fees\x18\r \x01(\x05R\x04fees\x12'\n" +
-	"\x0fage_restriction\x18\x0e \x01(\x05R\x0eageRestriction\x12\x1f\n" +
-	"\vis_reviewed\x18\x0f \x01(\bR\n" +
-	"isReviewed\x12$\n" +
-	"\vuser_rating\x18\x10 \x01(\x05H\x00R\n" +
-	"userRating\x88\x01\x01B\x0e\n" +
-	"\f_user_rating\"\xcd\x02\n" +
+	"\x05genre\x18\a \x01(\tR\x05genre\"\xee\x02\n" +
 	"\fFilmFeedback\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x17\n" +
@@ -2053,43 +2205,68 @@ const file_films_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\a \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x17\n" +
-	"\ais_mine\x18\t \x01(\bR\x06isMine\x12\x1d\n" +
+	"updated_at\x18\b \x01(\tR\tupdatedAt\x12\x1d\n" +
 	"\n" +
-	"user_login\x18\n" +
-	" \x01(\tR\tuserLogin\x12&\n" +
-	"\x0fnew_film_rating\x18\v \x01(\x01R\rnewFilmRatingB\b\n" +
+	"user_login\x18\t \x01(\tR\tuserLogin\x12\x1f\n" +
+	"\vuser_avatar\x18\n" +
+	" \x01(\tR\n" +
+	"userAvatar\x12\x17\n" +
+	"\ais_mine\x18\v \x01(\bR\x06isMine\x12&\n" +
+	"\x0fnew_film_rating\x18\f \x01(\x01R\rnewFilmRatingB\b\n" +
 	"\x06_titleB\a\n" +
 	"\x05_text\"U\n" +
 	"\x11FilmFeedbackInput\x12\x14\n" +
 	"\x05title\x18\x01 \x01(\tR\x05title\x12\x12\n" +
 	"\x04text\x18\x02 \x01(\tR\x04text\x12\x16\n" +
-	"\x06rating\x18\x03 \x01(\x05R\x06rating\"@\n" +
+	"\x06rating\x18\x03 \x01(\x05R\x06rating\")\n" +
+	"\x0fFilmRatingInput\x12\x16\n" +
+	"\x06rating\x18\x01 \x01(\x05R\x06rating\"@\n" +
 	"\x06Urlset\x12\x14\n" +
 	"\x05xmlns\x18\x01 \x01(\tR\x05xmlns\x12 \n" +
 	"\x03url\x18\x02 \x03(\v2\x0e.films.URLItemR\x03url\"7\n" +
 	"\aURLItem\x12\x10\n" +
 	"\x03loc\x18\x01 \x01(\tR\x03loc\x12\x1a\n" +
-	"\bpriority\x18\x02 \x01(\x01R\bpriority\"+\n" +
+	"\bpriority\x18\x02 \x01(\x01R\bpriority\"a\n" +
 	"\x05Genre\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\"\xce\x02\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12 \n" +
+	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x12\n" +
+	"\x04icon\x18\x04 \x01(\tR\x04icon\"\xe5\x02\n" +
 	"\tActorPage\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\frussian_name\x18\x02 \x01(\tR\vrussianName\x12#\n" +
-	"\roriginal_name\x18\x03 \x01(\tR\foriginalName\x12\x14\n" +
+	"\frussian_name\x18\x02 \x01(\tR\vrussianName\x12(\n" +
+	"\roriginal_name\x18\x03 \x01(\tH\x00R\foriginalName\x88\x01\x01\x12\x14\n" +
 	"\x05photo\x18\x04 \x01(\tR\x05photo\x12\x16\n" +
-	"\x06height\x18\x05 \x01(\x01R\x06height\x12\x1d\n" +
+	"\x06height\x18\x05 \x01(\x05R\x06height\x12\x1d\n" +
 	"\n" +
 	"birth_date\x18\x06 \x01(\tR\tbirthDate\x12\x10\n" +
 	"\x03age\x18\a \x01(\x05R\x03age\x12\x1f\n" +
 	"\vzodiac_sign\x18\b \x01(\tR\n" +
 	"zodiacSign\x12\x1f\n" +
-	"\vbirth_place\x18\t \x03(\tR\n" +
+	"\vbirth_place\x18\t \x01(\tR\n" +
 	"birthPlace\x12%\n" +
 	"\x0emarital_status\x18\n" +
 	" \x01(\tR\rmaritalStatus\x12!\n" +
-	"\ffilms_number\x18\v \x01(\x05R\vfilmsNumber2\xcc\x06\n" +
+	"\ffilms_number\x18\v \x01(\x05R\vfilmsNumberB\x10\n" +
+	"\x0e_original_name\"\xde\x02\n" +
+	"\x05Actor\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
+	"\frussian_name\x18\x02 \x01(\tH\x00R\vrussianName\x88\x01\x01\x12#\n" +
+	"\roriginal_name\x18\x03 \x01(\tR\foriginalName\x12\x14\n" +
+	"\x05photo\x18\x04 \x01(\tR\x05photo\x12\x16\n" +
+	"\x06height\x18\x05 \x01(\x05R\x06height\x12\x1d\n" +
+	"\n" +
+	"birth_date\x18\x06 \x01(\tR\tbirthDate\x12\"\n" +
+	"\n" +
+	"death_date\x18\a \x01(\tH\x01R\tdeathDate\x88\x01\x01\x12\x1f\n" +
+	"\vzodiac_sign\x18\b \x01(\tR\n" +
+	"zodiacSign\x12\x1f\n" +
+	"\vbirth_place\x18\t \x01(\tR\n" +
+	"birthPlace\x12%\n" +
+	"\x0emarital_status\x18\n" +
+	" \x01(\tR\rmaritalStatusB\x0f\n" +
+	"\r_russian_nameB\r\n" +
+	"\v_death_date2\xcc\x06\n" +
 	"\x05Films\x12B\n" +
 	"\fGetPromoFilm\x12\x13.films.EmptyRequest\x1a\x1b.films.GetPromoFilmResponse\"\x00\x12=\n" +
 	"\bGetFilms\x12\x16.films.GetFilmsRequest\x1a\x17.films.GetFilmsResponse\"\x00\x12:\n" +
@@ -2142,66 +2319,65 @@ var file_films_proto_goTypes = []any{
 	(*GetFilmsByActorRequest)(nil),   // 21: films.GetFilmsByActorRequest
 	(*GetFilmsByActorResponse)(nil),  // 22: films.GetFilmsByActorResponse
 	(*Pager)(nil),                    // 23: films.Pager
-	(*PromoFilm)(nil),                // 24: films.PromoFilm
-	(*MainPageFilm)(nil),             // 25: films.MainPageFilm
-	(*FilmPage)(nil),                 // 26: films.FilmPage
-	(*FilmFeedback)(nil),             // 27: films.FilmFeedback
-	(*FilmFeedbackInput)(nil),        // 28: films.FilmFeedbackInput
-	(*Urlset)(nil),                   // 29: films.Urlset
-	(*URLItem)(nil),                  // 30: films.URLItem
-	(*Genre)(nil),                    // 31: films.Genre
-	(*ActorPage)(nil),                // 32: films.ActorPage
+	(*MainPageFilm)(nil),             // 24: films.MainPageFilm
+	(*FilmFeedback)(nil),             // 25: films.FilmFeedback
+	(*FilmFeedbackInput)(nil),        // 26: films.FilmFeedbackInput
+	(*FilmRatingInput)(nil),          // 27: films.FilmRatingInput
+	(*Urlset)(nil),                   // 28: films.Urlset
+	(*URLItem)(nil),                  // 29: films.URLItem
+	(*Genre)(nil),                    // 30: films.Genre
+	(*ActorPage)(nil),                // 31: films.ActorPage
+	(*Actor)(nil),                    // 32: films.Actor
 }
 var file_films_proto_depIdxs = []int32{
-	24, // 0: films.GetPromoFilmResponse.promo_film:type_name -> films.PromoFilm
-	23, // 1: films.GetFilmsRequest.pager:type_name -> films.Pager
-	25, // 2: films.GetFilmsResponse.films:type_name -> films.MainPageFilm
-	26, // 3: films.GetFilmResponse.film:type_name -> films.FilmPage
-	23, // 4: films.GetFilmFeedbacksRequest.pager:type_name -> films.Pager
-	27, // 5: films.GetFilmFeedbacksResponse.feedbacks:type_name -> films.FilmFeedback
-	28, // 6: films.SendFeedbackRequest.feedback:type_name -> films.FilmFeedbackInput
-	27, // 7: films.SendFeedbackResponse.feedback:type_name -> films.FilmFeedback
-	28, // 8: films.SetRatingRequest.rating_input:type_name -> films.FilmFeedbackInput
-	27, // 9: films.SetRatingResponse.feedback:type_name -> films.FilmFeedback
-	29, // 10: films.SiteMapResponse.urlset:type_name -> films.Urlset
-	31, // 11: films.GetGenreResponse.genre:type_name -> films.Genre
-	23, // 12: films.GetGenresRequest.pager:type_name -> films.Pager
-	31, // 13: films.GetGenresResponse.genres:type_name -> films.Genre
-	23, // 14: films.GetFilmsByGenreRequest.pager:type_name -> films.Pager
-	25, // 15: films.GetFilmsByGenreResponse.films:type_name -> films.MainPageFilm
-	32, // 16: films.GetActorResponse.actor:type_name -> films.ActorPage
-	23, // 17: films.GetFilmsByActorRequest.pager:type_name -> films.Pager
-	25, // 18: films.GetFilmsByActorResponse.films:type_name -> films.MainPageFilm
-	30, // 19: films.Urlset.url:type_name -> films.URLItem
-	0,  // 20: films.Films.GetPromoFilm:input_type -> films.EmptyRequest
-	2,  // 21: films.Films.GetFilms:input_type -> films.GetFilmsRequest
-	4,  // 22: films.Films.GetFilm:input_type -> films.GetFilmRequest
-	6,  // 23: films.Films.GetFilmFeedbacks:input_type -> films.GetFilmFeedbacksRequest
-	8,  // 24: films.Films.SendFeedback:input_type -> films.SendFeedbackRequest
-	10, // 25: films.Films.SetRating:input_type -> films.SetRatingRequest
-	0,  // 26: films.Films.SiteMap:input_type -> films.EmptyRequest
-	13, // 27: films.Films.GetGenre:input_type -> films.GetGenreRequest
-	15, // 28: films.Films.GetGenres:input_type -> films.GetGenresRequest
-	17, // 29: films.Films.GetFilmsByGenre:input_type -> films.GetFilmsByGenreRequest
-	19, // 30: films.Films.GetActor:input_type -> films.GetActorRequest
-	21, // 31: films.Films.GetFilmsByActor:input_type -> films.GetFilmsByActorRequest
-	1,  // 32: films.Films.GetPromoFilm:output_type -> films.GetPromoFilmResponse
-	3,  // 33: films.Films.GetFilms:output_type -> films.GetFilmsResponse
-	5,  // 34: films.Films.GetFilm:output_type -> films.GetFilmResponse
-	7,  // 35: films.Films.GetFilmFeedbacks:output_type -> films.GetFilmFeedbacksResponse
-	9,  // 36: films.Films.SendFeedback:output_type -> films.SendFeedbackResponse
-	11, // 37: films.Films.SetRating:output_type -> films.SetRatingResponse
-	12, // 38: films.Films.SiteMap:output_type -> films.SiteMapResponse
-	14, // 39: films.Films.GetGenre:output_type -> films.GetGenreResponse
-	16, // 40: films.Films.GetGenres:output_type -> films.GetGenresResponse
-	18, // 41: films.Films.GetFilmsByGenre:output_type -> films.GetFilmsByGenreResponse
-	20, // 42: films.Films.GetActor:output_type -> films.GetActorResponse
-	22, // 43: films.Films.GetFilmsByActor:output_type -> films.GetFilmsByActorResponse
-	32, // [32:44] is the sub-list for method output_type
-	20, // [20:32] is the sub-list for method input_type
-	20, // [20:20] is the sub-list for extension type_name
-	20, // [20:20] is the sub-list for extension extendee
-	0,  // [0:20] is the sub-list for field type_name
+	23, // 0: films.GetFilmsRequest.pager:type_name -> films.Pager
+	24, // 1: films.GetFilmsResponse.films:type_name -> films.MainPageFilm
+	32, // 2: films.GetFilmResponse.actors:type_name -> films.Actor
+	23, // 3: films.GetFilmFeedbacksRequest.pager:type_name -> films.Pager
+	25, // 4: films.GetFilmFeedbacksResponse.feedbacks:type_name -> films.FilmFeedback
+	26, // 5: films.SendFeedbackRequest.feedback:type_name -> films.FilmFeedbackInput
+	25, // 6: films.SendFeedbackResponse.feedback:type_name -> films.FilmFeedback
+	27, // 7: films.SetRatingRequest.rating_input:type_name -> films.FilmRatingInput
+	25, // 8: films.SetRatingResponse.feedback:type_name -> films.FilmFeedback
+	28, // 9: films.SiteMapResponse.urlset:type_name -> films.Urlset
+	30, // 10: films.GetGenreResponse.genre:type_name -> films.Genre
+	23, // 11: films.GetGenresRequest.pager:type_name -> films.Pager
+	30, // 12: films.GetGenresResponse.genres:type_name -> films.Genre
+	23, // 13: films.GetFilmsByGenreRequest.pager:type_name -> films.Pager
+	24, // 14: films.GetFilmsByGenreResponse.films:type_name -> films.MainPageFilm
+	31, // 15: films.GetActorResponse.actor:type_name -> films.ActorPage
+	23, // 16: films.GetFilmsByActorRequest.pager:type_name -> films.Pager
+	24, // 17: films.GetFilmsByActorResponse.films:type_name -> films.MainPageFilm
+	29, // 18: films.Urlset.url:type_name -> films.URLItem
+	0,  // 19: films.Films.GetPromoFilm:input_type -> films.EmptyRequest
+	2,  // 20: films.Films.GetFilms:input_type -> films.GetFilmsRequest
+	4,  // 21: films.Films.GetFilm:input_type -> films.GetFilmRequest
+	6,  // 22: films.Films.GetFilmFeedbacks:input_type -> films.GetFilmFeedbacksRequest
+	8,  // 23: films.Films.SendFeedback:input_type -> films.SendFeedbackRequest
+	10, // 24: films.Films.SetRating:input_type -> films.SetRatingRequest
+	0,  // 25: films.Films.SiteMap:input_type -> films.EmptyRequest
+	13, // 26: films.Films.GetGenre:input_type -> films.GetGenreRequest
+	15, // 27: films.Films.GetGenres:input_type -> films.GetGenresRequest
+	17, // 28: films.Films.GetFilmsByGenre:input_type -> films.GetFilmsByGenreRequest
+	19, // 29: films.Films.GetActor:input_type -> films.GetActorRequest
+	21, // 30: films.Films.GetFilmsByActor:input_type -> films.GetFilmsByActorRequest
+	1,  // 31: films.Films.GetPromoFilm:output_type -> films.GetPromoFilmResponse
+	3,  // 32: films.Films.GetFilms:output_type -> films.GetFilmsResponse
+	5,  // 33: films.Films.GetFilm:output_type -> films.GetFilmResponse
+	7,  // 34: films.Films.GetFilmFeedbacks:output_type -> films.GetFilmFeedbacksResponse
+	9,  // 35: films.Films.SendFeedback:output_type -> films.SendFeedbackResponse
+	11, // 36: films.Films.SetRating:output_type -> films.SetRatingResponse
+	12, // 37: films.Films.SiteMap:output_type -> films.SiteMapResponse
+	14, // 38: films.Films.GetGenre:output_type -> films.GetGenreResponse
+	16, // 39: films.Films.GetGenres:output_type -> films.GetGenresResponse
+	18, // 40: films.Films.GetFilmsByGenre:output_type -> films.GetFilmsByGenreResponse
+	20, // 41: films.Films.GetActor:output_type -> films.GetActorResponse
+	22, // 42: films.Films.GetFilmsByActor:output_type -> films.GetFilmsByActorResponse
+	31, // [31:43] is the sub-list for method output_type
+	19, // [19:31] is the sub-list for method input_type
+	19, // [19:19] is the sub-list for extension type_name
+	19, // [19:19] is the sub-list for extension extendee
+	0,  // [0:19] is the sub-list for field type_name
 }
 
 func init() { file_films_proto_init() }
@@ -2209,8 +2385,10 @@ func file_films_proto_init() {
 	if File_films_proto != nil {
 		return
 	}
-	file_films_proto_msgTypes[26].OneofWrappers = []any{}
-	file_films_proto_msgTypes[27].OneofWrappers = []any{}
+	file_films_proto_msgTypes[5].OneofWrappers = []any{}
+	file_films_proto_msgTypes[25].OneofWrappers = []any{}
+	file_films_proto_msgTypes[31].OneofWrappers = []any{}
+	file_films_proto_msgTypes[32].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
