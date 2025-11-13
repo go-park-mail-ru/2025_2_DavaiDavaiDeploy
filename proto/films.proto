@@ -22,7 +22,14 @@ service Films {
 message EmptyRequest {}
 
 message GetPromoFilmResponse {
-  PromoFilm promo_film = 1;
+  string id = 1;
+  string image = 2;
+  string title = 3;
+  double rating = 4;
+  string short_description = 5;
+  int32 year = 6;
+  string genre = 7;
+  int32 duration = 8;
 }
 
 message GetFilmsRequest {
@@ -38,7 +45,30 @@ message GetFilmRequest {
 }
 
 message GetFilmResponse {
-  FilmPage film = 1;
+  string id = 1;
+  string title = 2;
+  optional string original_title = 3;
+  string cover = 4;
+  string poster = 5;
+  string genre = 6;
+  string short_description = 7;
+  string description = 8;
+  string age_category = 9;
+  int32 budget = 10;
+  int32 worldwide_fees = 11;
+  optional string trailer_url = 12;
+  int32 number_of_ratings = 13;
+  int32 year = 14;
+  double rating = 15;
+  string country = 16;
+  optional string slogan = 17;
+  int32 duration = 18;
+  optional string image1 = 19;
+  optional string image2 = 20;
+  optional string image3 = 21;
+  repeated Actor actors = 22;
+  bool is_reviewed = 23;
+  optional int32 user_rating = 24;
 }
 
 message GetFilmFeedbacksRequest {
@@ -61,7 +91,7 @@ message SendFeedbackResponse {
 
 message SetRatingRequest {
   string film_id = 1;
-  FilmFeedbackInput rating_input = 2;
+  FilmRatingInput rating_input = 2;
 }
 
 message SetRatingResponse {
@@ -119,45 +149,14 @@ message Pager {
   int32 offset = 2;
 }
 
-message PromoFilm {
-  string id = 1;
-  string image = 2;
-  string title = 3;
-  double rating = 4;
-  string short_description = 5;
-  int32 year = 6;
-  string genre = 7;
-  int32 duration = 8;
-}
 
 message MainPageFilm {
   string id = 1;
-  string image = 2;
+  string cover = 2;
   string title = 3;
   double rating = 4;
-  string short_description = 5;
   int32 year = 6;
   string genre = 7;
-  int32 duration = 8;
-}
-
-message FilmPage {
-  string id = 1;
-  string image = 2;
-  string title = 3;
-  double rating = 4;
-  string short_description = 5;
-  int32 year = 6;
-  string genre = 7;
-  int32 duration = 8;
-  string description = 9;
-  string country = 10;
-  string director = 11;
-  int32 budget = 12;
-  int32 fees = 13;
-  int32 age_restriction = 14;
-  bool is_reviewed = 15;
-  optional int32 user_rating = 16;
 }
 
 message FilmFeedback {
@@ -169,15 +168,20 @@ message FilmFeedback {
   int32 rating = 6;
   string created_at = 7;
   string updated_at = 8;
-  bool is_mine = 9;
-  string user_login = 10;
-  double new_film_rating = 11;
+  string user_login = 9;
+  string user_avatar = 10;
+  bool is_mine = 11;
+  double new_film_rating = 12;
 }
 
 message FilmFeedbackInput {
   string title = 1;
   string text = 2;
   int32 rating = 3;
+}
+
+message FilmRatingInput {
+  int32 rating = 1;
 }
 
 message Urlset {
@@ -193,18 +197,20 @@ message URLItem {
 message Genre {
   string id = 1;
   string name = 2;
+  string description = 3;
+  string icon = 4;
 }
 
 message ActorPage {
   string id = 1;
   string russian_name = 2;
-  string original_name = 3;
+  optional string original_name = 3;
   string photo = 4;
-  double height = 5;
+  int32 height = 5;
   string birth_date = 6;
   int32 age = 7;
   string zodiac_sign = 8;
-  repeated string birth_place = 9;
+  string birth_place = 9;
   string marital_status = 10;
   int32 films_number = 11;
 }
