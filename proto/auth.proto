@@ -6,9 +6,11 @@ service Auth {
   rpc SignupUser(SignupRequest) returns (AuthResponse) {}
   rpc SignInUser(SignInRequest) returns (AuthResponse) {}
   rpc CheckAuth(CheckAuthRequest) returns (UserResponse) {}
+  rpc LogOutUser(LogOutUserRequest) returns (LogOutUserResponse) {}
   rpc GetUser(GetUserRequest) returns (UserResponse) {}
   rpc ChangePassword(ChangePasswordRequest) returns (AuthResponse) {}
   rpc ChangeAvatar(ChangeAvatarRequest) returns (AuthResponse) {}
+  rpc ValidateAndGetUser(ValidateAndGetUserRequest) returns (UserResponse) {}
 }
 
 message UserResponse {
@@ -29,15 +31,15 @@ message SignInRequest {
 }
 
 message AuthResponse {  
-  UserResponse user = 1;
+  UserResponse User = 1;
+  string JWTToken = 2;
+  string CSRFToken = 3;
 }
 
 message CheckAuthRequest {}  
 
-message LogOutUserRequest {} 
-
 message GetUserRequest {
-  string id = 1;
+  string ID = 1;
 }
 
 message ChangePasswordRequest {
@@ -46,7 +48,13 @@ message ChangePasswordRequest {
 }
 
 message ChangeAvatarRequest {
-  bytes avatar = 1; 
+  bytes Avatar = 1; 
+  string FileFormat = 2;
 }
 
-message LogOutUserResponse {}
+message LogOutUserRequest{}
+message LogOutUserResponse{}
+
+message ValidateAndGetUserRequest{
+  string Token = 1;
+}

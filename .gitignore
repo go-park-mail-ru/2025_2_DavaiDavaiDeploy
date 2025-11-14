@@ -23,6 +23,7 @@ profile.cov
 # Go workspace file
 go.work
 go.work.sum
+go1.24.7.linux-amd64.tar.gz
 
 # env file
 .env

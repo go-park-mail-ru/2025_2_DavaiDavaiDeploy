@@ -6,6 +6,7 @@ import (
 	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
+	"kinopoisk/internal/pkg/auth/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -13,7 +14,8 @@ import (
 	"os"
 	"time"
 
-	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -25,10 +27,10 @@ type AuthHandler struct {
 	JWTSecret      string
 	CookieSecure   bool
 	CookieSamesite http.SameSite
-	uc             auth.AuthUsecase
+	client         gen.AuthClient
 }
 
-func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
+func NewAuthHandler(client gen.AuthClient) *AuthHandler {
 	secure := false
 	cookieValue := os.Getenv("COOKIE_SECURE")
 	if cookieValue == "true" {
@@ -45,7 +47,7 @@ func NewAuthHandler(uc auth.AuthUsecase) *AuthHandler {
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		CookieSecure:   secure,
 		CookieSamesite: samesite,
-		uc:             uc,
+		client:         client,
 	}
 }
 
@@ -73,24 +75,25 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Sanitize()
 
-	user, token, err := a.uc.SignUpUser(r.Context(), req)
+	user, err := a.client.SignupUser(r.Context(), &gen.SignupRequest{
+		Login:    req.Login,
+		Password: req.Password})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, auth.ErrorBadRequest):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
-		case errors.Is(err, auth.ErrorConflict):
+		case codes.AlreadyExists:
 			helpers.WriteError(w, http.StatusConflict)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-
-	csrfToken := uuid.NewV4().String()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CSRFCookieName,
-		Value:    csrfToken,
+		Value:    user.CSRFToken,
 		HttpOnly: false,
 		Secure:   a.CookieSecure,
 		SameSite: a.CookieSamesite,
@@ -100,16 +103,15 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
-		Value:    token,
+		Value:    user.JWTToken,
 		HttpOnly: true,
 		Secure:   a.CookieSecure,
 		SameSite: a.CookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	user.Sanitize()
 
-	w.Header().Set("X-CSRF-Token", csrfToken)
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -138,22 +140,23 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Sanitize()
 
-	user, token, err := a.uc.SignInUser(r.Context(), req)
+	user, err := a.client.SignInUser(r.Context(), &gen.SignInRequest{
+		Login:    req.Login,
+		Password: req.Password})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, auth.ErrorBadRequest):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-
-	csrfToken := uuid.NewV4().String()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CSRFCookieName,
-		Value:    csrfToken,
+		Value:    user.CSRFToken,
 		HttpOnly: false,
 		Secure:   a.CookieSecure,
 		SameSite: a.CookieSamesite,
@@ -163,15 +166,15 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
-		Value:    token,
+		Value:    user.JWTToken,
 		HttpOnly: true,
 		Secure:   a.CookieSecure,
 		SameSite: a.CookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	user.Sanitize()
-	w.Header().Set("X-CSRF-Token", csrfToken)
+
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, user)
 
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -213,12 +216,16 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			token = cookie.Value
 		}
 
-		user, err := a.uc.ValidateAndGetUser(r.Context(), token)
+		user, err := a.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized)
-			return
+			st, _ := status.FromError(err)
+			switch st.Code() {
+			case codes.Unauthenticated:
+				helpers.WriteError(w, http.StatusUnauthorized)
+			default:
+				helpers.WriteError(w, http.StatusInternalServerError)
+			}
 		}
-		user.Sanitize()
 		ctx := context.WithValue(r.Context(), auth.UserKey, user)
 
 		log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -237,17 +244,16 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 // @Router /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	user, err := a.uc.CheckAuth(r.Context())
+	user, err := a.client.CheckAuth(r.Context(), &gen.CheckAuthRequest{})
 	if err != nil {
-		switch {
-		case errors.Is(err, auth.ErrorUnauthorized):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
 			helpers.WriteError(w, http.StatusUnauthorized)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-	user.Sanitize()
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -263,14 +269,15 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	err := a.uc.LogOutUser(r.Context())
+	_, err := a.client.LogOutUser(r.Context(), &gen.LogOutUserRequest{})
 	if err != nil {
-		if errors.Is(err, auth.ErrorUnauthorized) {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
 			helpers.WriteError(w, http.StatusUnauthorized)
-		} else {
+		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
