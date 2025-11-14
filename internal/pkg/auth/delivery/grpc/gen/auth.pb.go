@@ -196,8 +196,6 @@ func (x *SignInRequest) GetPassword() string {
 type AuthResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	User          *UserResponse          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	JwtToken      string                 `protobuf:"bytes,2,opt,name=jwt_token,json=jwtToken,proto3" json:"jwt_token,omitempty"`
-	CsrfToken     string                 `protobuf:"bytes,3,opt,name=csrf_token,json=csrfToken,proto3" json:"csrf_token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -237,20 +235,6 @@ func (x *AuthResponse) GetUser() *UserResponse {
 		return x.User
 	}
 	return nil
-}
-
-func (x *AuthResponse) GetJwtToken() string {
-	if x != nil {
-		return x.JwtToken
-	}
-	return ""
-}
-
-func (x *AuthResponse) GetCsrfToken() string {
-	if x != nil {
-		return x.CsrfToken
-	}
-	return ""
 }
 
 type CheckAuthRequest struct {
@@ -517,12 +501,9 @@ const file_auth_proto_rawDesc = "" +
 	"\bPassword\x18\x02 \x01(\tR\bPassword\"A\n" +
 	"\rSignInRequest\x12\x14\n" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
-	"\bPassword\x18\x02 \x01(\tR\bPassword\"r\n" +
+	"\bPassword\x18\x02 \x01(\tR\bPassword\"6\n" +
 	"\fAuthResponse\x12&\n" +
-	"\x04user\x18\x01 \x01(\v2\x12.auth.UserResponseR\x04user\x12\x1b\n" +
-	"\tjwt_token\x18\x02 \x01(\tR\bjwtToken\x12\x1d\n" +
-	"\n" +
-	"csrf_token\x18\x03 \x01(\tR\tcsrfToken\"\x12\n" +
+	"\x04user\x18\x01 \x01(\v2\x12.auth.UserResponseR\x04user\"\x12\n" +
 	"\x10CheckAuthRequest\"\x13\n" +
 	"\x11LogOutUserRequest\" \n" +
 	"\x0eGetUserRequest\x12\x0e\n" +
@@ -532,15 +513,13 @@ const file_auth_proto_rawDesc = "" +
 	"\vNewPassword\x18\x02 \x01(\tR\vNewPassword\"-\n" +
 	"\x13ChangeAvatarRequest\x12\x16\n" +
 	"\x06avatar\x18\x01 \x01(\fR\x06avatar\"\x14\n" +
-	"\x12LogOutUserResponse2\xb3\x03\n" +
+	"\x12LogOutUserResponse2\xf0\x02\n" +
 	"\x04Auth\x127\n" +
 	"\n" +
 	"SignupUser\x12\x13.auth.SignupRequest\x1a\x12.auth.AuthResponse\"\x00\x127\n" +
 	"\n" +
 	"SignInUser\x12\x13.auth.SignInRequest\x1a\x12.auth.AuthResponse\"\x00\x129\n" +
-	"\tCheckAuth\x12\x16.auth.CheckAuthRequest\x1a\x12.auth.UserResponse\"\x00\x12A\n" +
-	"\n" +
-	"LogOutUser\x12\x17.auth.LogOutUserRequest\x1a\x18.auth.LogOutUserResponse\"\x00\x125\n" +
+	"\tCheckAuth\x12\x16.auth.CheckAuthRequest\x1a\x12.auth.UserResponse\"\x00\x125\n" +
 	"\aGetUser\x12\x14.auth.GetUserRequest\x1a\x12.auth.UserResponse\"\x00\x12C\n" +
 	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x12.auth.AuthResponse\"\x00\x12?\n" +
 	"\fChangeAvatar\x12\x19.auth.ChangeAvatarRequest\x1a\x12.auth.AuthResponse\"\x00B,Z*./internal/pkg/auth/delivery/grpc/gen/;genb\x06proto3"
@@ -575,19 +554,17 @@ var file_auth_proto_depIdxs = []int32{
 	1, // 1: auth.Auth.SignupUser:input_type -> auth.SignupRequest
 	2, // 2: auth.Auth.SignInUser:input_type -> auth.SignInRequest
 	4, // 3: auth.Auth.CheckAuth:input_type -> auth.CheckAuthRequest
-	5, // 4: auth.Auth.LogOutUser:input_type -> auth.LogOutUserRequest
-	6, // 5: auth.Auth.GetUser:input_type -> auth.GetUserRequest
-	7, // 6: auth.Auth.ChangePassword:input_type -> auth.ChangePasswordRequest
-	8, // 7: auth.Auth.ChangeAvatar:input_type -> auth.ChangeAvatarRequest
-	3, // 8: auth.Auth.SignupUser:output_type -> auth.AuthResponse
-	3, // 9: auth.Auth.SignInUser:output_type -> auth.AuthResponse
-	0, // 10: auth.Auth.CheckAuth:output_type -> auth.UserResponse
-	9, // 11: auth.Auth.LogOutUser:output_type -> auth.LogOutUserResponse
-	0, // 12: auth.Auth.GetUser:output_type -> auth.UserResponse
-	3, // 13: auth.Auth.ChangePassword:output_type -> auth.AuthResponse
-	3, // 14: auth.Auth.ChangeAvatar:output_type -> auth.AuthResponse
-	8, // [8:15] is the sub-list for method output_type
-	1, // [1:8] is the sub-list for method input_type
+	6, // 4: auth.Auth.GetUser:input_type -> auth.GetUserRequest
+	7, // 5: auth.Auth.ChangePassword:input_type -> auth.ChangePasswordRequest
+	8, // 6: auth.Auth.ChangeAvatar:input_type -> auth.ChangeAvatarRequest
+	3, // 7: auth.Auth.SignupUser:output_type -> auth.AuthResponse
+	3, // 8: auth.Auth.SignInUser:output_type -> auth.AuthResponse
+	0, // 9: auth.Auth.CheckAuth:output_type -> auth.UserResponse
+	0, // 10: auth.Auth.GetUser:output_type -> auth.UserResponse
+	3, // 11: auth.Auth.ChangePassword:output_type -> auth.AuthResponse
+	3, // 12: auth.Auth.ChangeAvatar:output_type -> auth.AuthResponse
+	7, // [7:13] is the sub-list for method output_type
+	1, // [1:7] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name
