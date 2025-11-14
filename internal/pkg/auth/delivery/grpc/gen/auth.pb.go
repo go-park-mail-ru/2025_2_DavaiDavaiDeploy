@@ -594,9 +594,7 @@ const file_auth_proto_rawDesc = "" +
 	"SignupUser\x12\x13.auth.SignupRequest\x1a\x12.auth.AuthResponse\"\x00\x127\n" +
 	"\n" +
 	"SignInUser\x12\x13.auth.SignInRequest\x1a\x12.auth.AuthResponse\"\x00\x129\n" +
-	"\tCheckAuth\x12\x16.auth.CheckAuthRequest\x1a\x12.auth.UserResponse\"\x00\x12A\n" +
-	"\n" +
-	"LogOutUser\x12\x17.auth.LogOutUserRequest\x1a\x18.auth.LogOutUserResponse\"\x00\x125\n" +
+	"\tCheckAuth\x12\x16.auth.CheckAuthRequest\x1a\x12.auth.UserResponse\"\x00\x125\n" +
 	"\aGetUser\x12\x14.auth.GetUserRequest\x1a\x12.auth.UserResponse\"\x00\x12C\n" +
 	"\x0eChangePassword\x12\x1b.auth.ChangePasswordRequest\x1a\x12.auth.AuthResponse\"\x00\x12?\n" +
 	"\fChangeAvatar\x12\x19.auth.ChangeAvatarRequest\x1a\x12.auth.AuthResponse\"\x00\x12K\n" +

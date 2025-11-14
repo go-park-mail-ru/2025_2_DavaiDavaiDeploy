@@ -36,7 +36,6 @@ type AuthClient interface {
 	SignupUser(ctx context.Context, in *SignupRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	SignInUser(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	CheckAuth(ctx context.Context, in *CheckAuthRequest, opts ...grpc.CallOption) (*UserResponse, error)
-	LogOutUser(ctx context.Context, in *LogOutUserRequest, opts ...grpc.CallOption) (*LogOutUserResponse, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*AuthResponse, error)
@@ -75,16 +74,6 @@ func (c *authClient) CheckAuth(ctx context.Context, in *CheckAuthRequest, opts .
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UserResponse)
 	err := c.cc.Invoke(ctx, Auth_CheckAuth_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authClient) LogOutUser(ctx context.Context, in *LogOutUserRequest, opts ...grpc.CallOption) (*LogOutUserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(LogOutUserResponse)
-	err := c.cc.Invoke(ctx, Auth_LogOutUser_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +127,6 @@ type AuthServer interface {
 	SignupUser(context.Context, *SignupRequest) (*AuthResponse, error)
 	SignInUser(context.Context, *SignInRequest) (*AuthResponse, error)
 	CheckAuth(context.Context, *CheckAuthRequest) (*UserResponse, error)
-	LogOutUser(context.Context, *LogOutUserRequest) (*LogOutUserResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*AuthResponse, error)
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*AuthResponse, error)
@@ -161,9 +149,6 @@ func (UnimplementedAuthServer) SignInUser(context.Context, *SignInRequest) (*Aut
 }
 func (UnimplementedAuthServer) CheckAuth(context.Context, *CheckAuthRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
-}
-func (UnimplementedAuthServer) LogOutUser(context.Context, *LogOutUserRequest) (*LogOutUserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LogOutUser not implemented")
 }
 func (UnimplementedAuthServer) GetUser(context.Context, *GetUserRequest) (*UserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUser not implemented")
@@ -248,24 +233,6 @@ func _Auth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).CheckAuth(ctx, req.(*CheckAuthRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Auth_LogOutUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(LogOutUserRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).LogOutUser(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Auth_LogOutUser_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).LogOutUser(ctx, req.(*LogOutUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -360,10 +327,6 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckAuth",
 			Handler:    _Auth_CheckAuth_Handler,
-		},
-		{
-			MethodName: "LogOutUser",
-			Handler:    _Auth_LogOutUser_Handler,
 		},
 		{
 			MethodName: "GetUser",
