@@ -97,7 +97,10 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 				helpers.WriteError(w, http.StatusInternalServerError)
 			}
 		}
-		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
+		neededUser := models.User{
+			ID: uuid.FromStringOrNil(user.ID),
+		}
+		ctx := context.WithValue(r.Context(), users.UserKey, neededUser.ID)
 
 		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))

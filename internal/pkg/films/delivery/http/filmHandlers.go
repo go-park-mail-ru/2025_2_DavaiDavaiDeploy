@@ -151,7 +151,13 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 		if token != "" {
 			user, err := c.client.ValidateUser(r.Context(), &gen.ValidateUserRequest{Token: token})
 			if err == nil {
-				ctx := context.WithValue(r.Context(), auth.UserKey, user)
+				neededUser := models.User{
+					ID:      uuid.FromStringOrNil(user.ID),
+					Version: int(user.Version),
+					Login:   user.Login,
+					Avatar:  user.Avatar,
+				}
+				ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
 			}
