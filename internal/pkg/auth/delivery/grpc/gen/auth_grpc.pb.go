@@ -19,12 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Auth_SignupUser_FullMethodName     = "/auth.Auth/SignupUser"
-	Auth_SignInUser_FullMethodName     = "/auth.Auth/SignInUser"
-	Auth_CheckAuth_FullMethodName      = "/auth.Auth/CheckAuth"
-	Auth_GetUser_FullMethodName        = "/auth.Auth/GetUser"
-	Auth_ChangePassword_FullMethodName = "/auth.Auth/ChangePassword"
-	Auth_ChangeAvatar_FullMethodName   = "/auth.Auth/ChangeAvatar"
+	Auth_SignupUser_FullMethodName         = "/auth.Auth/SignupUser"
+	Auth_SignInUser_FullMethodName         = "/auth.Auth/SignInUser"
+	Auth_CheckAuth_FullMethodName          = "/auth.Auth/CheckAuth"
+	Auth_LogOutUser_FullMethodName         = "/auth.Auth/LogOutUser"
+	Auth_GetUser_FullMethodName            = "/auth.Auth/GetUser"
+	Auth_ChangePassword_FullMethodName     = "/auth.Auth/ChangePassword"
+	Auth_ChangeAvatar_FullMethodName       = "/auth.Auth/ChangeAvatar"
+	Auth_ValidateAndGetUser_FullMethodName = "/auth.Auth/ValidateAndGetUser"
 )
 
 // AuthClient is the client API for Auth service.
@@ -37,6 +39,7 @@ type AuthClient interface {
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*AuthResponse, error)
+	ValidateAndGetUser(ctx context.Context, in *ValidateAndGetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 }
 
 type authClient struct {
@@ -107,6 +110,16 @@ func (c *authClient) ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, 
 	return out, nil
 }
 
+func (c *authClient) ValidateAndGetUser(ctx context.Context, in *ValidateAndGetUserRequest, opts ...grpc.CallOption) (*UserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UserResponse)
+	err := c.cc.Invoke(ctx, Auth_ValidateAndGetUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServer is the server API for Auth service.
 // All implementations must embed UnimplementedAuthServer
 // for forward compatibility.
@@ -117,6 +130,7 @@ type AuthServer interface {
 	GetUser(context.Context, *GetUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*AuthResponse, error)
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*AuthResponse, error)
+	ValidateAndGetUser(context.Context, *ValidateAndGetUserRequest) (*UserResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -144,6 +158,9 @@ func (UnimplementedAuthServer) ChangePassword(context.Context, *ChangePasswordRe
 }
 func (UnimplementedAuthServer) ChangeAvatar(context.Context, *ChangeAvatarRequest) (*AuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ChangeAvatar not implemented")
+}
+func (UnimplementedAuthServer) ValidateAndGetUser(context.Context, *ValidateAndGetUserRequest) (*UserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateAndGetUser not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}
 func (UnimplementedAuthServer) testEmbeddedByValue()              {}
@@ -274,6 +291,24 @@ func _Auth_ChangeAvatar_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Auth_ValidateAndGetUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateAndGetUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServer).ValidateAndGetUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Auth_ValidateAndGetUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServer).ValidateAndGetUser(ctx, req.(*ValidateAndGetUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Auth_ServiceDesc is the grpc.ServiceDesc for Auth service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +339,10 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ChangeAvatar",
 			Handler:    _Auth_ChangeAvatar_Handler,
+		},
+		{
+			MethodName: "ValidateAndGetUser",
+			Handler:    _Auth_ValidateAndGetUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
