@@ -95,7 +95,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, mainPageFilms)
+	helpers.WriteJSON(w, mainPageFilms.Films)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
