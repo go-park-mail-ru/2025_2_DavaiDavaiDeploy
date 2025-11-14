@@ -166,6 +166,8 @@ func main() {
 	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Repo)
 	userHandler := userHandlers.NewUserHandler(userUsecase)
 
+	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
+
 	// Auth routes
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
