@@ -6,7 +6,6 @@ service Auth {
   rpc SignupUser(SignupRequest) returns (AuthResponse) {}
   rpc SignInUser(SignInRequest) returns (AuthResponse) {}
   rpc CheckAuth(CheckAuthRequest) returns (UserResponse) {}
-  rpc LogOutUser(LogOutUserRequest) returns (LogOutUserResponse) {}
   rpc GetUser(GetUserRequest) returns (UserResponse) {}
   rpc ChangePassword(ChangePasswordRequest) returns (AuthResponse) {}
   rpc ChangeAvatar(ChangeAvatarRequest) returns (AuthResponse) {}
@@ -31,8 +30,6 @@ message SignInRequest {
 
 message AuthResponse {  
   UserResponse user = 1;
-  string jwt_token = 2;
-  string csrf_token = 3;
 }
 
 message CheckAuthRequest {}  
