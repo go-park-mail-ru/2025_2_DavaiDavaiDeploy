@@ -149,6 +149,8 @@ func (g GrpcAuthHandler) ChangePassword(ctx context.Context, in *gen.ChangePassw
 		switch err {
 		case users.ErrorBadRequest:
 			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		case users.ErrorNotFound:
+			return nil, status.Errorf(codes.NotFound, "%v", err)
 		default:
 			return nil, status.Errorf(codes.Internal, "%v", err)
 		}
@@ -182,6 +184,8 @@ func (g GrpcAuthHandler) ChangeAvatar(ctx context.Context, in *gen.ChangeAvatarR
 		switch err {
 		case users.ErrorBadRequest:
 			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		case users.ErrorNotFound:
+			return nil, status.Errorf(codes.NotFound, "%v", err)
 		default:
 			return nil, status.Errorf(codes.Internal, "%v", err)
 		}
