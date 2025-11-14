@@ -20,6 +20,44 @@ services:
     networks:
       - ddd-network
 
+  auth:
+    name: auth
+    build:
+      context: .
+      dockerfile: ./build/main.Dockerfile
+    ports:
+      - 5459:5459
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ddd-network
+    
+  films:
+    name: films
+    build:
+      context: .
+      dockerfile: ./build/main.Dockerfile
+    ports:
+      - 5460:5460
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ddd-network
+
   postgres:
     image: postgres:17.0
     env_file:
