@@ -14,15 +14,15 @@ service Auth {
 }
 
 message UserResponse {
-  string ID = 1;       
-  int32 Version = 2;  
-  string Login = 3;
-  string Avatar = 4;
+  string id = 1;       
+  int32 version = 2;  
+  string login = 3;
+  string avatar = 4;
 }
 
 message SignupRequest {
-  string Login = 1;
-  string Password = 2;
+  string login = 1;
+  string password = 2;
 }
 
 message SignInRequest {  

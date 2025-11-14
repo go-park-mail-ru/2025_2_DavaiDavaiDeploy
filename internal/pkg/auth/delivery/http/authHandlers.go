@@ -14,6 +14,7 @@ import (
 	"os"
 	"time"
 
+	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -111,8 +112,15 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.User.ID),
+		Version: int(user.User.Version),
+		Login:   user.User.Login,
+		Avatar:  user.User.Avatar,
+	}
+
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
-	helpers.WriteJSON(w, user)
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -174,8 +182,15 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.User.ID),
+		Version: int(user.User.Version),
+		Login:   user.User.Login,
+		Avatar:  user.User.Avatar,
+	}
+
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
-	helpers.WriteJSON(w, user)
+	helpers.WriteJSON(w, response)
 
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -254,7 +269,15 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 	}
-	helpers.WriteJSON(w, user)
+
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.ID),
+		Version: int(user.Version),
+		Login:   user.Login,
+		Avatar:  user.Avatar,
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 

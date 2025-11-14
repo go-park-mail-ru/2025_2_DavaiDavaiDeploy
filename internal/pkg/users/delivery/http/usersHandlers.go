@@ -134,7 +134,15 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 	}
-	helpers.WriteJSON(w, neededUser)
+
+	response := models.User{
+		ID:      uuid.FromStringOrNil(neededUser.ID),
+		Version: int(neededUser.Version),
+		Login:   neededUser.Login,
+		Avatar:  neededUser.Avatar,
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -197,6 +205,14 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.User.ID),
+		Version: int(user.User.Version),
+		Login:   user.User.Login,
+		Avatar:  user.User.Avatar,
+	}
+
+	helpers.WriteJSON(w, response)
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -302,7 +318,14 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 	})
 
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.User.ID),
+		Version: int(user.User.Version),
+		Login:   user.User.Login,
+		Avatar:  user.User.Avatar,
+	}
+
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
-	helpers.WriteJSON(w, user)
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
