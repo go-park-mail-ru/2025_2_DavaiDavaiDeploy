@@ -1,11 +1,9 @@
 package authHandlers
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/auth/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
@@ -16,6 +14,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
@@ -242,15 +241,18 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			}
 		}
 		neededUser := models.User{
-			ID:      uuid.FromStringOrNil(user.ID),
-			Version: int(user.Version),
-			Login:   user.Login,
-			Avatar:  user.Avatar,
+			ID:    uuid.FromStringOrNil(user.ID),
+			Login: user.Login,
 		}
-		ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
+		md := metadata.Pairs(
+			"user-id", neededUser.ID.String(),
+			"user-login", neededUser.Login,
+		)
 
-		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		ctx := metadata.NewOutgoingContext(r.Context(), md)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
 	})
 }
 
