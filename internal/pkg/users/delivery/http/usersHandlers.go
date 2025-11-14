@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
@@ -16,6 +17,8 @@ import (
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -24,12 +27,12 @@ const (
 )
 
 type UserHandler struct {
-	uc             users.UsersUsecase
+	client         gen.AuthClient
 	cookieSecure   bool
 	cookieSamesite http.SameSite
 }
 
-func NewUserHandler(uc users.UsersUsecase) *UserHandler {
+func NewUserHandler(client gen.AuthClient) *UserHandler {
 	secure := false
 	cookieValue := os.Getenv("COOKIE_SECURE")
 	if cookieValue == "true" {
@@ -42,7 +45,7 @@ func NewUserHandler(uc users.UsersUsecase) *UserHandler {
 		samesite = http.SameSiteStrictMode
 	}
 	return &UserHandler{
-		uc:             uc,
+		client:         client,
 		cookieSecure:   secure,
 		cookieSamesite: samesite,
 	}
@@ -84,12 +87,16 @@ func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 			token = cookie.Value
 		}
 
-		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
+		user, err := u.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
 		if err != nil {
-			helpers.WriteError(w, http.StatusUnauthorized)
-			return
+			st, _ := status.FromError(err)
+			switch st.Code() {
+			case codes.Unauthenticated:
+				helpers.WriteError(w, http.StatusUnauthorized)
+			default:
+				helpers.WriteError(w, http.StatusInternalServerError)
+			}
 		}
-		user.Sanitize()
 		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
 
 		log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -117,17 +124,16 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	neededUser, err := u.uc.GetUser(r.Context(), id)
+	neededUser, err := u.client.GetUser(r.Context(), &gen.GetUserRequest{ID: id.String()})
 	if err != nil {
-		switch {
-		case errors.Is(err, users.ErrorNotFound):
-			helpers.WriteError(w, http.StatusNotFound)
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-	neededUser.Sanitize()
 	helpers.WriteJSON(w, neededUser)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -145,12 +151,6 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
-	if !ok {
-		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusUnauthorized)
-		return
-	}
 
 	var req models.ChangePasswordInput
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -161,22 +161,25 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Sanitize()
 
-	user, token, err := u.uc.ChangePassword(r.Context(), userID, req.OldPassword, req.NewPassword)
+	user, err := u.client.ChangePassword(r.Context(), &gen.ChangePasswordRequest{
+		OldPassword: req.OldPassword,
+		NewPassword: req.NewPassword})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, users.ErrorBadRequest):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-
-	csrfToken := uuid.NewV4().String()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CSRFCookieName,
-		Value:    csrfToken,
+		Value:    user.CSRFToken,
 		HttpOnly: false,
 		Secure:   u.cookieSecure,
 		SameSite: u.cookieSamesite,
@@ -186,15 +189,15 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
-		Value:    token,
+		Value:    user.JWTToken,
 		HttpOnly: true,
 		Secure:   u.cookieSecure,
 		SameSite: u.cookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	user.Sanitize()
-	w.Header().Set("X-CSRF-Token", csrfToken)
+
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -213,12 +216,6 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
-	if !ok {
-		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusUnauthorized)
-		return
-	}
 
 	const maxRequestBodySize = 10 * 1024 * 1024
 	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
@@ -269,22 +266,25 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	fileFormat := http.DetectContentType(buffer)
 
-	user, token, err := u.uc.ChangeUserAvatar(r.Context(), userID, buffer, fileFormat)
+	user, err := u.client.ChangeAvatar(r.Context(), &gen.ChangeAvatarRequest{
+		Avatar:     buffer,
+		FileFormat: fileFormat})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, users.ErrorBadRequest):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
-		return
 	}
-
-	csrfToken := uuid.NewV4().String()
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CSRFCookieName,
-		Value:    csrfToken,
+		Value:    user.CSRFToken,
 		HttpOnly: false,
 		Secure:   u.cookieSecure,
 		SameSite: u.cookieSamesite,
@@ -294,15 +294,15 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
-		Value:    token,
+		Value:    user.JWTToken,
 		HttpOnly: true,
 		Secure:   u.cookieSecure,
 		SameSite: u.cookieSamesite,
 		Expires:  time.Now().Add(12 * time.Hour),
 		Path:     "/",
 	})
-	user.Sanitize()
-	w.Header().Set("X-CSRF-Token", csrfToken)
+
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

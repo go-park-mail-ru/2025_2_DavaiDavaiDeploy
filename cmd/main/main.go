@@ -17,31 +17,24 @@ import (
 	"time"
 
 	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
-	actorRepo "kinopoisk/internal/pkg/actors/repo"
-	actorUsecase "kinopoisk/internal/pkg/actors/usecase"
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
-	authRepo "kinopoisk/internal/pkg/auth/repo"
-	authUsecase "kinopoisk/internal/pkg/auth/usecase"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
-	filmRepo "kinopoisk/internal/pkg/films/repo"
-	filmUsecase "kinopoisk/internal/pkg/films/usecase"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
-	genreRepo "kinopoisk/internal/pkg/genres/repo"
-	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
-	userRepo "kinopoisk/internal/pkg/users/repo/pg"
-	storageRepo "kinopoisk/internal/pkg/users/repo/s3"
-	userUsecase "kinopoisk/internal/pkg/users/usecase"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"google.golang.org/grpc"
 
 	"github.com/gorilla/mux"
 
 	_ "kinopoisk/docs"
+
+	authGen "kinopoisk/internal/pkg/auth/delivery/grpc/gen"
+	filmGen "kinopoisk/internal/pkg/films/delivery/grpc/gen"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -120,16 +113,29 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 
 func main() {
 	_ = godotenv.Load()
-	ctx := context.Background()
-	dbpool, err := initDB(ctx)
-	if err != nil {
-		log.Fatalf("Unable to connect to database: %v\n", err)
-	}
 
-	s3Client, s3Bucket, err := initS3Client(ctx)
+	authConn, err := grpc.Dial("auth:5459", grpc.WithInsecure())
 	if err != nil {
-		log.Printf("Warning: Unable to connect to S3: %v\n", err)
+		log.Printf("unable to connect to auth microservice: %v\n", err)
+		return
 	}
+	defer authConn.Close()
+
+	filmConn, err := grpc.Dial("films:5460", grpc.WithInsecure())
+	if err != nil {
+		log.Printf("unable to connect to films microservice: %v\n", err)
+		return
+	}
+	defer filmConn.Close()
+
+	filmClient := filmGen.NewFilmsClient(filmConn)
+	authClient := authGen.NewAuthClient(authConn)
+
+	authHandler := authHandlers.NewAuthHandler(authClient)
+	userHandler := userHandlers.NewUserHandler(authClient)
+	genreHandler := genreHandlers.NewGenreHandler(filmClient)
+	actorHandler := actorHandlers.NewActorHandler(filmClient)
+	filmHandler := filmHandlers.NewFilmHandler(filmClient)
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -143,28 +149,6 @@ func main() {
 
 	apiRouter.Use(cors.CorsMiddleware)
 	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
-
-	// Инициализация репозиториев, usecases и handlers
-	filmRepo := filmRepo.NewFilmRepository(dbpool)
-	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
-	filmHandler := filmHandlers.NewFilmHandler(filmUsecase)
-
-	authRepo := authRepo.NewAuthRepository(dbpool)
-	authUsecase := authUsecase.NewAuthUsecase(authRepo)
-	authHandler := authHandlers.NewAuthHandler(authUsecase)
-
-	genreRepo := genreRepo.NewGenreRepository(dbpool)
-	genreUsecase := genreUsecase.NewGenreUsecase(genreRepo)
-	genreHandler := genreHandlers.NewGenreHandler(genreUsecase)
-
-	actorRepo := actorRepo.NewActorRepository(dbpool)
-	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
-	actorHandler := actorHandlers.NewActorHandler(actorUsecase)
-
-	userRepo := userRepo.NewUserRepository(dbpool)
-	s3Repo := storageRepo.NewS3Repository(s3Client, s3Bucket)
-	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Repo)
-	userHandler := userHandlers.NewUserHandler(userUsecase)
 
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 

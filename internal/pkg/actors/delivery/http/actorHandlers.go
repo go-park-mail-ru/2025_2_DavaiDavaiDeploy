@@ -2,7 +2,7 @@ package http
 
 import (
 	"errors"
-	"kinopoisk/internal/pkg/actors"
+	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -10,14 +10,16 @@ import (
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type ActorHandler struct {
-	uc actors.ActorUsecase
+	client gen.FilmsClient
 }
 
-func NewActorHandler(uc actors.ActorUsecase) *ActorHandler {
-	return &ActorHandler{uc: uc}
+func NewActorHandler(client gen.FilmsClient) *ActorHandler {
+	return &ActorHandler{client: client}
 }
 
 // GetActor godoc
@@ -41,18 +43,21 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actor, err := a.uc.GetActor(r.Context(), id)
+	actor, err := a.client.GetActor(r.Context(), &gen.GetActorRequest{ActorId: id.String()})
 	if err != nil {
-		switch {
-		case errors.Is(err, actors.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	actor.Sanitize()
-	helpers.WriteJSON(w, actor)
+
+	helpers.WriteJSON(w, actor.Actor)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -68,10 +73,9 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 // @Router       /actors/{id}/films [get]
 func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	vars := mux.Vars(r)
-	idStr := vars["id"]
 
-	neededActor, err := uuid.FromString(idStr)
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid id of actor"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest)
@@ -80,20 +84,26 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := a.uc.GetFilmsByActor(r.Context(), neededActor, pager)
+	films, err := a.client.GetFilmsByActor(r.Context(), &gen.GetFilmsByActorRequest{
+		ActorId: id.String(),
+		Pager: &gen.Pager{
+			Count:  int32(pager.Count),
+			Offset: int32(pager.Offset),
+		},
+	})
 	if err != nil {
-		switch {
-		case errors.Is(err, actors.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	for i := range films {
-		films[i].Sanitize()
-	}
 
-	helpers.WriteJSON(w, films)
+	helpers.WriteJSON(w, films.Films)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

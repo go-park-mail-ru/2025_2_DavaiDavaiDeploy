@@ -1,0 +1,60 @@
+syntax = "proto3";
+package auth; 
+option go_package = "./internal/pkg/auth/delivery/grpc/gen/;gen";
+
+service Auth {
+  rpc SignupUser(SignupRequest) returns (AuthResponse) {}
+  rpc SignInUser(SignInRequest) returns (AuthResponse) {}
+  rpc CheckAuth(CheckAuthRequest) returns (UserResponse) {}
+  rpc LogOutUser(LogOutUserRequest) returns (LogOutUserResponse) {}
+  rpc GetUser(GetUserRequest) returns (UserResponse) {}
+  rpc ChangePassword(ChangePasswordRequest) returns (AuthResponse) {}
+  rpc ChangeAvatar(ChangeAvatarRequest) returns (AuthResponse) {}
+  rpc ValidateAndGetUser(ValidateAndGetUserRequest) returns (UserResponse) {}
+}
+
+message UserResponse {
+  string ID = 1;       
+  int32 Version = 2;  
+  string Login = 3;
+  string Avatar = 4;
+}
+
+message SignupRequest {
+  string Login = 1;
+  string Password = 2;
+}
+
+message SignInRequest {  
+  string Login = 1;
+  string Password = 2;
+}
+
+message AuthResponse {  
+  UserResponse User = 1;
+  string JWTToken = 2;
+  string CSRFToken = 3;
+}
+
+message CheckAuthRequest {}  
+
+message GetUserRequest {
+  string ID = 1;
+}
+
+message ChangePasswordRequest {
+  string OldPassword = 1;
+  string NewPassword = 2;
+}
+
+message ChangeAvatarRequest {
+  bytes Avatar = 1; 
+  string FileFormat = 2;
+}
+
+message LogOutUserRequest{}
+message LogOutUserResponse{}
+
+message ValidateAndGetUserRequest{
+  string Token = 1;
+}
