@@ -2,7 +2,6 @@ version: "3.3"
 
 services:
   main:
-    name: main
     build:
       context: .
       dockerfile: ./build/main.Dockerfile
@@ -14,17 +13,22 @@ services:
       DB_HOST: postgres
       DB_NAME: kinopoisk
       DB_PORT: 5432
+      AUTH_SERVICE_HOST: auth
+      FILMS_SERVICE_HOST: films
     depends_on:
       postgres:
         condition: service_healthy
+      auth:
+        condition: service_started
+      films:
+        condition: service_started
     networks:
       - ddd-network
 
   auth:
-    name: auth
     build:
       context: .
-      dockerfile: ./build/main.Dockerfile
+      dockerfile: ./build/auth.Dockerfile
     ports:
       - 5459:5459
     volumes:
@@ -40,10 +44,9 @@ services:
       - ddd-network
     
   films:
-    name: films
     build:
       context: .
-      dockerfile: ./build/main.Dockerfile
+      dockerfile: ./build/films.Dockerfile
     ports:
       - 5460:5460
     volumes:

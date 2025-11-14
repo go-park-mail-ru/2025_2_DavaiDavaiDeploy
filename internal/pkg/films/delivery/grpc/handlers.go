@@ -21,8 +21,8 @@ type GrpcFilmsHandler struct {
 	gen.UnimplementedFilmsServer
 }
 
-func NewGrpcFilmHandler(uc films.FilmUsecase) *GrpcFilmsHandler {
-	return &GrpcFilmsHandler{uc: uc}
+func NewGrpcFilmHandler(uc films.FilmUsecase, guc genres.GenreUsecase, auc actors.ActorUsecase) *GrpcFilmsHandler {
+	return &GrpcFilmsHandler{uc: uc, guc: guc, auc: auc}
 }
 
 func (g GrpcFilmsHandler) GetPromoFilm(ctx context.Context, in *gen.EmptyRequest) (*gen.GetPromoFilmResponse, error) {
@@ -108,7 +108,11 @@ func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (
 	for i := range film.Actors {
 		film.Actors[i].Sanitize()
 		birthDateStr := film.Actors[i].BirthDate.String()
-		deathDateStr := film.Actors[i].DeathDate.String()
+		var deathDateStrPtr *string
+		if film.Actors[i].DeathDate != nil {
+			deathDateStr := film.Actors[i].DeathDate.String()
+			deathDateStrPtr = &deathDateStr
+		}
 		actors = append(actors, &gen.Actor{
 			Id:            film.Actors[i].ID.String(),
 			RussianName:   &film.Actors[i].RussianName,
@@ -116,7 +120,7 @@ func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (
 			Photo:         film.Actors[i].Photo,
 			Height:        int32(film.Actors[i].Height),
 			BirthDate:     birthDateStr,
-			DeathDate:     &deathDateStr,
+			DeathDate:     deathDateStrPtr,
 			ZodiacSign:    film.Actors[i].ZodiacSign,
 			BirthPlace:    film.Actors[i].BirthPlace,
 			MaritalStatus: film.Actors[i].MaritalStatus,

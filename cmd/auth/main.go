@@ -9,6 +9,7 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -22,6 +23,9 @@ import (
 	authHandler "kinopoisk/internal/pkg/auth/delivery/grpc"
 	authRepo "kinopoisk/internal/pkg/auth/repo"
 	authUsecase "kinopoisk/internal/pkg/auth/usecase"
+	userRepo "kinopoisk/internal/pkg/users/repo/pg"
+	storageRepo "kinopoisk/internal/pkg/users/repo/s3"
+	userUsecase "kinopoisk/internal/pkg/users/usecase"
 
 	_ "kinopoisk/docs"
 
@@ -102,16 +106,34 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 
 func main() {
 	_ = godotenv.Load()
+	ctx := context.Background()
 
-	authRepo := authRepo.NewAuthRepository(nil)
+	s3Client, s3Bucket, err := initS3Client(ctx)
+	if err != nil {
+		log.Printf("Warning: Unable to connect to S3: %v\n", err)
+	}
+
+	dbpool, err := initDB(ctx)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer dbpool.Close()
+
+	authRepo := authRepo.NewAuthRepository(dbpool)
 	authUsecase := authUsecase.NewAuthUsecase(authRepo)
-	authHandler := authHandler.NewGrpcAuthHandler(authUsecase)
 
-	gRPCServer := grpc.NewServer() //
+	userRepo := userRepo.NewUserRepository(dbpool)
+	s3Repo := storageRepo.NewS3Repository(s3Client, s3Bucket)
+	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Repo)
+
+	// инициализация gRPC хендлера
+	authHandler := authHandler.NewGrpcAuthHandler(authUsecase, userUsecase)
+
+	gRPCServer := grpc.NewServer()
 	gen.RegisterAuthServer(gRPCServer, authHandler)
 
 	go func() {
-		listener, err := net.Listen("tcp", fmt.Sprintf(": %d", 8080))
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", 5459))
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -122,8 +144,9 @@ func main() {
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
-
 	<-stop
-	gRPCServer.GracefulStop()
 
+	log.Println("Shutting down auth gRPC server...")
+	gRPCServer.GracefulStop()
+	log.Println("Auth server exited")
 }

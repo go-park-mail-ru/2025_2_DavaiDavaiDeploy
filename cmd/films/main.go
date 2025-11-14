@@ -7,17 +7,20 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
+	"log"
 	"net"
-	"net/http"
 	"os/signal"
 	"syscall"
 
+	actorRepo "kinopoisk/internal/pkg/actors/repo"
+	actorUsecase "kinopoisk/internal/pkg/actors/usecase"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/grpc"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	filmRepo "kinopoisk/internal/pkg/films/repo"
 	filmUsecase "kinopoisk/internal/pkg/films/usecase"
+	genreRepo "kinopoisk/internal/pkg/genres/repo"
+	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -25,11 +28,6 @@ import (
 	"google.golang.org/grpc"
 
 	_ "kinopoisk/docs"
-
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/credentials"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 func initDB(ctx context.Context) (*pgxpool.Pool, error) {
@@ -57,60 +55,29 @@ func initDB(ctx context.Context) (*pgxpool.Pool, error) {
 	return pool, nil
 }
 
-func initS3Client(ctx context.Context) (*s3.Client, string, error) {
-	endpoint := os.Getenv("AWS_S3_ENDPOINT")
-	bucket := os.Getenv("AWS_S3_BUCKET")
-	accessKey := os.Getenv("AWS_ACCESS_KEY_ID")
-	secretKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-	region := "ru-7"
-
-	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
-		if service == s3.ServiceID && endpoint != "" {
-			return aws.Endpoint{
-				URL:           endpoint,
-				SigningRegion: region,
-			}, nil
-		}
-		return aws.Endpoint{}, &aws.EndpointNotFoundError{}
-	})
-
-	customHTTPClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Пропускаем проверку SSL
-			},
-		},
-	}
-
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithRegion(region),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")),
-		config.WithEndpointResolverWithOptions(customResolver),
-		config.WithHTTPClient(customHTTPClient),
-	)
-	if err != nil {
-		return nil, "", err
-	}
-
-	client := s3.NewFromConfig(cfg, func(o *s3.Options) {
-		o.UsePathStyle = true
-	})
-	return client, bucket, nil
-}
-
 func main() {
 	_ = godotenv.Load()
 
-	filmRepo := filmRepo.NewFilmRepository(nil) // !!!!!!!!
+	ctx := context.Background()
+	dbpool, err := initDB(ctx)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer dbpool.Close()
+
+	filmRepo := filmRepo.NewFilmRepository(dbpool)
 	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
-	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase)
+	genreRepo := genreRepo.NewGenreRepository(dbpool)
+	genreUsecase := genreUsecase.NewGenreUsecase(genreRepo)
+	actorRepo := actorRepo.NewActorRepository(dbpool)
+	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
+	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase)
 
 	gRPCServer := grpc.NewServer() //
 	gen.RegisterFilmsServer(gRPCServer, filmHandler)
 
 	go func() {
-		listener, err := net.Listen("tcp", fmt.Sprintf(": %d", 8080))
+		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", 5460))
 		if err != nil {
 			fmt.Println(err)
 		}
