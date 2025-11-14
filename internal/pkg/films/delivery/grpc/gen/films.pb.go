@@ -7,12 +7,11 @@
 package gen
 
 import (
+	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
+	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
-
-	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
-	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 )
 
 const (
@@ -2090,6 +2089,118 @@ func (x *Actor) GetMaritalStatus() string {
 	return ""
 }
 
+type ValidateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateUserRequest) Reset() {
+	*x = ValidateUserRequest{}
+	mi := &file_films_proto_msgTypes[33]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateUserRequest) ProtoMessage() {}
+
+func (x *ValidateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_films_proto_msgTypes[33]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateUserRequest.ProtoReflect.Descriptor instead.
+func (*ValidateUserRequest) Descriptor() ([]byte, []int) {
+	return file_films_proto_rawDescGZIP(), []int{33}
+}
+
+func (x *ValidateUserRequest) GetToken() string {
+	if x != nil {
+		return x.Token
+	}
+	return ""
+}
+
+type ValidateUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ID            string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Version       int32                  `protobuf:"varint,2,opt,name=Version,proto3" json:"Version,omitempty"`
+	Login         string                 `protobuf:"bytes,3,opt,name=Login,proto3" json:"Login,omitempty"`
+	Avatar        string                 `protobuf:"bytes,4,opt,name=Avatar,proto3" json:"Avatar,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ValidateUserResponse) Reset() {
+	*x = ValidateUserResponse{}
+	mi := &file_films_proto_msgTypes[34]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ValidateUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ValidateUserResponse) ProtoMessage() {}
+
+func (x *ValidateUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_films_proto_msgTypes[34]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ValidateUserResponse.ProtoReflect.Descriptor instead.
+func (*ValidateUserResponse) Descriptor() ([]byte, []int) {
+	return file_films_proto_rawDescGZIP(), []int{34}
+}
+
+func (x *ValidateUserResponse) GetID() string {
+	if x != nil {
+		return x.ID
+	}
+	return ""
+}
+
+func (x *ValidateUserResponse) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ValidateUserResponse) GetLogin() string {
+	if x != nil {
+		return x.Login
+	}
+	return ""
+}
+
+func (x *ValidateUserResponse) GetAvatar() string {
+	if x != nil {
+		return x.Avatar
+	}
+	return ""
+}
+
 var File_films_proto protoreflect.FileDescriptor
 
 const file_films_proto_rawDesc = "" +
@@ -2267,7 +2378,14 @@ const file_films_proto_rawDesc = "" +
 	"\x0emarital_status\x18\n" +
 	" \x01(\tR\rmaritalStatusB\x0f\n" +
 	"\r_russian_nameB\r\n" +
-	"\v_death_date2\xcc\x06\n" +
+	"\v_death_date\"+\n" +
+	"\x13ValidateUserRequest\x12\x14\n" +
+	"\x05token\x18\x01 \x01(\tR\x05token\"n\n" +
+	"\x14ValidateUserResponse\x12\x0e\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x18\n" +
+	"\aVersion\x18\x02 \x01(\x05R\aVersion\x12\x14\n" +
+	"\x05Login\x18\x03 \x01(\tR\x05Login\x12\x16\n" +
+	"\x06Avatar\x18\x04 \x01(\tR\x06Avatar2\x95\a\n" +
 	"\x05Films\x12B\n" +
 	"\fGetPromoFilm\x12\x13.films.EmptyRequest\x1a\x1b.films.GetPromoFilmResponse\"\x00\x12=\n" +
 	"\bGetFilms\x12\x16.films.GetFilmsRequest\x1a\x17.films.GetFilmsResponse\"\x00\x12:\n" +
@@ -2280,7 +2398,8 @@ const file_films_proto_rawDesc = "" +
 	"\tGetGenres\x12\x17.films.GetGenresRequest\x1a\x18.films.GetGenresResponse\"\x00\x12R\n" +
 	"\x0fGetFilmsByGenre\x12\x1d.films.GetFilmsByGenreRequest\x1a\x1e.films.GetFilmsByGenreResponse\"\x00\x12=\n" +
 	"\bGetActor\x12\x16.films.GetActorRequest\x1a\x17.films.GetActorResponse\"\x00\x12R\n" +
-	"\x0fGetFilmsByActor\x12\x1d.films.GetFilmsByActorRequest\x1a\x1e.films.GetFilmsByActorResponse\"\x00B-Z+./internal/pkg/films/delivery/grpc/gen/;genb\x06proto3"
+	"\x0fGetFilmsByActor\x12\x1d.films.GetFilmsByActorRequest\x1a\x1e.films.GetFilmsByActorResponse\"\x00\x12G\n" +
+	"\fValidateUser\x12\x1a.films.ValidateUserRequest\x1a\x1b.films.ValidateUserResponseB-Z+./internal/pkg/films/delivery/grpc/gen/;genb\x06proto3"
 
 var (
 	file_films_proto_rawDescOnce sync.Once
@@ -2294,7 +2413,7 @@ func file_films_proto_rawDescGZIP() []byte {
 	return file_films_proto_rawDescData
 }
 
-var file_films_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
+var file_films_proto_msgTypes = make([]protoimpl.MessageInfo, 35)
 var file_films_proto_goTypes = []any{
 	(*EmptyRequest)(nil),             // 0: films.EmptyRequest
 	(*GetPromoFilmResponse)(nil),     // 1: films.GetPromoFilmResponse
@@ -2329,6 +2448,8 @@ var file_films_proto_goTypes = []any{
 	(*Genre)(nil),                    // 30: films.Genre
 	(*ActorPage)(nil),                // 31: films.ActorPage
 	(*Actor)(nil),                    // 32: films.Actor
+	(*ValidateUserRequest)(nil),      // 33: films.ValidateUserRequest
+	(*ValidateUserResponse)(nil),     // 34: films.ValidateUserResponse
 }
 var file_films_proto_depIdxs = []int32{
 	23, // 0: films.GetFilmsRequest.pager:type_name -> films.Pager
@@ -2362,20 +2483,22 @@ var file_films_proto_depIdxs = []int32{
 	17, // 28: films.Films.GetFilmsByGenre:input_type -> films.GetFilmsByGenreRequest
 	19, // 29: films.Films.GetActor:input_type -> films.GetActorRequest
 	21, // 30: films.Films.GetFilmsByActor:input_type -> films.GetFilmsByActorRequest
-	1,  // 31: films.Films.GetPromoFilm:output_type -> films.GetPromoFilmResponse
-	3,  // 32: films.Films.GetFilms:output_type -> films.GetFilmsResponse
-	5,  // 33: films.Films.GetFilm:output_type -> films.GetFilmResponse
-	7,  // 34: films.Films.GetFilmFeedbacks:output_type -> films.GetFilmFeedbacksResponse
-	9,  // 35: films.Films.SendFeedback:output_type -> films.SendFeedbackResponse
-	11, // 36: films.Films.SetRating:output_type -> films.SetRatingResponse
-	12, // 37: films.Films.SiteMap:output_type -> films.SiteMapResponse
-	14, // 38: films.Films.GetGenre:output_type -> films.GetGenreResponse
-	16, // 39: films.Films.GetGenres:output_type -> films.GetGenresResponse
-	18, // 40: films.Films.GetFilmsByGenre:output_type -> films.GetFilmsByGenreResponse
-	20, // 41: films.Films.GetActor:output_type -> films.GetActorResponse
-	22, // 42: films.Films.GetFilmsByActor:output_type -> films.GetFilmsByActorResponse
-	31, // [31:43] is the sub-list for method output_type
-	19, // [19:31] is the sub-list for method input_type
+	33, // 31: films.Films.ValidateUser:input_type -> films.ValidateUserRequest
+	1,  // 32: films.Films.GetPromoFilm:output_type -> films.GetPromoFilmResponse
+	3,  // 33: films.Films.GetFilms:output_type -> films.GetFilmsResponse
+	5,  // 34: films.Films.GetFilm:output_type -> films.GetFilmResponse
+	7,  // 35: films.Films.GetFilmFeedbacks:output_type -> films.GetFilmFeedbacksResponse
+	9,  // 36: films.Films.SendFeedback:output_type -> films.SendFeedbackResponse
+	11, // 37: films.Films.SetRating:output_type -> films.SetRatingResponse
+	12, // 38: films.Films.SiteMap:output_type -> films.SiteMapResponse
+	14, // 39: films.Films.GetGenre:output_type -> films.GetGenreResponse
+	16, // 40: films.Films.GetGenres:output_type -> films.GetGenresResponse
+	18, // 41: films.Films.GetFilmsByGenre:output_type -> films.GetFilmsByGenreResponse
+	20, // 42: films.Films.GetActor:output_type -> films.GetActorResponse
+	22, // 43: films.Films.GetFilmsByActor:output_type -> films.GetFilmsByActorResponse
+	34, // 44: films.Films.ValidateUser:output_type -> films.ValidateUserResponse
+	32, // [32:45] is the sub-list for method output_type
+	19, // [19:32] is the sub-list for method input_type
 	19, // [19:19] is the sub-list for extension type_name
 	19, // [19:19] is the sub-list for extension extendee
 	0,  // [0:19] is the sub-list for field type_name
@@ -2396,7 +2519,7 @@ func file_films_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_films_proto_rawDesc), len(file_films_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   33,
+			NumMessages:   35,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

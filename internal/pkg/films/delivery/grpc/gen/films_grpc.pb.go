@@ -31,6 +31,7 @@ const (
 	Films_GetFilmsByGenre_FullMethodName  = "/films.Films/GetFilmsByGenre"
 	Films_GetActor_FullMethodName         = "/films.Films/GetActor"
 	Films_GetFilmsByActor_FullMethodName  = "/films.Films/GetFilmsByActor"
+	Films_ValidateUser_FullMethodName     = "/films.Films/ValidateUser"
 )
 
 // FilmsClient is the client API for Films service.
@@ -49,6 +50,7 @@ type FilmsClient interface {
 	GetFilmsByGenre(ctx context.Context, in *GetFilmsByGenreRequest, opts ...grpc.CallOption) (*GetFilmsByGenreResponse, error)
 	GetActor(ctx context.Context, in *GetActorRequest, opts ...grpc.CallOption) (*GetActorResponse, error)
 	GetFilmsByActor(ctx context.Context, in *GetFilmsByActorRequest, opts ...grpc.CallOption) (*GetFilmsByActorResponse, error)
+	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
 }
 
 type filmsClient struct {
@@ -179,6 +181,16 @@ func (c *filmsClient) GetFilmsByActor(ctx context.Context, in *GetFilmsByActorRe
 	return out, nil
 }
 
+func (c *filmsClient) ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ValidateUserResponse)
+	err := c.cc.Invoke(ctx, Films_ValidateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilmsServer is the server API for Films service.
 // All implementations must embed UnimplementedFilmsServer
 // for forward compatibility.
@@ -195,6 +207,7 @@ type FilmsServer interface {
 	GetFilmsByGenre(context.Context, *GetFilmsByGenreRequest) (*GetFilmsByGenreResponse, error)
 	GetActor(context.Context, *GetActorRequest) (*GetActorResponse, error)
 	GetFilmsByActor(context.Context, *GetFilmsByActorRequest) (*GetFilmsByActorResponse, error)
+	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
 
@@ -240,6 +253,9 @@ func (UnimplementedFilmsServer) GetActor(context.Context, *GetActorRequest) (*Ge
 }
 func (UnimplementedFilmsServer) GetFilmsByActor(context.Context, *GetFilmsByActorRequest) (*GetFilmsByActorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilmsByActor not implemented")
+}
+func (UnimplementedFilmsServer) ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ValidateUser not implemented")
 }
 func (UnimplementedFilmsServer) mustEmbedUnimplementedFilmsServer() {}
 func (UnimplementedFilmsServer) testEmbeddedByValue()               {}
@@ -478,6 +494,24 @@ func _Films_GetFilmsByActor_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_ValidateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).ValidateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_ValidateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).ValidateUser(ctx, req.(*ValidateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Films_ServiceDesc is the grpc.ServiceDesc for Films service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -532,6 +566,10 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFilmsByActor",
 			Handler:    _Films_GetFilmsByActor_Handler,
+		},
+		{
+			MethodName: "ValidateUser",
+			Handler:    _Films_ValidateUser_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

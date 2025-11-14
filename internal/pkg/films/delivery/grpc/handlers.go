@@ -471,3 +471,20 @@ func (g GrpcFilmsHandler) GetFilmsByActor(ctx context.Context, in *gen.GetFilmsB
 		Films: result,
 	}, nil
 }
+
+func (g GrpcFilmsHandler) ValidateUser(ctx context.Context, in *gen.ValidateUserRequest) (*gen.ValidateUserResponse, error) {
+	token := in.Token
+
+	user, err := g.uc.ValidateAndGetUser(ctx, token)
+	if err != nil {
+		return nil, status.Errorf(codes.Unauthenticated, "user not found")
+	}
+
+	user.Sanitize()
+	return &gen.ValidateUserResponse{
+		ID:      user.ID.String(),
+		Version: int32(user.Version),
+		Login:   user.Login,
+		Avatar:  user.Avatar,
+	}, nil
+}

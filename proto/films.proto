@@ -17,6 +17,7 @@ service Films {
   
   rpc GetActor(GetActorRequest) returns (GetActorResponse) {}
   rpc GetFilmsByActor(GetFilmsByActorRequest) returns (GetFilmsByActorResponse) {}
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse);
 }
 
 message EmptyRequest {}
@@ -226,4 +227,15 @@ message Actor {
   string zodiac_sign = 8;
   string birth_place = 9;
   string marital_status = 10;
+}
+
+message ValidateUserRequest {
+  string token = 1;
+}
+
+message ValidateUserResponse {
+  string ID = 1;       
+  int32 Version = 2;  
+  string Login = 3;
+  string Avatar = 4;
 }

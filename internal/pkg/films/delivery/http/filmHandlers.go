@@ -149,9 +149,8 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 			token = cookie.Value
 		}
 		if token != "" {
-			user, err := c.uc.ValidateAndGetUser(r.Context(), token)
+			user, err := c.client.ValidateUser(r.Context(), &gen.ValidateUserRequest{Token: token})
 			if err == nil {
-				user.Sanitize()
 				ctx := context.WithValue(r.Context(), auth.UserKey, user)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
