@@ -241,7 +241,13 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 				helpers.WriteError(w, http.StatusInternalServerError)
 			}
 		}
-		ctx := context.WithValue(r.Context(), auth.UserKey, user)
+		neededUser := models.User{
+			ID:      uuid.FromStringOrNil(user.ID),
+			Version: int(user.Version),
+			Login:   user.Login,
+			Avatar:  user.Avatar,
+		}
+		ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 
 		log.LogHandlerInfo(logger, "success", http.StatusOK)
 		next.ServeHTTP(w, r.WithContext(ctx))
