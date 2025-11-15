@@ -203,3 +203,68 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 
 	return neededUser, token, nil
 }
+
+func (uc *UserUsecase) CreateFeedback(ctx context.Context, feedback *models.SupportFeedback) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	validCategories := map[string]bool{
+		"bug":             true,
+		"feature_request": true,
+		"complaint":       true,
+		"question":        true,
+	}
+	if !validCategories[feedback.Category] {
+		logger.Error("invalid feedback category")
+		return users.ErrorBadRequest
+	}
+
+	if len(feedback.Description) == 0 || len(feedback.Description) > 2000 {
+		logger.Error("invalid feedback description length")
+		return users.ErrorBadRequest
+	}
+
+	return uc.userRepo.CreateFeedback(ctx, feedback)
+}
+
+func (uc *UserUsecase) GetFeedbackByID(ctx context.Context, id uuid.UUID) (models.SupportFeedback, error) {
+	return uc.userRepo.GetFeedbackByID(ctx, id)
+}
+
+func (uc *UserUsecase) GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error) {
+	return uc.userRepo.GetFeedbacksByUserID(ctx, userID)
+}
+
+func (uc *UserUsecase) UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	if feedback.Status != "" {
+		validStatuses := map[string]bool{
+			"open":        true,
+			"in_progress": true,
+			"closed":      true,
+		}
+		if !validStatuses[feedback.Status] {
+			logger.Error("invalid feedback status")
+			return users.ErrorBadRequest
+		}
+	}
+
+	if feedback.Category != "" {
+		validCategories := map[string]bool{
+			"bug":             true,
+			"feature_request": true,
+			"complaint":       true,
+			"question":        true,
+		}
+		if !validCategories[feedback.Category] {
+			logger.Error("invalid feedback category")
+			return users.ErrorBadRequest
+		}
+	}
+
+	return uc.userRepo.UpdateFeedback(ctx, feedback)
+}
+
+func (uc *UserUsecase) GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error) {
+	return uc.userRepo.GetFeedbackStats(ctx)
+}

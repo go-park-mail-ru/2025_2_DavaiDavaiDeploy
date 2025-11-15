@@ -118,6 +118,32 @@ CREATE TABLE IF NOT EXISTS user_table (
     CONSTRAINT user_table_password_hash_check CHECK ((octet_length(password_hash) = 40))
 );
 
+CREATE TABLE IF NOT EXISTS support_tickets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES user_table(id) ON DELETE CASCADE,
+    description TEXT NOT NULL CHECK (length(description) > 0 AND length(description) <= 2000),
+    category TEXT NOT NULL CHECK (category IN ('bug', 'feature_request', 'complaint', 'question')),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'closed')),
+    attachment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_support_tickets_user 
+        FOREIGN KEY (user_id) REFERENCES user_table(id) ON DELETE CASCADE
+);
+
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE TRIGGER update_support_tickets_updated_at 
+    BEFORE UPDATE ON support_tickets 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
 
 ALTER TABLE ONLY actor_in_film
     ADD CONSTRAINT actor_in_film_pkey PRIMARY KEY (id);

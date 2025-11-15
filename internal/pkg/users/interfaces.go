@@ -15,6 +15,11 @@ type UsersUsecase interface {
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	ChangePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (models.User, string, error)
 	ChangeUserAvatar(ctx context.Context, userID uuid.UUID, fileBytes []byte, fileFormat string) (models.User, string, error)
+	CreateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	GetFeedbackByID(ctx context.Context, id uuid.UUID) (models.SupportFeedback, error)
+	GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error)
+	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 }
 
 type UsersRepo interface {
@@ -22,6 +27,11 @@ type UsersRepo interface {
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 	UpdateUserPassword(ctx context.Context, version int, userID uuid.UUID, passwordHash []byte) error
 	UpdateUserAvatar(ctx context.Context, version int, userID uuid.UUID, avatarPath string) error
+	CreateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	GetFeedbackByID(ctx context.Context, id uuid.UUID) (models.SupportFeedback, error)
+	GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error)
+	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 }
 
 type StorageRepo interface {
