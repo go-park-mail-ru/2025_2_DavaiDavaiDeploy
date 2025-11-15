@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/hub"
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -15,6 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -27,9 +30,10 @@ type UserHandler struct {
 	uc             users.UsersUsecase
 	cookieSecure   bool
 	cookieSamesite http.SameSite
+	hub            *hub.Hub
 }
 
-func NewUserHandler(uc users.UsersUsecase) *UserHandler {
+func NewUserHandler(uc users.UsersUsecase, hub *hub.Hub) *UserHandler {
 	secure := false
 	cookieValue := os.Getenv("COOKIE_SECURE")
 	if cookieValue == "true" {
@@ -45,7 +49,34 @@ func NewUserHandler(uc users.UsersUsecase) *UserHandler {
 		uc:             uc,
 		cookieSecure:   secure,
 		cookieSamesite: samesite,
+		hub:            hub,
 	}
+}
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+func (u *UserHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.LogHandlerError(logger, fmt.Errorf("failed to upgrade: %w", err), http.StatusInternalServerError)
+		return
+	}
+
+	u.hub.AddClient(userID.String(), conn)
+
+	log.LogHandlerInfo(logger, "websocket connected", http.StatusSwitchingProtocols)
 }
 
 func (u *UserHandler) Middleware(next http.Handler) http.Handler {
@@ -562,5 +593,49 @@ func (u *UserHandler) GetMyFeedbackStats(w http.ResponseWriter, r *http.Request)
 	}
 
 	helpers.WriteJSON(w, stats)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetTicketMessages godoc
+// @Summary Get all messages for a ticket
+// @Tags feedback
+// @Produce json
+// @Param        id   path      string  true  "Ticket ID"
+// @Success 200 {array} models.SupportMessage
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /feedback/{id}/messages [get]
+func (u *UserHandler) GetTicketMessages(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	_, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	ticketID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid ticket id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	messages, err := u.uc.GetMessagesByTicketID(r.Context(), ticketID)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, messages)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

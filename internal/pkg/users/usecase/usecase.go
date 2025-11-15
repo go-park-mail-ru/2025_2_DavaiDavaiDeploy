@@ -272,3 +272,7 @@ func (uc *UserUsecase) GetFeedbackStats(ctx context.Context) (models.FeedbackSta
 func (uc *UserUsecase) GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error) {
 	return uc.userRepo.GetUserFeedbackStats(ctx, userID)
 }
+
+func (uc *UserUsecase) GetMessagesByTicketID(ctx context.Context, ticketID uuid.UUID) ([]models.SupportMessage, error) {
+	return uc.userRepo.GetMessagesByTicketID(ctx, ticketID)
+}

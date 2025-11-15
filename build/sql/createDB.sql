@@ -232,3 +232,34 @@ ALTER TABLE ONLY support_tickets
 ALTER TABLE ONLY support_tickets
     ADD CONSTRAINT fk_support_tickets_user 
     FOREIGN KEY (user_id) REFERENCES user_table(id) ON DELETE CASCADE;
+
+CREATE TABLE IF NOT EXISTS support_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ticket_id UUID NOT NULL REFERENCES support_tickets(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES user_table(id) ON DELETE CASCADE,
+    message_text TEXT NOT NULL CHECK (length(message_text) > 0 AND length(message_text) <= 2000),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    
+    CONSTRAINT fk_support_messages_ticket 
+        FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_support_messages_user 
+        FOREIGN KEY (user_id) REFERENCES user_table(id) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_support_messages_ticket_id ON support_messages(ticket_id);
+CREATE INDEX idx_support_messages_created_at ON support_messages(created_at);
+
+CREATE OR REPLACE FUNCTION update_ticket_on_new_message()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE support_tickets 
+    SET updated_at = CURRENT_TIMESTAMP
+    WHERE id = NEW.ticket_id;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_ticket_on_message 
+    AFTER INSERT ON support_messages 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_ticket_on_new_message();

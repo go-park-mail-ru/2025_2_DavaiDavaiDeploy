@@ -21,6 +21,7 @@ type UsersUsecase interface {
 	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
+	GetMessagesByTicketID(ctx context.Context, ticketID uuid.UUID) ([]models.SupportMessage, error)
 }
 
 type UsersRepo interface {
@@ -34,6 +35,7 @@ type UsersRepo interface {
 	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
+	GetMessagesByTicketID(ctx context.Context, ticketID uuid.UUID) ([]models.SupportMessage, error)
 }
 
 type StorageRepo interface {

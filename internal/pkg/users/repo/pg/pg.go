@@ -8,6 +8,7 @@ import (
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"time"
 
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/jackc/pgx/v4"
@@ -279,4 +280,79 @@ func (u *UserRepository) GetUserFeedbackStats(ctx context.Context, userID uuid.U
 
 	logger.Info("successfully got user feedback stats")
 	return stats, nil
+}
+
+func (u *UserRepository) GetMessagesByTicketID(ctx context.Context, ticketID uuid.UUID) ([]models.SupportMessage, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := u.db.Query(
+		ctx,
+		GetMessagesByTicketIDQuery,
+		ticketID,
+	)
+	if err != nil {
+		logger.Error("failed to query messages: " + err.Error())
+		return nil, users.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var messages []models.SupportMessage
+	for rows.Next() {
+		var message models.SupportMessage
+		err := rows.Scan(
+			&message.ID,
+			&message.TicketID,
+			&message.UserID,
+			&message.MessageText,
+			&message.CreatedAt,
+		)
+		if err != nil {
+			logger.Error("failed to scan message: " + err.Error())
+			return nil, users.ErrorInternalServerError
+		}
+		messages = append(messages, message)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error("error iterating message rows: " + err.Error())
+		return nil, users.ErrorInternalServerError
+	}
+
+	logger.Info("successfully got messages by ticket id", "count", len(messages))
+	return messages, nil
+}
+
+func (u *UserRepository) GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.SupportMessage, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := u.db.Query(
+		ctx,
+		GetUpdatesQuery,
+		userID,
+		offset,
+	)
+	if err != nil {
+		logger.Error("failed to get updates: " + err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+
+	var messages []models.SupportMessage
+	for rows.Next() {
+		var message models.SupportMessage
+		err := rows.Scan(
+			&message.ID,
+			&message.TicketID,
+			&message.UserID,
+			&message.MessageText,
+			&message.CreatedAt,
+		)
+		if err != nil {
+			logger.Error("failed to scan update: " + err.Error())
+			continue
+		}
+		messages = append(messages, message)
+	}
+
+	return messages, nil
 }

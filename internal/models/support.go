@@ -48,3 +48,11 @@ type UpdateFeedbackInput struct {
 func (u *UpdateFeedbackInput) Sanitize() {
 	//
 }
+
+type SupportMessage struct {
+	ID          uuid.UUID `json:"id" db:"id"`
+	TicketID    uuid.UUID `json:"ticket_id" db:"ticket_id"`
+	UserID      uuid.UUID `json:"user_id" db:"user_id"`
+	MessageText string    `json:"message_text" db:"message_text"`
+	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+}

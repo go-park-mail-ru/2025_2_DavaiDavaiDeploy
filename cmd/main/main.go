@@ -39,6 +39,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 
+	"kinopoisk/internal/pkg/hub"
+
 	"github.com/gorilla/mux"
 
 	_ "kinopoisk/docs"
@@ -162,9 +164,12 @@ func main() {
 	actorHandler := actorHandlers.NewActorHandler(actorUsecase)
 
 	userRepo := userRepo.NewUserRepository(dbpool)
+	hub := hub.NewHub(userRepo)
 	s3Repo := storageRepo.NewS3Repository(s3Client, s3Bucket)
 	userUsecase := userUsecase.NewUserUsecase(userRepo, s3Repo)
-	userHandler := userHandlers.NewUserHandler(userUsecase)
+
+	go hub.Run(context.Background())
+	userHandler := userHandlers.NewUserHandler(userUsecase, hub)
 
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
@@ -223,6 +228,8 @@ func main() {
 	protectedFeedbackRouter.HandleFunc("/my/stats", userHandler.GetMyFeedbackStats).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.GetFeedback).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.UpdateFeedback).Methods(http.MethodPut, http.MethodOptions)
+	protectedFeedbackRouter.HandleFunc("/{id}/messages", userHandler.GetTicketMessages).Methods(http.MethodGet)
+	protectedFeedbackRouter.HandleFunc("/ws", userHandler.Subscribe).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,

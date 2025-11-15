@@ -971,3 +971,7 @@ INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
 ('a3bb189e-8bf9-3888-9712-6c2d5c7c5b9f', 'a3bb189e-8bf9-3888-9912-6c2d5c7c5b9a', '3b4c5d6e-7f8a-9b0c-1d2e-3f4a5b6c7d8e', 'Американский покупатель', 'Богатый клиент, желающий приобрести украденный алмаз'),
 ('a3bb189e-8bf9-3888-9612-6c2d5c7c5ba2', 'a3bb189e-8bf9-3888-9912-6c2d5c7c5b9a', '4a5b6c7d-8e9f-0a1b-2c3d-4e5f6a7b8c9d', 'Том из США', 'Американский партнер по бизнесу, втянутый в авантюру');
 
+INSERT INTO support_messages (ticket_id, user_id, message_text, created_at) VALUES
+('bd25661d-06d7-45d0-88dd-d2d1c7846126', '123e4567-e89b-12d3-a456-426614174001', 'Привет! У меня проблема с загрузкой аватара', NOW() - INTERVAL '2 days'),
+('bd25661d-06d7-45d0-88dd-d2d1c7846127', '123e4567-e89b-12d3-a456-426614174000', 'Здравствуйте! Расскажите подробнее о проблеме', NOW() - INTERVAL '1 day 23 hours'),
+('bd25661d-06d7-45d0-88dd-d2d1c7846128', '123e4567-e89b-12d3-a456-426614174001', 'При загрузке картинки выдает ошибку 500', NOW() - INTERVAL '1 day 22 hours'),
