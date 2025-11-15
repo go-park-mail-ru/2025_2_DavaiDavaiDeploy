@@ -90,6 +90,7 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -160,6 +161,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -240,6 +242,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			default:
 				helpers.WriteError(w, http.StatusInternalServerError)
 			}
+			return
 		}
 		neededUser := models.User{
 			ID:      uuid.FromStringOrNil(user.ID),
@@ -273,6 +276,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	response := models.User{
@@ -306,6 +310,7 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
