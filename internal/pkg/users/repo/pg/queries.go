@@ -31,3 +31,6 @@ var GetFeedbackStatsQuery string
 
 //go:embed sql/getUserFeedbackStatsQuery.sql
 var GetUserFeedbackStatsQuery string
+
+//go:embed sql/getAllFeedbacksQuery.sql
+var GetAllFeedbacksQuery string

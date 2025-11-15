@@ -220,6 +220,7 @@ func main() {
 	adminFeedbackRouter.Use(userHandler.AdminMiddleware)
 
 	protectedFeedbackRouter.HandleFunc("", userHandler.CreateFeedback).Methods(http.MethodPost, http.MethodOptions)
+	adminFeedbackRouter.HandleFunc("", userHandler.GetAllFeedbacks).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/my", userHandler.GetMyFeedbacks).Methods(http.MethodGet)
 	adminFeedbackRouter.HandleFunc("/stats", userHandler.GetFeedbackStats).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/my/stats", userHandler.GetUserFeedbackStats).Methods(http.MethodGet)

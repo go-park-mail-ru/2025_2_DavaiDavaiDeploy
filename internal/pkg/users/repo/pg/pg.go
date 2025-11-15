@@ -289,3 +289,45 @@ func (u *UserRepository) GetUserFeedbackStats(ctx context.Context, userID uuid.U
 	logger.Info("successfully got user feedback stats")
 	return stats, nil
 }
+
+func (u *UserRepository) GetAllFeedbacks(ctx context.Context) ([]models.SupportFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := u.db.Query(
+		ctx,
+		GetAllFeedbacksQuery,
+	)
+	if err != nil {
+		logger.Error("failed to query all feedbacks: " + err.Error())
+		return nil, users.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var feedbacks []models.SupportFeedback
+	for rows.Next() {
+		var feedback models.SupportFeedback
+		err := rows.Scan(
+			&feedback.ID,
+			&feedback.UserID,
+			&feedback.Description,
+			&feedback.Category,
+			&feedback.Status,
+			&feedback.Attachment,
+			&feedback.CreatedAt,
+			&feedback.UpdatedAt,
+		)
+		if err != nil {
+			logger.Error("failed to scan feedback: " + err.Error())
+			return nil, users.ErrorInternalServerError
+		}
+		feedbacks = append(feedbacks, feedback)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error("error iterating feedback rows: " + err.Error())
+		return nil, users.ErrorInternalServerError
+	}
+
+	logger.Info("successfully got all feedbacks", "count", len(feedbacks))
+	return feedbacks, nil
+}

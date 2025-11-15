@@ -601,3 +601,48 @@ func (u *UserHandler) GetUserFeedbackStats(w http.ResponseWriter, r *http.Reques
 	helpers.WriteJSON(w, stats)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+// GetAllFeedbacks godoc
+// @Summary Get all feedbacks (admin only)
+// @Tags feedback
+// @Produce json
+// @Success 200 {array} models.SupportFeedback
+// @Failure 401
+// @Failure 403
+// @Failure 500
+// @Router /feedback [get]
+func (u *UserHandler) GetAllFeedbacks(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	user, err := u.uc.GetUser(r.Context(), userID)
+	if err != nil {
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	if !user.IsAdmin {
+		log.LogHandlerError(logger, errors.New("admin rights required"), http.StatusForbidden)
+		helpers.WriteError(w, http.StatusForbidden)
+		return
+	}
+
+	feedbacks, err := u.uc.GetAllFeedbacks(r.Context())
+	if err != nil {
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	for i := range feedbacks {
+		feedbacks[i].Sanitize()
+	}
+
+	helpers.WriteJSON(w, feedbacks)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
