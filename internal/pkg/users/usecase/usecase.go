@@ -268,3 +268,7 @@ func (uc *UserUsecase) UpdateFeedback(ctx context.Context, feedback *models.Supp
 func (uc *UserUsecase) GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error) {
 	return uc.userRepo.GetFeedbackStats(ctx)
 }
+
+func (uc *UserUsecase) GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error) {
+	return uc.userRepo.GetUserFeedbackStats(ctx, userID)
+}

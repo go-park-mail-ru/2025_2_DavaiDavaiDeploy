@@ -537,3 +537,30 @@ func (u *UserHandler) GetFeedbackStats(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, stats)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+// GetMyFeedbackStats godoc
+// @Summary Get feedback statistics for current user
+// @Tags feedback
+// @Produce json
+// @Success 200 {object} models.FeedbackStats
+// @Failure 401
+// @Failure 500
+// @Router /feedback/my/stats [get]
+func (u *UserHandler) GetMyFeedbackStats(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	stats, err := u.uc.GetUserFeedbackStats(r.Context(), userID)
+	if err != nil {
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	helpers.WriteJSON(w, stats)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}

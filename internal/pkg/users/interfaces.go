@@ -20,6 +20,7 @@ type UsersUsecase interface {
 	GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error)
 	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
+	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
 }
 
 type UsersRepo interface {
@@ -32,6 +33,7 @@ type UsersRepo interface {
 	GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error)
 	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
+	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
 }
 
 type StorageRepo interface {

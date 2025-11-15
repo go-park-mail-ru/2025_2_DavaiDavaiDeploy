@@ -111,6 +111,7 @@ CREATE TABLE IF NOT EXISTS user_table (
     version integer DEFAULT 1 NOT NULL,
     login text NOT NULL,
     password_hash bytea NOT NULL,
+    is_admin boolean default false,
     avatar text DEFAULT 'avatars/default.png',
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,

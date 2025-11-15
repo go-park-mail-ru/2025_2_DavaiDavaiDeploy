@@ -15,6 +15,7 @@ type User struct {
 	Avatar       string    `json:"avatar" binding:"required"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	IsAdmin      bool      `json:"is_admin"`
 }
 
 func (u *User) Sanitize() {

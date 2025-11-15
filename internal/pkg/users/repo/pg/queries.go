@@ -28,3 +28,6 @@ var UpdateFeedbackQuery string
 
 //go:embed sql/getFeedbackStatsQuery.sql
 var GetFeedbackStatsQuery string
+
+//go:embed sql/getUserFeedbackStatsQuery.sql
+var GetUserFeedbackStatsQuery string

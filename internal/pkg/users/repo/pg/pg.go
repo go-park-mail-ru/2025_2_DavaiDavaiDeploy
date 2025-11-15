@@ -253,3 +253,30 @@ func (u *UserRepository) GetFeedbackStats(ctx context.Context) (models.FeedbackS
 	logger.Info("successfully got feedback stats")
 	return stats, nil
 }
+
+func (u *UserRepository) GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	var stats models.FeedbackStats
+	err := u.db.QueryRow(
+		ctx,
+		GetUserFeedbackStatsQuery,
+		userID,
+	).Scan(
+		&stats.Total,
+		&stats.Open,
+		&stats.InProgress,
+		&stats.Closed,
+		&stats.Bugs,
+		&stats.FeatureReqs,
+		&stats.Complaints,
+		&stats.Questions,
+	)
+	if err != nil {
+		logger.Error("failed to get user feedback stats: " + err.Error())
+		return models.FeedbackStats{}, users.ErrorInternalServerError
+	}
+
+	logger.Info("successfully got user feedback stats")
+	return stats, nil
+}
