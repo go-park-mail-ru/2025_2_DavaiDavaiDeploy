@@ -211,6 +211,11 @@ func (g GrpcFilmsHandler) SendFeedback(ctx context.Context, in *gen.SendFeedback
 		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
 	}
 
+	userID, err := uuid.FromString(in.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+
 	req := models.FilmFeedbackInput{
 		Title:  in.Feedback.Title,
 		Text:   in.Feedback.Text,
@@ -218,7 +223,7 @@ func (g GrpcFilmsHandler) SendFeedback(ctx context.Context, in *gen.SendFeedback
 	}
 	req.Sanitize()
 
-	feedback, err := g.uc.SendFeedback(ctx, req, filmID)
+	feedback, err := g.uc.SendFeedback(ctx, req, filmID, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
@@ -259,7 +264,12 @@ func (g GrpcFilmsHandler) SetRating(ctx context.Context, in *gen.SetRatingReques
 		Rating: int(in.RatingInput.Rating),
 	}
 
-	feedback, err := g.uc.SetRating(ctx, req, filmID)
+	userID, err := uuid.FromString(in.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+
+	feedback, err := g.uc.SetRating(ctx, req, filmID, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):

@@ -616,7 +616,8 @@ func (x *GetFilmFeedbacksResponse) GetFeedbacks() []*FilmFeedback {
 type SendFeedbackRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FilmId        string                 `protobuf:"bytes,1,opt,name=film_id,json=filmId,proto3" json:"film_id,omitempty"`
-	Feedback      *FilmFeedbackInput     `protobuf:"bytes,2,opt,name=feedback,proto3" json:"feedback,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Feedback      *FilmFeedbackInput     `protobuf:"bytes,3,opt,name=feedback,proto3" json:"feedback,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -654,6 +655,13 @@ func (*SendFeedbackRequest) Descriptor() ([]byte, []int) {
 func (x *SendFeedbackRequest) GetFilmId() string {
 	if x != nil {
 		return x.FilmId
+	}
+	return ""
+}
+
+func (x *SendFeedbackRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -712,7 +720,8 @@ func (x *SendFeedbackResponse) GetFeedback() *FilmFeedback {
 type SetRatingRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FilmId        string                 `protobuf:"bytes,1,opt,name=film_id,json=filmId,proto3" json:"film_id,omitempty"`
-	RatingInput   *FilmRatingInput       `protobuf:"bytes,2,opt,name=rating_input,json=ratingInput,proto3" json:"rating_input,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	RatingInput   *FilmRatingInput       `protobuf:"bytes,3,opt,name=rating_input,json=ratingInput,proto3" json:"rating_input,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -750,6 +759,13 @@ func (*SetRatingRequest) Descriptor() ([]byte, []int) {
 func (x *SetRatingRequest) GetFilmId() string {
 	if x != nil {
 		return x.FilmId
+	}
+	return ""
+}
+
+func (x *SetRatingRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -2262,15 +2278,17 @@ const file_films_proto_rawDesc = "" +
 	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\"\n" +
 	"\x05pager\x18\x02 \x01(\v2\f.films.PagerR\x05pager\"M\n" +
 	"\x18GetFilmFeedbacksResponse\x121\n" +
-	"\tfeedbacks\x18\x01 \x03(\v2\x13.films.FilmFeedbackR\tfeedbacks\"d\n" +
+	"\tfeedbacks\x18\x01 \x03(\v2\x13.films.FilmFeedbackR\tfeedbacks\"}\n" +
 	"\x13SendFeedbackRequest\x12\x17\n" +
-	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x124\n" +
-	"\bfeedback\x18\x02 \x01(\v2\x18.films.FilmFeedbackInputR\bfeedback\"G\n" +
+	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x124\n" +
+	"\bfeedback\x18\x03 \x01(\v2\x18.films.FilmFeedbackInputR\bfeedback\"G\n" +
 	"\x14SendFeedbackResponse\x12/\n" +
-	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"f\n" +
+	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"\x7f\n" +
 	"\x10SetRatingRequest\x12\x17\n" +
-	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x129\n" +
-	"\frating_input\x18\x02 \x01(\v2\x16.films.FilmRatingInputR\vratingInput\"D\n" +
+	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\x129\n" +
+	"\frating_input\x18\x03 \x01(\v2\x16.films.FilmRatingInputR\vratingInput\"D\n" +
 	"\x11SetRatingResponse\x12/\n" +
 	"\bfeedback\x18\x01 \x01(\v2\x13.films.FilmFeedbackR\bfeedback\"8\n" +
 	"\x0fSiteMapResponse\x12%\n" +

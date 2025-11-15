@@ -128,13 +128,8 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	return result, nil
 }
 
-func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("user is unauthorized")
-		return models.FilmFeedback{}, films.ErrorUnauthorized
-	}
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
@@ -151,7 +146,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
-	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
+	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, filmID)
 	if err == nil {
 		// отзыв существует - обновляем
 		existingFeedback.Title = &req.Title
@@ -172,7 +167,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	// создаем новый отзыв
 	feedback := models.FilmFeedback{
 		ID:        uuid.NewV4(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FilmID:    filmID,
 		Title:     &req.Title,
 		Text:      &req.Text,
@@ -190,20 +185,15 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	return feedback, nil
 }
 
-func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("user is not authorized")
-		return models.FilmFeedback{}, films.ErrorUnauthorized
-	}
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
-	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
+	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, filmID)
 	if err == nil {
 		// запись существует - обновляем рейтинг
 		existingFeedback.Rating = req.Rating
@@ -221,7 +211,7 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 
 	newFeedback := models.FilmFeedback{
 		ID:        uuid.NewV4(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FilmID:    filmID,
 		Rating:    req.Rating,
 		CreatedAt: time.Now().UTC(),

@@ -216,6 +216,32 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	// Middleware проверка аутентификации
+	var token string
+	cookie, err := r.Cookie(CookieName)
+	if err == nil {
+		token = cookie.Value
+	}
+
+	if token == "" {
+		log.LogHandlerError(logger, errors.New("user is not authorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	user, err := c.client.ValidateUser(r.Context(), &gen.ValidateUserRequest{Token: token})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -235,6 +261,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 
 	feedback, err := c.client.SendFeedback(r.Context(), &gen.SendFeedbackRequest{
 		FilmId: filmID.String(),
+		UserId: user.ID,
 		Feedback: &gen.FilmFeedbackInput{
 			Title:  req.Title,
 			Text:   req.Text,
@@ -273,6 +300,32 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	// Middleware проверка аутентификации
+	var token string
+	cookie, err := r.Cookie(CookieName)
+	if err == nil {
+		token = cookie.Value
+	}
+
+	if token == "" {
+		log.LogHandlerError(logger, errors.New("user is not authorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	user, err := c.client.ValidateUser(r.Context(), &gen.ValidateUserRequest{Token: token})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -291,6 +344,7 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 
 	rating, err := c.client.SetRating(r.Context(), &gen.SetRatingRequest{
 		FilmId: filmID.String(),
+		UserId: user.ID,
 		RatingInput: &gen.FilmRatingInput{
 			Rating: int32(req.Rating),
 		},
@@ -308,30 +362,5 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.WriteJSON(w, rating.Feedback)
-	log.LogHandlerInfo(logger, "success", http.StatusOK)
-}
-
-// SiteMap godoc
-// @Summary Get sitemap
-// @Tags films
-// @Produce xml
-// @Success 200 {object} models.Urlset
-// @Failure 500
-// @Router /sitemap [get]
-func (c *FilmHandler) SiteMap(w http.ResponseWriter, r *http.Request) {
-	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-
-	urlSet, err := c.client.SiteMap(r.Context(), &gen.EmptyRequest{})
-	if err != nil {
-		st, _ := status.FromError(err)
-		switch st.Code() {
-		case codes.Internal:
-			helpers.WriteError(w, http.StatusInternalServerError)
-		default:
-			helpers.WriteError(w, http.StatusInternalServerError)
-		}
-		return
-	}
-	helpers.WriteXML(w, urlSet.Urlset)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

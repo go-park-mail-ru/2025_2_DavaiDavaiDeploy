@@ -150,7 +150,7 @@ func main() {
 	apiRouter.Use(cors.CorsMiddleware)
 	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
 
-	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
+	//apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	// Auth routes
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()

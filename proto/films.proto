@@ -83,7 +83,8 @@ message GetFilmFeedbacksResponse {
 
 message SendFeedbackRequest {
   string film_id = 1;
-  FilmFeedbackInput feedback = 2;
+  string user_id = 2; 
+  FilmFeedbackInput feedback = 3;
 }
 
 message SendFeedbackResponse {
@@ -92,7 +93,8 @@ message SendFeedbackResponse {
 
 message SetRatingRequest {
   string film_id = 1;
-  FilmRatingInput rating_input = 2;
+  string user_id = 2; 
+  FilmRatingInput rating_input = 3;
 }
 
 message SetRatingResponse {
