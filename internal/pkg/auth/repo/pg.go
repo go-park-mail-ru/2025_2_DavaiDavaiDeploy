@@ -63,6 +63,7 @@ func (r *AuthRepository) CheckUserLogin(ctx context.Context, login string) (mode
 		&user.Login,
 		&user.PasswordHash,
 		&user.Avatar,
+		&user.IsAdmin,
 		&user.CreatedAt,
 		&user.UpdatedAt)
 	if err != nil {
@@ -101,7 +102,7 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		login,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
-		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+		&user.PasswordHash, &user.Avatar, &user.IsAdmin, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

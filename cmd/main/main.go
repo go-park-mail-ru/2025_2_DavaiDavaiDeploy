@@ -216,11 +216,13 @@ func main() {
 	feedbackRouter := apiRouter.PathPrefix("/feedback").Subrouter()
 	protectedFeedbackRouter := feedbackRouter.PathPrefix("").Subrouter()
 	protectedFeedbackRouter.Use(userHandler.Middleware)
+	adminFeedbackRouter := protectedFeedbackRouter.PathPrefix("").Subrouter()
+	adminFeedbackRouter.Use(userHandler.AdminMiddleware)
 
 	protectedFeedbackRouter.HandleFunc("", userHandler.CreateFeedback).Methods(http.MethodPost, http.MethodOptions)
 	protectedFeedbackRouter.HandleFunc("/my", userHandler.GetMyFeedbacks).Methods(http.MethodGet)
-	protectedFeedbackRouter.HandleFunc("/stats", userHandler.GetFeedbackStats).Methods(http.MethodGet)
-	protectedFeedbackRouter.HandleFunc("/my/stats", userHandler.GetMyFeedbackStats).Methods(http.MethodGet)
+	adminFeedbackRouter.HandleFunc("/stats", userHandler.GetFeedbackStats).Methods(http.MethodGet)
+	protectedFeedbackRouter.HandleFunc("/my/stats", userHandler.GetUserFeedbackStats).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.GetFeedback).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.UpdateFeedback).Methods(http.MethodPut, http.MethodOptions)
 

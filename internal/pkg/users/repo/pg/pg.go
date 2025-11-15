@@ -31,7 +31,7 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 		id,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
-		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+		&user.PasswordHash, &user.Avatar, &user.IsAdmin, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -49,14 +49,18 @@ func (u *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (models.
 func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
+	var isAdmin bool
+
 	err := u.db.QueryRow(
 		ctx,
 		GetUserByLoginQuery,
 		login,
 	).Scan(
 		&user.ID, &user.Version, &user.Login,
-		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+		&user.PasswordHash, &user.Avatar, &isAdmin, &user.CreatedAt, &user.UpdatedAt,
 	)
+
+	user.IsAdmin = isAdmin
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			logger.Error("user not exists")
@@ -66,7 +70,12 @@ func (u *UserRepository) GetUserByLogin(ctx context.Context, login string) (mode
 		return models.User{}, users.ErrorInternalServerError
 	}
 
-	logger.Info("succesfully got user by login from db")
+	logger.Info("user loaded from DB",
+		"user_id", user.ID,
+		"is_admin", user.IsAdmin,
+		"is_admin_raw", isAdmin,
+		"login", user.Login)
+
 	return user, nil
 }
 

@@ -307,6 +307,36 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+func (u *UserHandler) AdminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
+		}
+
+		user, err := u.uc.ValidateAndGetUser(r.Context(), token)
+		if err != nil {
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+
+		if !user.IsAdmin {
+			log.LogHandlerError(logger, errors.New("admin rights required"), http.StatusForbidden)
+			helpers.WriteError(w, http.StatusForbidden)
+			return
+		}
+
+		user.Sanitize()
+		ctx := context.WithValue(r.Context(), users.UserKey, user.ID)
+
+		log.LogHandlerInfo(logger, "admin access granted", http.StatusOK)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // CreateFeedback godoc
 // @Summary Create new feedback/ticket
 // @Tags feedback
@@ -538,7 +568,7 @@ func (u *UserHandler) GetFeedbackStats(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
-// GetMyFeedbackStats godoc
+// GetUserFeedbackStats godoc
 // @Summary Get feedback statistics for current user
 // @Tags feedback
 // @Produce json
@@ -546,7 +576,7 @@ func (u *UserHandler) GetFeedbackStats(w http.ResponseWriter, r *http.Request) {
 // @Failure 401
 // @Failure 500
 // @Router /feedback/my/stats [get]
-func (u *UserHandler) GetMyFeedbackStats(w http.ResponseWriter, r *http.Request) {
+func (u *UserHandler) GetUserFeedbackStats(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
