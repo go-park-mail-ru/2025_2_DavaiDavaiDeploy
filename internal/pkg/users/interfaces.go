@@ -15,10 +15,10 @@ type UsersUsecase interface {
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	ChangePassword(ctx context.Context, id uuid.UUID, oldPassword string, newPassword string) (models.User, string, error)
 	ChangeUserAvatar(ctx context.Context, userID uuid.UUID, fileBytes []byte, fileFormat string) (models.User, string, error)
-	CreateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	CreateFeedback(ctx context.Context, feedback *models.SupportFeedback, attachmentBytes []byte, fileFormat string) error
 	GetFeedbackByID(ctx context.Context, id uuid.UUID) (models.SupportFeedback, error)
 	GetFeedbacksByUserID(ctx context.Context, userID uuid.UUID) ([]models.SupportFeedback, error)
-	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error
+	UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback, attachmentBytes []byte, fileFormat string) error
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
 	GetAllFeedbacks(ctx context.Context) ([]models.SupportFeedback, error)
@@ -41,4 +41,6 @@ type UsersRepo interface {
 type StorageRepo interface {
 	DeleteAvatar(ctx context.Context, avatarPath string) error
 	UploadAvatar(ctx context.Context, userID string, buffer []byte, fileFormat string, avatarExtension string) (string, error)
+	UploadFeedbackAttachment(ctx context.Context, feedbackID string, buffer []byte, fileFormat string, fileExtension string) (string, error)
+	DeleteFeedbackAttachment(ctx context.Context, attachmentPath string) error
 }

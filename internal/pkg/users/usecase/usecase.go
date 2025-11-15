@@ -204,7 +204,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 	return neededUser, token, nil
 }
 
-func (uc *UserUsecase) CreateFeedback(ctx context.Context, feedback *models.SupportFeedback) error {
+func (uc *UserUsecase) CreateFeedback(ctx context.Context, feedback *models.SupportFeedback, attachmentBytes []byte, fileFormat string) error {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	validCategories := map[string]bool{
@@ -223,6 +223,31 @@ func (uc *UserUsecase) CreateFeedback(ctx context.Context, feedback *models.Supp
 		return users.ErrorBadRequest
 	}
 
+	// Если есть вложение, загружаем его
+	if len(attachmentBytes) > 0 {
+		var fileExtension string
+		switch fileFormat {
+		case "image/jpeg":
+			fileExtension = ".jpg"
+		case "image/png":
+			fileExtension = ".png"
+		case "image/webp":
+			fileExtension = ".webp"
+		default:
+			logger.Error("invalid file format for attachment")
+			return users.ErrorBadRequest
+		}
+
+		// Генерируем временный ID для загрузки файла
+		tempID := uuid.NewV4().String()
+		attachmentPath, err := uc.storageRepo.UploadFeedbackAttachment(ctx, tempID, attachmentBytes, fileFormat, fileExtension)
+		if err != nil {
+			logger.Error("failed to upload feedback attachment", "error", err)
+			return users.ErrorInternalServerError
+		}
+		feedback.Attachment = &attachmentPath
+	}
+
 	return uc.userRepo.CreateFeedback(ctx, feedback)
 }
 
@@ -234,7 +259,7 @@ func (uc *UserUsecase) GetFeedbacksByUserID(ctx context.Context, userID uuid.UUI
 	return uc.userRepo.GetFeedbacksByUserID(ctx, userID)
 }
 
-func (uc *UserUsecase) UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback) error {
+func (uc *UserUsecase) UpdateFeedback(ctx context.Context, feedback *models.SupportFeedback, attachmentBytes []byte, fileFormat string) error {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	if feedback.Status != "" {
@@ -260,6 +285,40 @@ func (uc *UserUsecase) UpdateFeedback(ctx context.Context, feedback *models.Supp
 			logger.Error("invalid feedback category")
 			return users.ErrorBadRequest
 		}
+	}
+
+	// Если есть новое вложение, загружаем его
+	if len(attachmentBytes) > 0 {
+		var fileExtension string
+		switch fileFormat {
+		case "image/jpeg":
+			fileExtension = ".jpg"
+		case "image/png":
+			fileExtension = ".png"
+		case "image/webp":
+			fileExtension = ".webp"
+		case "application/pdf":
+			fileExtension = ".pdf"
+		default:
+			logger.Error("invalid file format for attachment")
+			return users.ErrorBadRequest
+		}
+
+		// Удаляем старое вложение, если оно есть
+		if feedback.Attachment != nil && *feedback.Attachment != "" {
+			err := uc.storageRepo.DeleteFeedbackAttachment(ctx, *feedback.Attachment)
+			if err != nil {
+				logger.Warn("failed to delete old feedback attachment", "error", err)
+			}
+		}
+
+		// Загружаем новое вложение
+		attachmentPath, err := uc.storageRepo.UploadFeedbackAttachment(ctx, feedback.ID.String(), attachmentBytes, fileFormat, fileExtension)
+		if err != nil {
+			logger.Error("failed to upload feedback attachment", "error", err)
+			return users.ErrorInternalServerError
+		}
+		feedback.Attachment = &attachmentPath
 	}
 
 	return uc.userRepo.UpdateFeedback(ctx, feedback)

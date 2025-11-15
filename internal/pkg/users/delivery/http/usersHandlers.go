@@ -357,24 +357,86 @@ func (u *UserHandler) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.CreateFeedbackInput
-	err := json.NewDecoder(r.Body).Decode(&req)
+	const maxRequestBodySize = 10 * 1024 * 1024
+	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
+	defer func() {
+		if limitedReader.Close() != nil {
+			_ = limitedReader.Close()
+		}
+	}()
+	newReq := *r
+	newReq.Body = limitedReader
+
+	err := newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		if errors.As(err, new(*http.MaxBytesError)) {
+			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
+			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
+			return
+		}
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
-	req.Sanitize()
+	defer func() {
+		if newReq.MultipartForm != nil {
+			_ = newReq.MultipartForm.RemoveAll()
+		}
+	}()
+
+	description := newReq.FormValue("description")
+	category := newReq.FormValue("category")
+
+	if description == "" || category == "" {
+		log.LogHandlerError(logger, errors.New("description and category are required"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	var attachmentBytes []byte
+	var fileFormat string
+
+	file, _, err := newReq.FormFile("attachment")
+	if err == nil {
+		defer func() {
+			if file.Close() != nil {
+				_ = file.Close()
+			}
+		}()
+
+		attachmentBytes, err = io.ReadAll(file)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to read attachment file"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+
+		fileFormat = http.DetectContentType(attachmentBytes)
+
+		validFormats := map[string]bool{
+			"image/jpeg":      true,
+			"image/png":       true,
+			"image/webp":      true,
+			"application/pdf": true,
+		}
+		if !validFormats[fileFormat] {
+			log.LogHandlerError(logger, errors.New("invalid file format"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+	} else if !errors.Is(err, http.ErrMissingFile) {
+		log.LogHandlerError(logger, errors.New("failed to process attachment"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
 
 	feedback := &models.SupportFeedback{
 		UserID:      userID,
-		Description: req.Description,
-		Category:    req.Category,
+		Description: description,
+		Category:    category,
 		Status:      "open",
-		Attachment:  req.Attachment,
 	}
 
-	err = u.uc.CreateFeedback(r.Context(), feedback)
+	err = u.uc.CreateFeedback(r.Context(), feedback, attachmentBytes, fileFormat)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrorBadRequest):
@@ -514,28 +576,83 @@ func (u *UserHandler) UpdateFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.UpdateFeedbackInput
-	err = json.NewDecoder(r.Body).Decode(&req)
+	const maxRequestBodySize = 10 * 1024 * 1024
+	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
+	defer func() {
+		if limitedReader.Close() != nil {
+			_ = limitedReader.Close()
+		}
+	}()
+	newReq := *r
+	newReq.Body = limitedReader
+
+	err = newReq.ParseMultipartForm(maxRequestBodySize)
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		if errors.As(err, new(*http.MaxBytesError)) {
+			log.LogHandlerError(logger, errors.New("file is too large"), http.StatusRequestEntityTooLarge)
+			helpers.WriteError(w, http.StatusRequestEntityTooLarge)
+			return
+		}
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
-	req.Sanitize()
-	if req.Description != nil {
-		currentFeedback.Description = *req.Description
+	defer func() {
+		if newReq.MultipartForm != nil {
+			_ = newReq.MultipartForm.RemoveAll()
+		}
+	}()
+
+	// Обновляем поля, если они переданы
+	if description := newReq.FormValue("description"); description != "" {
+		currentFeedback.Description = description
 	}
-	if req.Category != nil {
-		currentFeedback.Category = *req.Category
+	if category := newReq.FormValue("category"); category != "" {
+		currentFeedback.Category = category
 	}
-	if req.Status != nil {
-		currentFeedback.Status = *req.Status
-	}
-	if req.Attachment != nil {
-		currentFeedback.Attachment = req.Attachment
+	if status := newReq.FormValue("status"); status != "" {
+		currentFeedback.Status = status
 	}
 
-	err = u.uc.UpdateFeedback(r.Context(), &currentFeedback)
+	// Обрабатываем новое вложение, если оно есть
+	var attachmentBytes []byte
+	var fileFormat string
+
+	file, _, err := newReq.FormFile("attachment")
+	if err == nil {
+		defer func() {
+			if file.Close() != nil {
+				_ = file.Close()
+			}
+		}()
+
+		attachmentBytes, err = io.ReadAll(file)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to read attachment file"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+
+		fileFormat = http.DetectContentType(attachmentBytes)
+
+		// Проверяем допустимые форматы
+		validFormats := map[string]bool{
+			"image/jpeg":      true,
+			"image/png":       true,
+			"image/webp":      true,
+			"application/pdf": true,
+		}
+		if !validFormats[fileFormat] {
+			log.LogHandlerError(logger, errors.New("invalid file format"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+	} else if !errors.Is(err, http.ErrMissingFile) {
+		log.LogHandlerError(logger, errors.New("failed to process attachment"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	err = u.uc.UpdateFeedback(r.Context(), &currentFeedback, attachmentBytes, fileFormat)
 	if err != nil {
 		switch {
 		case errors.Is(err, users.ErrorBadRequest):

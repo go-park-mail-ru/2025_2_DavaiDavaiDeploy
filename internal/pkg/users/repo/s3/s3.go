@@ -75,3 +75,52 @@ func (r *S3Repository) UploadAvatar(ctx context.Context, userID string, buffer [
 
 	return avatarDBKey, nil
 }
+
+// UploadFeedbackAttachment загружает вложение для фидбэка в S3
+func (r *S3Repository) UploadFeedbackAttachment(ctx context.Context, feedbackID string, buffer []byte, fileFormat string, fileExtension string) (string, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	if r.client == nil || r.bucket == "" {
+		return "", errors.New("S3 client not configured")
+	}
+
+	attachmentKey := filepath.Join("static", "feedback", feedbackID+fileExtension)
+	attachmentDBKey := filepath.Join("feedback", feedbackID+fileExtension)
+
+	_, err := r.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(r.bucket),
+		Key:         aws.String(attachmentKey),
+		Body:        bytes.NewReader(buffer),
+		ContentType: aws.String(fileFormat),
+		ACL:         types.ObjectCannedACLPublicRead,
+	})
+	if err != nil {
+		logger.Error("failed to upload feedback attachment to S3", "error", err)
+		return "", fmt.Errorf("failed to upload feedback attachment: %w", err)
+	}
+
+	logger.Info("successfully uploaded feedback attachment to S3", "feedback_id", feedbackID)
+	return attachmentDBKey, nil
+}
+
+func (r *S3Repository) DeleteFeedbackAttachment(ctx context.Context, attachmentPath string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	if r.client == nil || r.bucket == "" {
+		return errors.New("S3 client not configured")
+	}
+
+	s3Key := filepath.Join("static", attachmentPath)
+
+	_, err := r.client.DeleteObject(ctx, &s3.DeleteObjectInput{
+		Bucket: aws.String(r.bucket),
+		Key:    aws.String(s3Key),
+	})
+
+	if err != nil {
+		logger.Warn("failed to delete feedback attachment from S3", "error", err, "attachment_path", attachmentPath)
+		return fmt.Errorf("failed to delete feedback attachment: %w", err)
+	}
+	logger.Info("successfully deleted feedback attachment from S3", "attachment_path", attachmentPath)
+	return nil
+}
