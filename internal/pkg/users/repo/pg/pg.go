@@ -3,6 +3,7 @@ package repo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
@@ -215,6 +216,7 @@ func (u *UserRepository) UpdateFeedback(ctx context.Context, feedback *models.Su
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
+			fmt.Println(err)
 			logger.Error("feedback not found for update")
 			return users.ErrorNotFound
 		}

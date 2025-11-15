@@ -1,10 +1,10 @@
 SELECT 
-COUNT(*) as total_feedbacks,
-COUNT(CASE WHEN status = 'open' THEN 1 END) as open_feedbacks,
-COUNT(CASE WHEN status = 'in_progress' THEN 1 END) as in_progress_feedbacks,
-COUNT(CASE WHEN status = 'closed' THEN 1 END) as closed_feedbacks,
-    json_object_agg(
-        category, 
-        COUNT(*) FILTER (WHERE category IS NOT NULL)
-    ) as feedbacks_by_category
+    COUNT(*) as total,
+    COUNT(*) FILTER (WHERE status = 'open') as open,
+    COUNT(*) FILTER (WHERE status = 'in_progress') as in_progress,
+    COUNT(*) FILTER (WHERE status = 'closed') as closed,
+    COUNT(*) FILTER (WHERE category = 'bug') as bugs,
+    COUNT(*) FILTER (WHERE category = 'feature_request') as feature_requests,
+    COUNT(*) FILTER (WHERE category = 'complaint') as complaints,
+    COUNT(*) FILTER (WHERE category = 'question') as questions
 FROM support_tickets
