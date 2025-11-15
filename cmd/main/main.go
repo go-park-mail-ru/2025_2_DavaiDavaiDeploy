@@ -219,6 +219,7 @@ func main() {
 	actorRouter.HandleFunc("/{id}/films", actorHandler.GetFilmsByActor).Methods(http.MethodGet)
 
 	feedbackRouter := apiRouter.PathPrefix("/feedback").Subrouter()
+	feedbackRouter.HandleFunc("/ws", userHandler.Subscribe).Methods(http.MethodGet)
 	protectedFeedbackRouter := feedbackRouter.PathPrefix("").Subrouter()
 	protectedFeedbackRouter.Use(userHandler.Middleware)
 
@@ -229,7 +230,6 @@ func main() {
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.GetFeedback).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.UpdateFeedback).Methods(http.MethodPut, http.MethodOptions)
 	protectedFeedbackRouter.HandleFunc("/{id}/messages", userHandler.GetTicketMessages).Methods(http.MethodGet)
-	protectedFeedbackRouter.HandleFunc("/ws", userHandler.Subscribe).Methods(http.MethodGet)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
