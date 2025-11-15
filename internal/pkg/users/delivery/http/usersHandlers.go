@@ -769,3 +769,86 @@ func (u *UserHandler) GetAllFeedbacks(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, feedbacks)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+func (u *UserHandler) CloseFeedback(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	_, err := u.uc.GetUser(r.Context(), userID)
+	if err != nil {
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	feedbackID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid feedback id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	err = u.uc.CloseFeedback(r.Context(), feedbackID)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, map[string]string{"status": "feedback closed"})
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (u *UserHandler) StartFeedbackProgress(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	// Проверяем существование пользователя (опционально, для логирования)
+	_, err := u.uc.GetUser(r.Context(), userID)
+	if err != nil {
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	feedbackID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid feedback id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	err = u.uc.StartFeedbackProgress(r.Context(), feedbackID)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, map[string]string{"status": "feedback in progress"})
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}

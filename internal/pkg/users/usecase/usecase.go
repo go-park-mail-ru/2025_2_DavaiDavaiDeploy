@@ -335,3 +335,65 @@ func (uc *UserUsecase) GetUserFeedbackStats(ctx context.Context, userID uuid.UUI
 func (uc *UserUsecase) GetAllFeedbacks(ctx context.Context) ([]models.SupportFeedback, error) {
 	return uc.userRepo.GetAllFeedbacks(ctx)
 }
+
+// usecase.go - добавить метод в UserUsecase
+func (uc *UserUsecase) CloseFeedback(ctx context.Context, feedbackID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	// Получаем текущую заявку
+	feedback, err := uc.userRepo.GetFeedbackByID(ctx, feedbackID)
+	if err != nil {
+		return err
+	}
+
+	// Проверяем, что заявка еще не закрыта
+	if feedback.Status == "closed" {
+		logger.Error("feedback is already closed")
+		return users.ErrorBadRequest
+	}
+
+	// Обновляем статус
+	feedback.Status = "closed"
+
+	err = uc.userRepo.UpdateFeedback(ctx, &feedback)
+	if err != nil {
+		logger.Error("failed to close feedback", "error", err)
+		return err
+	}
+
+	logger.Info("successfully closed feedback", "feedback_id", feedbackID)
+	return nil
+}
+
+func (uc *UserUsecase) StartFeedbackProgress(ctx context.Context, feedbackID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	// Получаем текущую заявку
+	feedback, err := uc.userRepo.GetFeedbackByID(ctx, feedbackID)
+	if err != nil {
+		return err
+	}
+
+	// Проверяем, что заявка не закрыта и не уже в прогрессе
+	if feedback.Status == "closed" {
+		logger.Error("cannot start progress on closed feedback")
+		return users.ErrorBadRequest
+	}
+
+	if feedback.Status == "in_progress" {
+		logger.Error("feedback is already in progress")
+		return users.ErrorBadRequest
+	}
+
+	// Обновляем статус
+	feedback.Status = "in_progress"
+
+	err = uc.userRepo.UpdateFeedback(ctx, &feedback)
+	if err != nil {
+		logger.Error("failed to start feedback progress", "error", err)
+		return err
+	}
+
+	logger.Info("successfully started feedback progress", "feedback_id", feedbackID)
+	return nil
+}

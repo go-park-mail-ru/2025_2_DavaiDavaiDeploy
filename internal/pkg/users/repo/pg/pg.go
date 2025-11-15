@@ -8,6 +8,7 @@ import (
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"time"
 
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/jackc/pgx/v4"
@@ -330,4 +331,50 @@ func (u *UserRepository) GetAllFeedbacks(ctx context.Context) ([]models.SupportF
 
 	logger.Info("successfully got all feedbacks", "count", len(feedbacks))
 	return feedbacks, nil
+}
+
+func (u *UserRepository) CloseFeedback(ctx context.Context, feedbackID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	var updatedAt time.Time
+	err := u.db.QueryRow(
+		ctx,
+		CloseFeedbackQuery,
+		feedbackID,
+	).Scan(&updatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("feedback not found or already closed")
+			return users.ErrorNotFound
+		}
+		logger.Error("failed to close feedback: " + err.Error())
+		return users.ErrorInternalServerError
+	}
+
+	logger.Info("successfully closed feedback", "feedback_id", feedbackID)
+	return nil
+}
+
+func (u *UserRepository) StartFeedbackProgress(ctx context.Context, feedbackID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	var updatedAt time.Time
+	err := u.db.QueryRow(
+		ctx,
+		StartFeedbackProgressQuery,
+		feedbackID,
+	).Scan(&updatedAt)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("feedback not found or already in progress/closed")
+			return users.ErrorNotFound
+		}
+		logger.Error("failed to start feedback progress: " + err.Error())
+		return users.ErrorInternalServerError
+	}
+
+	logger.Info("successfully started feedback progress", "feedback_id", feedbackID)
+	return nil
 }

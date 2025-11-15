@@ -22,6 +22,8 @@ type UsersUsecase interface {
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
 	GetAllFeedbacks(ctx context.Context) ([]models.SupportFeedback, error)
+	CloseFeedback(ctx context.Context, feedbackID uuid.UUID) error
+	StartFeedbackProgress(ctx context.Context, feedbackID uuid.UUID) error
 }
 
 type UsersRepo interface {
@@ -36,6 +38,8 @@ type UsersRepo interface {
 	GetFeedbackStats(ctx context.Context) (models.FeedbackStats, error)
 	GetUserFeedbackStats(ctx context.Context, userID uuid.UUID) (models.FeedbackStats, error)
 	GetAllFeedbacks(ctx context.Context) ([]models.SupportFeedback, error)
+	CloseFeedback(ctx context.Context, feedbackID uuid.UUID) error
+	StartFeedbackProgress(ctx context.Context, feedbackID uuid.UUID) error
 }
 
 type StorageRepo interface {
