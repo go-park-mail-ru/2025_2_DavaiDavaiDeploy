@@ -158,7 +158,7 @@ func main() {
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
 
 	protectedAuthRouter := authRouter.PathPrefix("").Subrouter()
-	protectedAuthRouter.Use(authHandler.Middleware)
+	//protectedAuthRouter.Use(authHandler.Middleware)
 	protectedAuthRouter.HandleFunc("/check", authHandler.CheckAuth).Methods(http.MethodGet, http.MethodOptions)
 	protectedAuthRouter.HandleFunc("/logout", authHandler.LogOutUser).Methods(http.MethodPost, http.MethodOptions)
 
@@ -168,13 +168,13 @@ func main() {
 
 	// Protected user routes
 	protectedUserRouter := userRouter.PathPrefix("/change").Subrouter()
-	protectedUserRouter.Use(userHandler.Middleware)
+	//protectedUserRouter.Use(userHandler.Middleware)
 	protectedUserRouter.HandleFunc("/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
-	filmRouter.Use(filmHandler.Middleware)
+	//filmRouter.Use(filmHandler.Middleware)
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
@@ -182,7 +182,7 @@ func main() {
 
 	// Protected film routes
 	protectedFilmRouter := filmRouter.PathPrefix("").Subrouter()
-	protectedFilmRouter.Use(authHandler.Middleware)
+	//protectedFilmRouter.Use(authHandler.Middleware)
 	protectedFilmRouter.HandleFunc("/{id}/feedback", filmHandler.SendFeedback).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 

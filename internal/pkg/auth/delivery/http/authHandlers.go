@@ -267,7 +267,43 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 // @Router /auth/check [get]
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	user, err := a.client.CheckAuth(r.Context(), &gen.CheckAuthRequest{})
+
+	// Добавляем middleware проверку
+	csrfCookie, err := r.Cookie(CSRFCookieName)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var csrfToken string
+	tokenFromHeader := r.Header.Get("X-CSRF-Token")
+	if tokenFromHeader != "" {
+		csrfToken = tokenFromHeader
+	} else {
+		tokenFromForm := r.FormValue("csrftoken")
+		if tokenFromForm != "" {
+			csrfToken = tokenFromForm
+		} else {
+			log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+	}
+
+	if csrfCookie.Value != csrfToken {
+		log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var token string
+	cookie, err := r.Cookie(CookieName)
+	if err == nil {
+		token = cookie.Value
+	}
+
+	user, err := a.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
 	if err != nil {
 		st, _ := status.FromError(err)
 		switch st.Code() {
@@ -301,7 +337,56 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/logout [post]
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	_, err := a.client.LogOutUser(r.Context(), &gen.LogOutUserRequest{})
+
+	// Добавляем middleware проверку
+	csrfCookie, err := r.Cookie(CSRFCookieName)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var csrfToken string
+	tokenFromHeader := r.Header.Get("X-CSRF-Token")
+	if tokenFromHeader != "" {
+		csrfToken = tokenFromHeader
+	} else {
+		tokenFromForm := r.FormValue("csrftoken")
+		if tokenFromForm != "" {
+			csrfToken = tokenFromForm
+		} else {
+			log.LogHandlerError(logger, errors.New("csrf-token is empty"), http.StatusUnauthorized)
+			helpers.WriteError(w, http.StatusUnauthorized)
+			return
+		}
+	}
+
+	if csrfCookie.Value != csrfToken {
+		log.LogHandlerError(logger, errors.New("invalid csrf-token"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var token string
+	cookie, err := r.Cookie(CookieName)
+	if err == nil {
+		token = cookie.Value
+	}
+
+	// Валидируем пользователя перед логаутом
+	_, err = a.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	_, err = a.client.LogOutUser(r.Context(), &gen.LogOutUserRequest{})
 	if err != nil {
 		st, _ := status.FromError(err)
 		switch st.Code() {
