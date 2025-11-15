@@ -370,7 +370,7 @@ func (u *UserHandler) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 		UserID:      userID,
 		Description: req.Description,
 		Category:    req.Category,
-		Status:      "open", // По умолчанию статус "open"
+		Status:      "open",
 		Attachment:  req.Attachment,
 	}
 
@@ -384,6 +384,7 @@ func (u *UserHandler) CreateFeedback(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	feedback.Sanitize()
 
 	helpers.WriteJSON(w, feedback)
 	log.LogHandlerInfo(logger, "success", http.StatusCreated)
@@ -428,6 +429,7 @@ func (u *UserHandler) GetFeedback(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+	feedback.Sanitize()
 
 	helpers.WriteJSON(w, feedback)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -454,6 +456,10 @@ func (u *UserHandler) GetMyFeedbacks(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
+	}
+
+	for i := range feedbacks {
+		feedbacks[i].Sanitize()
 	}
 
 	helpers.WriteJSON(w, feedbacks)
@@ -536,6 +542,7 @@ func (u *UserHandler) UpdateFeedback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	currentFeedback.Sanitize()
 	helpers.WriteJSON(w, currentFeedback)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
