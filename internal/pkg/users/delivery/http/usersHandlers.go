@@ -458,6 +458,12 @@ func (u *UserHandler) GetMyFeedbacks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(feedbacks) == 0 {
+		helpers.WriteJSON(w, []models.SupportFeedback{})
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		return
+	}
+
 	for i := range feedbacks {
 		feedbacks[i].Sanitize()
 	}
