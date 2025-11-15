@@ -306,3 +306,234 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+// CreateFeedback godoc
+// @Summary Create new feedback/ticket
+// @Tags feedback
+// @Accept json
+// @Produce json
+// @Param input body models.CreateFeedbackInput true "Feedback data"
+// @Success 201 {object} models.SupportFeedback
+// @Failure 400
+// @Failure 401
+// @Failure 500
+// @Router /feedback [post]
+func (u *UserHandler) CreateFeedback(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var req models.CreateFeedbackInput
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	req.Sanitize()
+
+	feedback := &models.SupportFeedback{
+		UserID:      userID,
+		Description: req.Description,
+		Category:    req.Category,
+		Status:      "open", // По умолчанию статус "open"
+		Attachment:  req.Attachment,
+	}
+
+	err = u.uc.CreateFeedback(r.Context(), feedback)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, feedback)
+	log.LogHandlerInfo(logger, "success", http.StatusCreated)
+}
+
+// GetFeedback godoc
+// @Summary Get feedback by ID
+// @Tags feedback
+// @Produce json
+// @Param        id   path      string  true  "Feedback ID"
+// @Success 200 {object} models.SupportFeedback
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /feedback/{id} [get]
+func (u *UserHandler) GetFeedback(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	_, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid feedback id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	feedback, err := u.uc.GetFeedbackByID(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, feedback)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetMyFeedbacks godoc
+// @Summary Get current user's feedbacks
+// @Tags feedback
+// @Produce json
+// @Success 200 {array} models.SupportFeedback
+// @Failure 401
+// @Failure 500
+// @Router /feedback/my [get]
+func (u *UserHandler) GetMyFeedbacks(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	feedbacks, err := u.uc.GetFeedbacksByUserID(r.Context(), userID)
+	if err != nil {
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	helpers.WriteJSON(w, feedbacks)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// UpdateFeedback godoc
+// @Summary Update feedback
+// @Tags feedback
+// @Accept json
+// @Produce json
+// @Param        id   path      string  true  "Feedback ID"
+// @Param input body models.UpdateFeedbackInput true "Feedback update data"
+// @Success 200 {object} models.SupportFeedback
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /feedback/{id} [put]
+func (u *UserHandler) UpdateFeedback(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	_, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	id, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid feedback id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	currentFeedback, err := u.uc.GetFeedbackByID(r.Context(), id)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	var req models.UpdateFeedbackInput
+	err = json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	req.Sanitize()
+	if req.Description != nil {
+		currentFeedback.Description = *req.Description
+	}
+	if req.Category != nil {
+		currentFeedback.Category = *req.Category
+	}
+	if req.Status != nil {
+		currentFeedback.Status = *req.Status
+	}
+	if req.Attachment != nil {
+		currentFeedback.Attachment = req.Attachment
+	}
+
+	err = u.uc.UpdateFeedback(r.Context(), &currentFeedback)
+	if err != nil {
+		switch {
+		case errors.Is(err, users.ErrorBadRequest):
+			helpers.WriteError(w, http.StatusBadRequest)
+		case errors.Is(err, users.ErrorNotFound):
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	helpers.WriteJSON(w, currentFeedback)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetFeedbackStats godoc
+// @Summary Get feedback statistics
+// @Tags feedback
+// @Produce json
+// @Success 200 {object} models.FeedbackStats
+// @Failure 401
+// @Failure 500
+// @Router /feedback/stats [get]
+func (u *UserHandler) GetFeedbackStats(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	_, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("no user"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	stats, err := u.uc.GetFeedbackStats(r.Context())
+	if err != nil {
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	helpers.WriteJSON(w, stats)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}

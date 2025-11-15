@@ -119,17 +119,14 @@ CREATE TABLE IF NOT EXISTS user_table (
 );
 
 CREATE TABLE IF NOT EXISTS support_tickets (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES user_table(id) ON DELETE CASCADE,
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
+    user_id UUID NOT NULL,
     description TEXT NOT NULL CHECK (length(description) > 0 AND length(description) <= 2000),
     category TEXT NOT NULL CHECK (category IN ('bug', 'feature_request', 'complaint', 'question')),
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'closed')),
     attachment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    
-    CONSTRAINT fk_support_tickets_user 
-        FOREIGN KEY (user_id) REFERENCES user_table(id) ON DELETE CASCADE
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -227,3 +224,10 @@ ALTER TABLE ONLY film_feedback
 
 ALTER TABLE ONLY film
     ADD CONSTRAINT film_genre_fk FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE RESTRICT;
+
+ALTER TABLE ONLY support_tickets
+    ADD CONSTRAINT support_tickets_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY support_tickets
+    ADD CONSTRAINT fk_support_tickets_user 
+    FOREIGN KEY (user_id) REFERENCES user_table(id) ON DELETE CASCADE;
