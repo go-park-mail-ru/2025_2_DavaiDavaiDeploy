@@ -15,6 +15,7 @@ services:
       DB_PORT: 5432
       AUTH_SERVICE_HOST: auth
       FILMS_SERVICE_HOST: films
+      GOPROXY: "https://proxy.golang.org,direct"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,6 +38,7 @@ services:
       DB_HOST: postgres
       DB_NAME: kinopoisk
       DB_PORT: 5432
+      GOPROXY: "https://proxy.golang.org,direct"
     depends_on:
       postgres:
         condition: service_healthy
@@ -55,6 +57,7 @@ services:
       DB_HOST: postgres
       DB_NAME: kinopoisk
       DB_PORT: 5432
+      GOPROXY: "https://proxy.golang.org,direct"
     depends_on:
       postgres:
         condition: service_healthy
