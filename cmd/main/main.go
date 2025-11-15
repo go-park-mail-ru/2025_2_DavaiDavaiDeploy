@@ -227,7 +227,7 @@ func main() {
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.GetFeedback).Methods(http.MethodGet)
 	protectedFeedbackRouter.HandleFunc("/{id}", userHandler.UpdateFeedback).Methods(http.MethodPut, http.MethodOptions)
 	adminFeedbackRouter.HandleFunc("/{id}/close", userHandler.CloseFeedback).Methods(http.MethodPatch, http.MethodOptions)
-	adminFeedbackRouter.HandleFunc("/feedback/{id}/progress", userHandler.StartFeedbackProgress).Methods(http.MethodPatch, http.MethodOptions)
+	adminFeedbackRouter.HandleFunc("/{id}/progress", userHandler.StartFeedbackProgress).Methods(http.MethodPatch, http.MethodOptions)
 
 	filmSrv := http.Server{
 		Handler: mainRouter,
