@@ -2,8 +2,6 @@ module kinopoisk
 
 go 1.24.0
 
-toolchain go1.24.7
-
 require (
 	github.com/aws/aws-sdk-go-v2 v1.39.5
 	github.com/aws/aws-sdk-go-v2/config v1.27.0
