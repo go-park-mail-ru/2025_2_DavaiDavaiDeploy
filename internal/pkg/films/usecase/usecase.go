@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -74,13 +73,10 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 	return mainPageFilms, nil
 }
 
-func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error) {
+func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UUID) (models.FilmPage, error) {
 	film, err := uc.filmRepo.GetFilmPage(ctx, id)
-	user, _ := ctx.Value(auth.UserKey).(models.User)
-	if err != nil {
-		return models.FilmPage{}, err
-	}
-	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+
+	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, id)
 	film.IsReviewed = false
 	emptyFeedback := ""
 	if err == nil && feedback.Title != &emptyFeedback {
@@ -93,14 +89,13 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 	return film, nil
 }
 
-func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
+func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, _ := ctx.Value(auth.UserKey).(models.User)
 	result := make([]models.FilmFeedback, 0, pager.Count+1)
 	emptyFeedback := ""
 	usersFeedbackLogin := ""
-	if user.ID != uuid.Nil {
-		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+	if userID != uuid.Nil {
+		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, id)
 		if err == nil && feedback.Text != &emptyFeedback && feedback.Text != nil {
 			feedback.IsMine = true
 			usersFeedbackLogin = feedback.UserLogin

@@ -119,7 +119,18 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	film, err := c.client.GetFilm(r.Context(), &gen.GetFilmRequest{FilmId: id.String()})
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	film, err := c.client.GetFilm(r.Context(), &gen.GetFilmRequest{
+		FilmId: id.String(),
+		UserId: user.ID.String(),
+	})
+
 	if err != nil {
 		st, _ := status.FromError(err)
 
@@ -183,11 +194,19 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pager := helpers.GetPagerFromRequest(r)
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 
 	feedbacks, err := c.client.GetFilmFeedbacks(r.Context(), &gen.GetFilmFeedbacksRequest{
 		FilmId: id.String(),
 		Pager:  &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		UserId: user.ID.String(),
 	})
+
 	if err != nil {
 		st, _ := status.FromError(err)
 		switch st.Code() {

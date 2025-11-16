@@ -10,8 +10,8 @@ import (
 type FilmUsecase interface {
 	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
 	GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error)
-	GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error)
-	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
+	GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UUID) (models.FilmPage, error)
+	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)

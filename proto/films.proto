@@ -43,6 +43,7 @@ message GetFilmsResponse {
 
 message GetFilmRequest {
   string film_id = 1;
+  string user_id = 2;
 }
 
 message GetFilmResponse {
@@ -75,6 +76,7 @@ message GetFilmResponse {
 message GetFilmFeedbacksRequest {
   string film_id = 1;
   Pager pager = 2;
+  string user_id = 3;
 }
 
 message GetFilmFeedbacksResponse {

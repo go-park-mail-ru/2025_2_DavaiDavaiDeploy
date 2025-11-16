@@ -248,6 +248,7 @@ func (x *GetFilmsResponse) GetFilms() []*MainPageFilm {
 type GetFilmRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FilmId        string                 `protobuf:"bytes,1,opt,name=film_id,json=filmId,proto3" json:"film_id,omitempty"`
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -285,6 +286,13 @@ func (*GetFilmRequest) Descriptor() ([]byte, []int) {
 func (x *GetFilmRequest) GetFilmId() string {
 	if x != nil {
 		return x.FilmId
+	}
+	return ""
+}
+
+func (x *GetFilmRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
 	}
 	return ""
 }
@@ -521,6 +529,7 @@ type GetFilmFeedbacksRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FilmId        string                 `protobuf:"bytes,1,opt,name=film_id,json=filmId,proto3" json:"film_id,omitempty"`
 	Pager         *Pager                 `protobuf:"bytes,2,opt,name=pager,proto3" json:"pager,omitempty"`
+	UserId        string                 `protobuf:"bytes,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -567,6 +576,13 @@ func (x *GetFilmFeedbacksRequest) GetPager() *Pager {
 		return x.Pager
 	}
 	return nil
+}
+
+func (x *GetFilmFeedbacksRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
 }
 
 type GetFilmFeedbacksResponse struct {
@@ -2235,9 +2251,10 @@ const file_films_proto_rawDesc = "" +
 	"\x0fGetFilmsRequest\x12\"\n" +
 	"\x05pager\x18\x01 \x01(\v2\f.films.PagerR\x05pager\"=\n" +
 	"\x10GetFilmsResponse\x12)\n" +
-	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\")\n" +
+	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\"B\n" +
 	"\x0eGetFilmRequest\x12\x17\n" +
-	"\afilm_id\x18\x01 \x01(\tR\x06filmId\"\xcc\x06\n" +
+	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xcc\x06\n" +
 	"\x0fGetFilmResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12*\n" +
@@ -2273,10 +2290,11 @@ const file_films_proto_rawDesc = "" +
 	"\a_image1B\t\n" +
 	"\a_image2B\t\n" +
 	"\a_image3B\x0e\n" +
-	"\f_user_rating\"V\n" +
+	"\f_user_rating\"o\n" +
 	"\x17GetFilmFeedbacksRequest\x12\x17\n" +
 	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\"\n" +
-	"\x05pager\x18\x02 \x01(\v2\f.films.PagerR\x05pager\"M\n" +
+	"\x05pager\x18\x02 \x01(\v2\f.films.PagerR\x05pager\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\tR\x06userId\"M\n" +
 	"\x18GetFilmFeedbacksResponse\x121\n" +
 	"\tfeedbacks\x18\x01 \x03(\v2\x13.films.FilmFeedbackR\tfeedbacks\"}\n" +
 	"\x13SendFeedbackRequest\x12\x17\n" +

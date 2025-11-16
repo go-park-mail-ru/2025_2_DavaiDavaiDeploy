@@ -83,11 +83,18 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 }
 func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (*gen.GetFilmResponse, error) {
 	var actors []*gen.Actor
-	id, _ := uuid.FromString(in.FilmId)
-	req := models.FilmPage{
-		ID: id,
+
+	filmID, err := uuid.FromString(in.FilmId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
 	}
-	film, err := g.uc.GetFilm(ctx, req.ID)
+
+	userID, err := uuid.FromString(in.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+
+	film, err := g.uc.GetFilm(ctx, filmID, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
@@ -165,12 +172,17 @@ func (g GrpcFilmsHandler) GetFilmFeedbacks(ctx context.Context, in *gen.GetFilmF
 		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
 	}
 
+	userID, err := uuid.FromString(in.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+
 	pager := models.Pager{
 		Count:  int(in.Pager.Count),
 		Offset: int(in.Pager.Offset),
 	}
 
-	feedbacks, err := g.uc.GetFilmFeedbacks(ctx, filmID, pager)
+	feedbacks, err := g.uc.GetFilmFeedbacks(ctx, filmID, userID, pager)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
