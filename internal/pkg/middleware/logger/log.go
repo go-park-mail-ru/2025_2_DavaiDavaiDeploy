@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc"
 )
 
 type contextKey string
@@ -22,5 +23,16 @@ func LoggerMiddleware(logger *slog.Logger) mux.MiddlewareFunc {
 			r = r.WithContext(ctx)
 			next.ServeHTTP(w, r)
 		})
+	}
+}
+
+func LoggerInterceptor(logger *slog.Logger) grpc.UnaryServerInterceptor {
+	return func(ctx context.Context,
+		req interface{},
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler) (interface{}, error) {
+		ctx = context.WithValue(ctx, LoggerKey, logger.With(slog.String("ID", uuid.NewV4().String())))
+		h, err := handler(ctx, req)
+		return h, err
 	}
 }

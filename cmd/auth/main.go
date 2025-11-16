@@ -10,6 +10,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -23,6 +24,7 @@ import (
 	authHandler "kinopoisk/internal/pkg/auth/delivery/grpc"
 	authRepo "kinopoisk/internal/pkg/auth/repo"
 	authUsecase "kinopoisk/internal/pkg/auth/usecase"
+	"kinopoisk/internal/pkg/middleware/logger"
 	userRepo "kinopoisk/internal/pkg/users/repo/pg"
 	storageRepo "kinopoisk/internal/pkg/users/repo/s3"
 	userUsecase "kinopoisk/internal/pkg/users/usecase"
@@ -129,7 +131,8 @@ func main() {
 	// инициализация gRPC хендлера
 	authHandler := authHandler.NewGrpcAuthHandler(authUsecase, userUsecase)
 
-	gRPCServer := grpc.NewServer()
+	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
 	gen.RegisterAuthServer(gRPCServer, authHandler)
 
 	go func() {
