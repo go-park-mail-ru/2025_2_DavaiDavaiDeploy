@@ -162,6 +162,12 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Router /users/password [put]
 func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
 
 	var req models.ChangePasswordInput
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -174,7 +180,8 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.client.ChangePassword(r.Context(), &gen.ChangePasswordRequest{
 		OldPassword: req.OldPassword,
-		NewPassword: req.NewPassword})
+		NewPassword: req.NewPassword,
+		UserID:      userID.String()})
 
 	if err != nil {
 		st, _ := status.FromError(err)
@@ -235,6 +242,12 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 // @Router /users/avatar [put]
 func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusRequestEntityTooLarge)
+		return
+	}
 
 	const maxRequestBodySize = 10 * 1024 * 1024
 	limitedReader := http.MaxBytesReader(w, r.Body, maxRequestBodySize)
@@ -287,7 +300,8 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 
 	user, err := u.client.ChangeAvatar(r.Context(), &gen.ChangeAvatarRequest{
 		Avatar:     buffer,
-		FileFormat: fileFormat})
+		FileFormat: fileFormat,
+		UserID:     userID.String()})
 
 	if err != nil {
 		st, _ := status.FromError(err)
