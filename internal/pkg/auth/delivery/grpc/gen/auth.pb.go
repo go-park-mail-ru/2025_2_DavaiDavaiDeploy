@@ -337,6 +337,7 @@ type ChangePasswordRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OldPassword   string                 `protobuf:"bytes,1,opt,name=OldPassword,proto3" json:"OldPassword,omitempty"`
 	NewPassword   string                 `protobuf:"bytes,2,opt,name=NewPassword,proto3" json:"NewPassword,omitempty"`
+	UserID        string                 `protobuf:"bytes,3,opt,name=UserID,proto3" json:"UserID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -385,10 +386,18 @@ func (x *ChangePasswordRequest) GetNewPassword() string {
 	return ""
 }
 
+func (x *ChangePasswordRequest) GetUserID() string {
+	if x != nil {
+		return x.UserID
+	}
+	return ""
+}
+
 type ChangeAvatarRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Avatar        []byte                 `protobuf:"bytes,1,opt,name=Avatar,proto3" json:"Avatar,omitempty"`
 	FileFormat    string                 `protobuf:"bytes,2,opt,name=FileFormat,proto3" json:"FileFormat,omitempty"`
+	UserID        string                 `protobuf:"bytes,3,opt,name=UserID,proto3" json:"UserID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -433,6 +442,13 @@ func (x *ChangeAvatarRequest) GetAvatar() []byte {
 func (x *ChangeAvatarRequest) GetFileFormat() string {
 	if x != nil {
 		return x.FileFormat
+	}
+	return ""
+}
+
+func (x *ChangeAvatarRequest) GetUserID() string {
+	if x != nil {
+		return x.UserID
 	}
 	return ""
 }
@@ -576,15 +592,17 @@ const file_auth_proto_rawDesc = "" +
 	"\tCSRFToken\x18\x03 \x01(\tR\tCSRFToken\"\x12\n" +
 	"\x10CheckAuthRequest\" \n" +
 	"\x0eGetUserRequest\x12\x0e\n" +
-	"\x02ID\x18\x01 \x01(\tR\x02ID\"[\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\"s\n" +
 	"\x15ChangePasswordRequest\x12 \n" +
 	"\vOldPassword\x18\x01 \x01(\tR\vOldPassword\x12 \n" +
-	"\vNewPassword\x18\x02 \x01(\tR\vNewPassword\"M\n" +
+	"\vNewPassword\x18\x02 \x01(\tR\vNewPassword\x12\x16\n" +
+	"\x06UserID\x18\x03 \x01(\tR\x06UserID\"e\n" +
 	"\x13ChangeAvatarRequest\x12\x16\n" +
 	"\x06Avatar\x18\x01 \x01(\fR\x06Avatar\x12\x1e\n" +
 	"\n" +
 	"FileFormat\x18\x02 \x01(\tR\n" +
-	"FileFormat\"\x13\n" +
+	"FileFormat\x12\x16\n" +
+	"\x06UserID\x18\x03 \x01(\tR\x06UserID\"\x13\n" +
 	"\x11LogOutUserRequest\"\x14\n" +
 	"\x12LogOutUserResponse\"1\n" +
 	"\x19ValidateAndGetUserRequest\x12\x14\n" +

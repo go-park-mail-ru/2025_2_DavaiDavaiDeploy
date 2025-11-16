@@ -45,11 +45,13 @@ message GetUserRequest {
 message ChangePasswordRequest {
   string OldPassword = 1;
   string NewPassword = 2;
+  string UserID = 3;
 }
 
 message ChangeAvatarRequest {
   bytes Avatar = 1; 
   string FileFormat = 2;
+  string UserID = 3;
 }
 
 message LogOutUserRequest{}

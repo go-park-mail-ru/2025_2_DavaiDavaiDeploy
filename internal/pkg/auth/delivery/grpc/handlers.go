@@ -136,15 +136,10 @@ func (g GrpcAuthHandler) GetUser(ctx context.Context, in *gen.GetUserRequest) (*
 }
 
 func (g GrpcAuthHandler) ChangePassword(ctx context.Context, in *gen.ChangePasswordRequest) (*gen.AuthResponse, error) {
-	userID, ok := ctx.Value(users.UserKey).(uuid.UUID)
-	if !ok {
-		return nil, status.Errorf(codes.Unauthenticated, "%v", errors.New("no user"))
-	}
-
 	var req models.ChangePasswordInput
 	req.Sanitize()
 
-	user, token, err := g.uuc.ChangePassword(ctx, userID, req.OldPassword, req.NewPassword)
+	user, token, err := g.uuc.ChangePassword(ctx, uuid.FromStringOrNil(in.UserID), req.OldPassword, req.NewPassword)
 	if err != nil {
 		switch err {
 		case users.ErrorBadRequest:
