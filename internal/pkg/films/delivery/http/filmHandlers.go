@@ -221,7 +221,12 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	user, _ := r.Context().Value(auth.UserKey).(models.User)
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
@@ -282,7 +287,12 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	user, _ := r.Context().Value(auth.UserKey).(models.User)
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])

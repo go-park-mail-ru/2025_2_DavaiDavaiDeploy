@@ -268,7 +268,12 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	user, _ := r.Context().Value(auth.UserKey).(models.User)
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 
 	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
@@ -286,7 +291,12 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	user, _ := r.Context().Value(auth.UserKey).(models.User)
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 
 	_, err := a.client.LogOutUser(r.Context(), &gen.LogOutUserRequest{
 		ID:      user.ID.String(),

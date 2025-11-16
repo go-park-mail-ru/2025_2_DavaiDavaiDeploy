@@ -165,7 +165,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -193,6 +193,7 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -224,7 +225,6 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 	helpers.WriteJSON(w, response)
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
-	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -245,7 +245,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
-		helpers.WriteError(w, http.StatusRequestEntityTooLarge)
+		helpers.WriteError(w, http.StatusUnauthorized)
 		return
 	}
 
@@ -313,6 +313,7 @@ func (u *UserHandler) ChangeAvatar(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	http.SetCookie(w, &http.Cookie{
