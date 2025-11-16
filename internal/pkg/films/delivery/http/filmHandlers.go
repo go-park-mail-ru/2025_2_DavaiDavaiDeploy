@@ -217,7 +217,6 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	// Middleware проверка аутентификации
 	var token string
 	cookie, err := r.Cookie(CookieName)
 	if err == nil {
@@ -301,7 +300,6 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	// Middleware проверка аутентификации
 	var token string
 	cookie, err := r.Cookie(CookieName)
 	if err == nil {

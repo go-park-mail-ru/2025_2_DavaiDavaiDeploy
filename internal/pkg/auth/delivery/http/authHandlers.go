@@ -268,7 +268,6 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	// Добавляем middleware проверку
 	csrfCookie, err := r.Cookie(CSRFCookieName)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
@@ -338,7 +337,6 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
-	// Добавляем middleware проверку
 	csrfCookie, err := r.Cookie(CSRFCookieName)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("invalid csrf token"), http.StatusUnauthorized)
@@ -373,7 +371,6 @@ func (a *AuthHandler) LogOutUser(w http.ResponseWriter, r *http.Request) {
 		token = cookie.Value
 	}
 
-	// Валидируем пользователя перед логаутом
 	_, err = a.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
 	if err != nil {
 		st, _ := status.FromError(err)
