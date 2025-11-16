@@ -135,26 +135,8 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 	return neededUser, token, nil
 }
 
-func (uc *AuthUsecase) CheckAuth(ctx context.Context) (models.User, error) {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Info("no such user in context")
-		return models.User{}, auth.ErrorUnauthorized
-	}
-	return user, nil
-}
-
-func (uc *AuthUsecase) LogOutUser(ctx context.Context) error {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("no such user in context")
-		return auth.ErrorUnauthorized
-	}
-
-	err := uc.authRepo.IncrementUserVersion(ctx, user.ID)
+func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {
+	err := uc.authRepo.IncrementUserVersion(ctx, userID)
 	if err != nil {
 		return err
 	}

@@ -13,8 +13,7 @@ type AuthUsecase interface {
 	ParseToken(token string) (*jwt.Token, error)
 	SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error)
 	SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error)
-	CheckAuth(ctx context.Context) (models.User, error)
-	LogOutUser(ctx context.Context) error
+	LogOutUser(ctx context.Context, userID uuid.UUID) error
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 }
 

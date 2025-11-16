@@ -95,26 +95,6 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 	}, err
 }
 
-func (g GrpcAuthHandler) CheckAuth(ctx context.Context, in *gen.CheckAuthRequest) (*gen.UserResponse, error) {
-	user, err := g.auc.CheckAuth(ctx)
-	if err != nil {
-		switch err {
-		case auth.ErrorUnauthorized:
-			return nil, status.Errorf(codes.Unauthenticated, "%v", err)
-		default:
-			return nil, status.Errorf(codes.Internal, "%v", err)
-		}
-	}
-	user.Sanitize()
-
-	return &gen.UserResponse{
-		ID:      user.ID.String(),
-		Version: int32(user.Version),
-		Login:   user.Login,
-		Avatar:  user.Avatar,
-	}, err
-}
-
 func (g GrpcAuthHandler) GetUser(ctx context.Context, in *gen.GetUserRequest) (*gen.UserResponse, error) {
 	neededUser, err := g.uuc.GetUser(ctx, uuid.FromStringOrNil(in.ID))
 	if err != nil {
@@ -208,7 +188,7 @@ func (g GrpcAuthHandler) ChangeAvatar(ctx context.Context, in *gen.ChangeAvatarR
 }
 
 func (g GrpcAuthHandler) LogOutUser(ctx context.Context, in *gen.LogOutUserRequest) (*gen.LogOutUserResponse, error) {
-	err := g.auc.LogOutUser(ctx)
+	err := g.auc.LogOutUser(ctx, uuid.FromStringOrNil(in.ID))
 	if err != nil {
 		switch err {
 		case users.ErrorUnauthorized:

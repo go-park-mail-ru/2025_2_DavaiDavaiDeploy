@@ -19,6 +19,7 @@ COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
 COPY .env .
 ENV TZ="Europe/Moscow"
 ENV ZONEINFO=/zoneinfo.zip
+ENV GOPROXY=https://proxy.golang.org,direct
 
 EXPOSE 5458
 

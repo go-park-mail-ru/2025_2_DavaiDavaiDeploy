@@ -5,7 +5,6 @@ option go_package = "./internal/pkg/auth/delivery/grpc/gen/;gen";
 service Auth {
   rpc SignupUser(SignupRequest) returns (AuthResponse) {}
   rpc SignInUser(SignInRequest) returns (AuthResponse) {}
-  rpc CheckAuth(CheckAuthRequest) returns (UserResponse) {}
   rpc LogOutUser(LogOutUserRequest) returns (LogOutUserResponse) {}
   rpc GetUser(GetUserRequest) returns (UserResponse) {}
   rpc ChangePassword(ChangePasswordRequest) returns (AuthResponse) {}
@@ -36,7 +35,6 @@ message AuthResponse {
   string CSRFToken = 3;
 }
 
-message CheckAuthRequest {}  
 
 message GetUserRequest {
   string ID = 1;
@@ -52,7 +50,13 @@ message ChangeAvatarRequest {
   string FileFormat = 2;
 }
 
-message LogOutUserRequest{}
+message LogOutUserRequest{
+  string ID = 1;       
+  int32 Version = 2;  
+  string Login = 3;
+  string Avatar = 4;
+}
+
 message LogOutUserResponse{}
 
 message ValidateAndGetUserRequest{

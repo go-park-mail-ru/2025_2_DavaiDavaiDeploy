@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	Auth_SignupUser_FullMethodName         = "/auth.Auth/SignupUser"
 	Auth_SignInUser_FullMethodName         = "/auth.Auth/SignInUser"
-	Auth_CheckAuth_FullMethodName          = "/auth.Auth/CheckAuth"
 	Auth_LogOutUser_FullMethodName         = "/auth.Auth/LogOutUser"
 	Auth_GetUser_FullMethodName            = "/auth.Auth/GetUser"
 	Auth_ChangePassword_FullMethodName     = "/auth.Auth/ChangePassword"
@@ -35,7 +34,6 @@ const (
 type AuthClient interface {
 	SignupUser(ctx context.Context, in *SignupRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	SignInUser(ctx context.Context, in *SignInRequest, opts ...grpc.CallOption) (*AuthResponse, error)
-	CheckAuth(ctx context.Context, in *CheckAuthRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	LogOutUser(ctx context.Context, in *LogOutUserRequest, opts ...grpc.CallOption) (*LogOutUserResponse, error)
 	GetUser(ctx context.Context, in *GetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	ChangePassword(ctx context.Context, in *ChangePasswordRequest, opts ...grpc.CallOption) (*AuthResponse, error)
@@ -65,16 +63,6 @@ func (c *authClient) SignInUser(ctx context.Context, in *SignInRequest, opts ...
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AuthResponse)
 	err := c.cc.Invoke(ctx, Auth_SignInUser_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *authClient) CheckAuth(ctx context.Context, in *CheckAuthRequest, opts ...grpc.CallOption) (*UserResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UserResponse)
-	err := c.cc.Invoke(ctx, Auth_CheckAuth_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +125,6 @@ func (c *authClient) ValidateAndGetUser(ctx context.Context, in *ValidateAndGetU
 type AuthServer interface {
 	SignupUser(context.Context, *SignupRequest) (*AuthResponse, error)
 	SignInUser(context.Context, *SignInRequest) (*AuthResponse, error)
-	CheckAuth(context.Context, *CheckAuthRequest) (*UserResponse, error)
 	LogOutUser(context.Context, *LogOutUserRequest) (*LogOutUserResponse, error)
 	GetUser(context.Context, *GetUserRequest) (*UserResponse, error)
 	ChangePassword(context.Context, *ChangePasswordRequest) (*AuthResponse, error)
@@ -158,9 +145,6 @@ func (UnimplementedAuthServer) SignupUser(context.Context, *SignupRequest) (*Aut
 }
 func (UnimplementedAuthServer) SignInUser(context.Context, *SignInRequest) (*AuthResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SignInUser not implemented")
-}
-func (UnimplementedAuthServer) CheckAuth(context.Context, *CheckAuthRequest) (*UserResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CheckAuth not implemented")
 }
 func (UnimplementedAuthServer) LogOutUser(context.Context, *LogOutUserRequest) (*LogOutUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LogOutUser not implemented")
@@ -230,24 +214,6 @@ func _Auth_SignInUser_Handler(srv interface{}, ctx context.Context, dec func(int
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServer).SignInUser(ctx, req.(*SignInRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Auth_CheckAuth_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CheckAuthRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(AuthServer).CheckAuth(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Auth_CheckAuth_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServer).CheckAuth(ctx, req.(*CheckAuthRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -356,10 +322,6 @@ var Auth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SignInUser",
 			Handler:    _Auth_SignInUser_Handler,
-		},
-		{
-			MethodName: "CheckAuth",
-			Handler:    _Auth_CheckAuth_Handler,
 		},
 		{
 			MethodName: "LogOutUser",

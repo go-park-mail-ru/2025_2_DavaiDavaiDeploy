@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"os/signal"
 	"syscall"
@@ -21,6 +22,7 @@ import (
 	filmUsecase "kinopoisk/internal/pkg/films/usecase"
 	genreRepo "kinopoisk/internal/pkg/genres/repo"
 	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
+	"kinopoisk/internal/pkg/middleware/logger"
 	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -65,6 +67,8 @@ func main() {
 	}
 	defer dbpool.Close()
 
+	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	filmRepo := filmRepo.NewFilmRepository(dbpool)
 	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
 	genreRepo := genreRepo.NewGenreRepository(dbpool)
@@ -73,7 +77,7 @@ func main() {
 	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
 	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase)
 
-	gRPCServer := grpc.NewServer() //
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
 	gen.RegisterFilmsServer(gRPCServer, filmHandler)
 
 	go func() {
