@@ -270,14 +270,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 
 	user, _ := r.Context().Value(auth.UserKey).(models.User)
 
-	response := models.User{
-		ID:      uuid.FromStringOrNil(user.ID.String()),
-		Version: int(user.Version),
-		Login:   user.Login,
-		Avatar:  user.Avatar,
-	}
-
-	helpers.WriteJSON(w, response)
+	helpers.WriteJSON(w, user)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
