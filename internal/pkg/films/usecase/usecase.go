@@ -73,6 +73,17 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 	return mainPageFilms, nil
 }
 
+func (uc *FilmUsecase) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	favFilms, err := uc.filmRepo.GetUsersFavFilms(ctx, id)
+	if err != nil {
+		logger.Error("bad request")
+		return []models.FavFilm{}, films.ErrorBadRequest
+	}
+	return favFilms, nil
+}
+
 func (uc *FilmUsecase) GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 

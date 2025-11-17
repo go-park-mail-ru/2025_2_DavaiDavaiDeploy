@@ -35,6 +35,7 @@ const (
 	Films_ValidateUser_FullMethodName        = "/films.Films/ValidateUser"
 	Films_SaveFilm_FullMethodName            = "/films.Films/SaveFilm"
 	Films_RemoveFilm_FullMethodName          = "/films.Films/RemoveFilm"
+	Films_GetFavFilms_FullMethodName         = "/films.Films/GetFavFilms"
 )
 
 // FilmsClient is the client API for Films service.
@@ -57,6 +58,7 @@ type FilmsClient interface {
 	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
 	SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 }
 
 type filmsClient struct {
@@ -227,6 +229,16 @@ func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opt
 	return out, nil
 }
 
+func (c *filmsClient) GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFavFilmsResponse)
+	err := c.cc.Invoke(ctx, Films_GetFavFilms_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilmsServer is the server API for Films service.
 // All implementations must embed UnimplementedFilmsServer
 // for forward compatibility.
@@ -247,6 +259,7 @@ type FilmsServer interface {
 	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
 	SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error)
 	RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error)
+	GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
 
@@ -304,6 +317,9 @@ func (UnimplementedFilmsServer) SaveFilm(context.Context, *SaveFilmRequest) (*Em
 }
 func (UnimplementedFilmsServer) RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveFilm not implemented")
+}
+func (UnimplementedFilmsServer) GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFavFilms not implemented")
 }
 func (UnimplementedFilmsServer) mustEmbedUnimplementedFilmsServer() {}
 func (UnimplementedFilmsServer) testEmbeddedByValue()               {}
@@ -614,6 +630,24 @@ func _Films_RemoveFilm_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_GetFavFilms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFavFilmsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetFavFilms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetFavFilms_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetFavFilms(ctx, req.(*GetFavFilmsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Films_ServiceDesc is the grpc.ServiceDesc for Films service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -684,6 +718,10 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveFilm",
 			Handler:    _Films_RemoveFilm_Handler,
+		},
+		{
+			MethodName: "GetFavFilms",
+			Handler:    _Films_GetFavFilms_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

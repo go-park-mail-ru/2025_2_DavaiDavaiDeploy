@@ -73,6 +73,45 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
+	favFilms, err := c.client.GetFavFilms(r.Context(), &gen.GetFavFilmsRequest{UserId: user.ID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.FavFilm{}
+	for i := range favFilms.Films {
+		var film models.FavFilm
+		film.ID = uuid.FromStringOrNil(favFilms.Films[i].Id)
+		film.Title = favFilms.Films[i].Title
+		film.Image = favFilms.Films[i].Image
+		film.Rating = favFilms.Films[i].Rating
+		film.Genre = favFilms.Films[i].Genre
+		film.Year = int(favFilms.Films[i].Year)
+		film.Duration = int(favFilms.Films[i].Duration)
+		film.ShortDescription = favFilms.Films[i].ShortDescription
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
 // GetFilms godoc
 // @Summary      List films
 // @Tags         films

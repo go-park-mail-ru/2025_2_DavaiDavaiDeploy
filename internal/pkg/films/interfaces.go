@@ -19,6 +19,7 @@ type FilmUsecase interface {
 	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 	GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error)
+	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
 }
 
 type FilmRepo interface {
@@ -38,4 +39,5 @@ type FilmRepo interface {
 	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 	CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
 	GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error)
+	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
 }
