@@ -107,7 +107,7 @@ func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFi
 			ID:               filmsForCalendar[i].ID.String(),
 			Cover:            filmsForCalendar[i].Cover,
 			Title:            filmsForCalendar[i].Title,
-			OriginalTitle:    *filmsForCalendar[i].OriginalTitle,
+			OriginalTitle:    filmsForCalendar[i].OriginalTitle,
 			ShortDescription: filmsForCalendar[i].ShortDescription,
 			ReleaseDate:      filmsForCalendar[i].ReleaseDate.String(),
 		})

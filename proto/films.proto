@@ -268,7 +268,7 @@ message FilmInCalendar {
   string ID = 1; 
   string Cover = 2;
   string Title = 3;
-  string OriginalTitle = 4;
+  optional string OriginalTitle = 4;
   string ShortDescription = 5;
   string ReleaseDate = 6;
 }

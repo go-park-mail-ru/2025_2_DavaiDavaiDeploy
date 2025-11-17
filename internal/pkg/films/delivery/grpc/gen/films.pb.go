@@ -2422,7 +2422,7 @@ type FilmInCalendar struct {
 	ID               string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	Cover            string                 `protobuf:"bytes,2,opt,name=Cover,proto3" json:"Cover,omitempty"`
 	Title            string                 `protobuf:"bytes,3,opt,name=Title,proto3" json:"Title,omitempty"`
-	OriginalTitle    string                 `protobuf:"bytes,4,opt,name=OriginalTitle,proto3" json:"OriginalTitle,omitempty"`
+	OriginalTitle    *string                `protobuf:"bytes,4,opt,name=OriginalTitle,proto3,oneof" json:"OriginalTitle,omitempty"`
 	ShortDescription string                 `protobuf:"bytes,5,opt,name=ShortDescription,proto3" json:"ShortDescription,omitempty"`
 	ReleaseDate      string                 `protobuf:"bytes,6,opt,name=ReleaseDate,proto3" json:"ReleaseDate,omitempty"`
 	unknownFields    protoimpl.UnknownFields
@@ -2481,8 +2481,8 @@ func (x *FilmInCalendar) GetTitle() string {
 }
 
 func (x *FilmInCalendar) GetOriginalTitle() string {
-	if x != nil {
-		return x.OriginalTitle
+	if x != nil && x.OriginalTitle != nil {
+		return *x.OriginalTitle
 	}
 	return ""
 }
@@ -2698,14 +2698,15 @@ const file_films_proto_rawDesc = "" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x18\n" +
 	"\aVersion\x18\x02 \x01(\x05R\aVersion\x12\x14\n" +
 	"\x05Login\x18\x03 \x01(\tR\x05Login\x12\x16\n" +
-	"\x06Avatar\x18\x04 \x01(\tR\x06Avatar\"\xc0\x01\n" +
+	"\x06Avatar\x18\x04 \x01(\tR\x06Avatar\"\xd7\x01\n" +
 	"\x0eFilmInCalendar\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x14\n" +
 	"\x05Cover\x18\x02 \x01(\tR\x05Cover\x12\x14\n" +
-	"\x05Title\x18\x03 \x01(\tR\x05Title\x12$\n" +
-	"\rOriginalTitle\x18\x04 \x01(\tR\rOriginalTitle\x12*\n" +
+	"\x05Title\x18\x03 \x01(\tR\x05Title\x12)\n" +
+	"\rOriginalTitle\x18\x04 \x01(\tH\x00R\rOriginalTitle\x88\x01\x01\x12*\n" +
 	"\x10ShortDescription\x18\x05 \x01(\tR\x10ShortDescription\x12 \n" +
-	"\vReleaseDate\x18\x06 \x01(\tR\vReleaseDate2\xe8\b\n" +
+	"\vReleaseDate\x18\x06 \x01(\tR\vReleaseDateB\x10\n" +
+	"\x0e_OriginalTitle2\xe8\b\n" +
 	"\x05Films\x12B\n" +
 	"\fGetPromoFilm\x12\x13.films.EmptyRequest\x1a\x1b.films.GetPromoFilmResponse\"\x00\x12=\n" +
 	"\bGetFilms\x12\x16.films.GetFilmsRequest\x1a\x17.films.GetFilmsResponse\"\x00\x12S\n" +
@@ -2849,6 +2850,7 @@ func file_films_proto_init() {
 	file_films_proto_msgTypes[29].OneofWrappers = []any{}
 	file_films_proto_msgTypes[35].OneofWrappers = []any{}
 	file_films_proto_msgTypes[36].OneofWrappers = []any{}
+	file_films_proto_msgTypes[39].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
