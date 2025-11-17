@@ -344,44 +344,6 @@ const docTemplate = `{
             }
         },
         "/films/{id}/feedbacks": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "films"
-                ],
-                "summary": "Get film reviews",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Film ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.FilmFeedback"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            },
             "post": {
                 "consumes": [
                     "application/json"
@@ -400,6 +362,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Feedback data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.FilmFeedbackInput"
+                        }
                     }
                 ],
                 "responses": {
@@ -450,7 +421,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.FilmFeedbackInput"
+                            "$ref": "#/definitions/gen.FilmRatingInput"
                         }
                     }
                 ],
@@ -705,6 +676,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "gen.FilmRatingInput": {
+            "type": "object",
+            "properties": {
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Actor": {
             "type": "object",
             "required": [
@@ -829,6 +808,7 @@ const docTemplate = `{
                 "film_id",
                 "id",
                 "is_mine",
+                "new_film_rating",
                 "rating",
                 "text",
                 "title",
@@ -849,6 +829,9 @@ const docTemplate = `{
                 },
                 "is_mine": {
                     "type": "boolean"
+                },
+                "new_film_rating": {
+                    "type": "number"
                 },
                 "rating": {
                     "type": "integer",
@@ -911,7 +894,9 @@ const docTemplate = `{
                 "description",
                 "duration",
                 "genre",
+                "genre_id",
                 "id",
+                "is_liked",
                 "is_reviewed",
                 "number_of_ratings",
                 "poster",
@@ -950,6 +935,9 @@ const docTemplate = `{
                 "genre": {
                     "type": "string"
                 },
+                "genre_id": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -961,6 +949,9 @@ const docTemplate = `{
                 },
                 "image3": {
                     "type": "string"
+                },
+                "is_liked": {
+                    "type": "boolean"
                 },
                 "is_reviewed": {
                     "type": "boolean"
