@@ -180,6 +180,14 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	return feedback, nil
 }
 
+func (uc *FilmUsecase) SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	return uc.filmRepo.SaveFilm(ctx, userID, filmID)
+}
+
+func (uc *FilmUsecase) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	return uc.filmRepo.RemoveFilm(ctx, userID, filmID)
+}
+
 func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 

@@ -32,6 +32,8 @@ const (
 	Films_GetActor_FullMethodName         = "/films.Films/GetActor"
 	Films_GetFilmsByActor_FullMethodName  = "/films.Films/GetFilmsByActor"
 	Films_ValidateUser_FullMethodName     = "/films.Films/ValidateUser"
+	Films_SaveFilm_FullMethodName         = "/films.Films/SaveFilm"
+	Films_RemoveFilm_FullMethodName       = "/films.Films/RemoveFilm"
 )
 
 // FilmsClient is the client API for Films service.
@@ -51,6 +53,8 @@ type FilmsClient interface {
 	GetActor(ctx context.Context, in *GetActorRequest, opts ...grpc.CallOption) (*GetActorResponse, error)
 	GetFilmsByActor(ctx context.Context, in *GetFilmsByActorRequest, opts ...grpc.CallOption) (*GetFilmsByActorResponse, error)
 	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
+	SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 }
 
 type filmsClient struct {
@@ -191,6 +195,26 @@ func (c *filmsClient) ValidateUser(ctx context.Context, in *ValidateUserRequest,
 	return out, nil
 }
 
+func (c *filmsClient) SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, Films_SaveFilm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(EmptyResponse)
+	err := c.cc.Invoke(ctx, Films_RemoveFilm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilmsServer is the server API for Films service.
 // All implementations must embed UnimplementedFilmsServer
 // for forward compatibility.
@@ -208,6 +232,8 @@ type FilmsServer interface {
 	GetActor(context.Context, *GetActorRequest) (*GetActorResponse, error)
 	GetFilmsByActor(context.Context, *GetFilmsByActorRequest) (*GetFilmsByActorResponse, error)
 	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
+	SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error)
+	RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
 
@@ -256,6 +282,12 @@ func (UnimplementedFilmsServer) GetFilmsByActor(context.Context, *GetFilmsByActo
 }
 func (UnimplementedFilmsServer) ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateUser not implemented")
+}
+func (UnimplementedFilmsServer) SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SaveFilm not implemented")
+}
+func (UnimplementedFilmsServer) RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveFilm not implemented")
 }
 func (UnimplementedFilmsServer) mustEmbedUnimplementedFilmsServer() {}
 func (UnimplementedFilmsServer) testEmbeddedByValue()               {}
@@ -512,6 +544,42 @@ func _Films_ValidateUser_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_SaveFilm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SaveFilmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).SaveFilm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_SaveFilm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).SaveFilm(ctx, req.(*SaveFilmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Films_RemoveFilm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveFilmRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).RemoveFilm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_RemoveFilm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).RemoveFilm(ctx, req.(*RemoveFilmRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Films_ServiceDesc is the grpc.ServiceDesc for Films service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -570,6 +638,14 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateUser",
 			Handler:    _Films_ValidateUser_Handler,
+		},
+		{
+			MethodName: "SaveFilm",
+			Handler:    _Films_SaveFilm_Handler,
+		},
+		{
+			MethodName: "RemoveFilm",
+			Handler:    _Films_RemoveFilm_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

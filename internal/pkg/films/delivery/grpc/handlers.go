@@ -217,6 +217,47 @@ func (g GrpcFilmsHandler) GetFilmFeedbacks(ctx context.Context, in *gen.GetFilmF
 	}, nil
 }
 
+func (g GrpcFilmsHandler) SaveFilm(ctx context.Context, in *gen.SaveFilmRequest) (*gen.EmptyResponse, error) {
+	filmID, err := uuid.FromString(in.FilmId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
+	}
+	userID, err := uuid.FromString(in.FilmId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+	err = g.uc.SaveFilm(ctx, filmID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorBadRequest):
+			return nil, status.Errorf(codes.InvalidArgument, "film already saved")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to save film")
+		}
+	}
+	return &gen.EmptyResponse{}, nil
+}
+func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequest) (*gen.EmptyResponse, error) {
+	filmID, err := uuid.FromString(in.FilmId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
+	}
+	userID, err := uuid.FromString(in.FilmId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+	err = g.uc.RemoveFilm(ctx, filmID, userID)
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorBadRequest):
+			return nil, status.Errorf(codes.InvalidArgument, "nothing to remove")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to remove film")
+		}
+	}
+	return &gen.EmptyResponse{}, nil
+}
+
 func (g GrpcFilmsHandler) SendFeedback(ctx context.Context, in *gen.SendFeedbackRequest) (*gen.SendFeedbackResponse, error) {
 	filmID, err := uuid.FromString(in.FilmId)
 	if err != nil {

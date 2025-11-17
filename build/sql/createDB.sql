@@ -201,3 +201,17 @@ ALTER TABLE ONLY film_feedback
 
 ALTER TABLE ONLY film
     ADD CONSTRAINT film_genre_fk FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE RESTRICT;
+
+
+CREATE TABLE IF NOT EXISTS fav_films (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES user_table(id) ON DELETE CASCADE,
+    film_id uuid NOT NULL REFERENCES film(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fav_films_unique UNIQUE (user_id, film_id)
+);
+
+CREATE TRIGGER set_fav_films_timestamps 
+    BEFORE INSERT OR UPDATE ON fav_films
+    FOR EACH ROW EXECUTE FUNCTION set_timestamps();

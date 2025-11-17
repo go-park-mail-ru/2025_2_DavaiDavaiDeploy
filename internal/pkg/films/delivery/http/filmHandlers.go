@@ -178,6 +178,74 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
+func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var req models.SaveFilmInput
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.client.SaveFilm(r.Context(), &gen.SaveFilmRequest{UserId: user.ID.String(), FilmId: req.FilmID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	var req models.RemoveFilmInput
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: req.FilmID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)

@@ -16,6 +16,8 @@ type FilmUsecase interface {
 	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	SiteMap(ctx context.Context) (models.Urlset, error)
+	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 }
 
 type FilmRepo interface {
@@ -31,4 +33,6 @@ type FilmRepo interface {
 	SetRating(ctx context.Context, feedback models.FilmFeedback) error
 	GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error)
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
+	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 }

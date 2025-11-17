@@ -312,6 +312,28 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 	return err
 }
 
+func (r *FilmRepository) SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(ctx, InsertIntoSavedQuery, userID, filmID)
+	if err != nil {
+		logger.Error("failed to save film: " + err.Error())
+		return films.ErrorBadRequest
+	}
+	logger.Info("succesfully saved film in db")
+	return err
+}
+
+func (r *FilmRepository) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(ctx, DeleteFromSavedQuery, userID, filmID)
+	if err != nil {
+		logger.Error("failed to save film: " + err.Error())
+		return films.ErrorInternalServerError
+	}
+	logger.Info("succesfully deleted film from saved in db")
+	return err
+}
+
 func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User

@@ -17,8 +17,23 @@ service Films {
   
   rpc GetActor(GetActorRequest) returns (GetActorResponse) {}
   rpc GetFilmsByActor(GetFilmsByActorRequest) returns (GetFilmsByActorResponse) {}
-  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse);
+  rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse) {}
+
+  rpc SaveFilm(SaveFilmRequest) returns (EmptyResponse) {}
+  rpc RemoveFilm(RemoveFilmRequest) returns (EmptyResponse) {};
 }
+
+message SaveFilmRequest {
+  string user_id = 1;
+  string film_id = 2;
+}
+
+message RemoveFilmRequest {
+  string user_id = 1;
+  string film_id = 2;
+}
+
+message EmptyResponse {}
 
 message EmptyRequest {}
 

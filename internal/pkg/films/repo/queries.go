@@ -40,3 +40,9 @@ var SetRatingQuery string
 
 //go:embed sql/getUserByLoginQuery.sql
 var GetUserByLoginQuery string
+
+//go:embed sql/insertIntoSavedQuery.sql
+var InsertIntoSavedQuery string
+
+//go:embed sql/deleteFromSavedQuery.sql
+var DeleteFromSavedQuery string
