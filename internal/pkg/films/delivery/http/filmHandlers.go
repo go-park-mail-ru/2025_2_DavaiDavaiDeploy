@@ -187,15 +187,15 @@ func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.SaveFilmInput
-	err := json.NewDecoder(r.Body).Decode(&req)
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
-		w.WriteHeader(http.StatusBadRequest)
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
-	_, err = c.client.SaveFilm(r.Context(), &gen.SaveFilmRequest{UserId: user.ID.String(), FilmId: req.FilmID.String()})
+	_, err = c.client.SaveFilm(r.Context(), &gen.SaveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
 	if err != nil {
 		st, _ := status.FromError(err)
 		switch st.Code() {
@@ -221,15 +221,15 @@ func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req models.RemoveFilmInput
-	err := json.NewDecoder(r.Body).Decode(&req)
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid request"), http.StatusBadRequest)
-		w.WriteHeader(http.StatusBadRequest)
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
-	_, err = c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: req.FilmID.String()})
+	_, err = c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
 	if err != nil {
 		st, _ := status.FromError(err)
 		switch st.Code() {
