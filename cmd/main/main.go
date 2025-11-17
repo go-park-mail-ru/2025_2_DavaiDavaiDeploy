@@ -171,6 +171,7 @@ func main() {
 	protectedUserRouter.Use(userHandler.Middleware)
 	protectedUserRouter.HandleFunc("/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
+	protectedUserRouter.HandleFunc("/saved", filmHandler.GetUsersFavFilms).Methods(http.MethodPost, http.MethodOptions)
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
