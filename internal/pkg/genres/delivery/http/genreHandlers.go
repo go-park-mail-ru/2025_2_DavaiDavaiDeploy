@@ -2,6 +2,7 @@ package http
 
 import (
 	"errors"
+	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
@@ -55,7 +56,15 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, genre.Genre)
+
+	response := models.Genre{
+		ID:          uuid.FromStringOrNil(genre.Genre.Id),
+		Title:       genre.Genre.Name,
+		Description: genre.Genre.Description,
+		Icon:        genre.Genre.Icon,
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -84,7 +93,19 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, genres.Genres)
+
+	response := []models.Genre{}
+	for i := range genres.Genres {
+		genre := models.Genre{
+			ID:          uuid.FromStringOrNil(genres.Genres[i].Id),
+			Title:       genres.Genres[i].Name,
+			Description: genres.Genres[i].Description,
+			Icon:        genres.Genres[i].Icon,
+		}
+		response = append(response, genre)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -126,6 +147,20 @@ func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, films.Films)
+
+	response := []models.MainPageFilm{}
+	for i := range films.Films {
+		film := models.MainPageFilm{
+			ID:     uuid.FromStringOrNil(films.Films[i].Id),
+			Cover:  films.Films[i].Cover,
+			Title:  films.Films[i].Title,
+			Rating: films.Films[i].Rating,
+			Year:   int(films.Films[i].Year),
+			Genre:  films.Films[i].Genre,
+		}
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

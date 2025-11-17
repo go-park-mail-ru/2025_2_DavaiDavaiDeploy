@@ -244,8 +244,8 @@ message ActorPage {
 
 message Actor {
   string id = 1;
-  optional string russian_name = 2;
-  string original_name = 3;
+  string russian_name = 2;
+  optional string original_name = 3;
   string photo = 4;
   int32 height = 5;
   string birth_date = 6;

@@ -2,11 +2,13 @@ package http
 
 import (
 	"errors"
+	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
@@ -57,7 +59,27 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.WriteJSON(w, actor.Actor)
+	response := models.ActorPage{
+		ID:            uuid.FromStringOrNil(actor.Actor.Id),
+		RussianName:   actor.Actor.RussianName,
+		Photo:         actor.Actor.Photo,
+		Height:        int(actor.Actor.Height),
+		Age:           int(actor.Actor.Age),
+		ZodiacSign:    actor.Actor.ZodiacSign,
+		BirthPlace:    actor.Actor.BirthPlace,
+		MaritalStatus: actor.Actor.MaritalStatus,
+		FilmsNumber:   int(actor.Actor.FilmsNumber),
+	}
+
+	if actor.Actor.OriginalName != nil {
+		response.OriginalName = actor.Actor.OriginalName
+	}
+
+	if birthDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", actor.Actor.BirthDate); err == nil {
+		response.BirthDate = birthDate
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -104,6 +126,19 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.WriteJSON(w, films.Films)
+	response := []models.MainPageFilm{}
+	for i := range films.Films {
+		film := models.MainPageFilm{
+			ID:     uuid.FromStringOrNil(films.Films[i].Id),
+			Cover:  films.Films[i].Cover,
+			Title:  films.Films[i].Title,
+			Rating: films.Films[i].Rating,
+			Year:   int(films.Films[i].Year),
+			Genre:  films.Films[i].Genre,
+		}
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

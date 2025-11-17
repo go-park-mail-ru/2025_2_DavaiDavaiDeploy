@@ -57,7 +57,19 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, film)
+
+	response := models.PromoFilm{
+		ID:               uuid.FromStringOrNil(film.Id),
+		Image:            film.Image,
+		Title:            film.Title,
+		Rating:           film.Rating,
+		ShortDescription: film.ShortDescription,
+		Year:             int(film.Year),
+		Genre:            film.Genre,
+		Duration:         int(film.Duration),
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -96,7 +108,20 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, mainPageFilms.Films)
+
+	response := []models.MainPageFilm{}
+	for i := range mainPageFilms.Films {
+		var film models.MainPageFilm
+		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
+		film.Cover = mainPageFilms.Films[i].Cover
+		film.Title = mainPageFilms.Films[i].Title
+		film.Rating = mainPageFilms.Films[i].Rating
+		film.Genre = mainPageFilms.Films[i].Genre
+		film.Year = int(mainPageFilms.Films[i].Year)
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -183,7 +208,6 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		st, _ := status.FromError(err)
-
 		switch st.Code() {
 		case codes.NotFound:
 			log.LogHandlerError(logger, err, http.StatusNotFound)
@@ -197,7 +221,71 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, film)
+
+	actors := make([]models.Actor, 0, len(film.Actors))
+	for _, actor := range film.Actors {
+		mappedActor := models.Actor{
+			ID:            uuid.FromStringOrNil(actor.Id),
+			Photo:         actor.Photo,
+			Height:        int(actor.Height),
+			ZodiacSign:    actor.ZodiacSign,
+			BirthPlace:    actor.BirthPlace,
+			MaritalStatus: actor.MaritalStatus,
+		}
+
+		if actor.OriginalName != nil {
+			mappedActor.OriginalName = actor.OriginalName
+		}
+
+		if birthDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", actor.BirthDate); err == nil {
+			mappedActor.BirthDate = birthDate
+		}
+		if actor.DeathDate != nil {
+			if deathDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", *actor.DeathDate); err == nil {
+				mappedActor.DeathDate = &deathDate
+			}
+		}
+
+		actors = append(actors, mappedActor)
+	}
+
+	response := models.FilmPage{
+		ID:               uuid.FromStringOrNil(film.Id),
+		Title:            film.Title,
+		Cover:            film.Cover,
+		Poster:           film.Poster,
+		Genre:            film.Genre,
+		ShortDescription: film.ShortDescription,
+		Description:      film.Description,
+		AgeCategory:      film.AgeCategory,
+		Budget:           int(film.Budget),
+		WorldwideFees:    int(film.WorldwideFees),
+		TrailerURL:       film.TrailerUrl,
+		NumberOfRatings:  int(film.NumberOfRatings),
+		Year:             int(film.Year),
+		Rating:           film.Rating,
+		Country:          film.Country,
+		Slogan:           film.Slogan,
+		Duration:         int(film.Duration),
+		Image1:           film.Image1,
+		Image2:           film.Image2,
+		Image3:           film.Image3,
+		Actors:           actors,
+		IsReviewed:       film.IsReviewed,
+		IsLiked:          film.IsLiked,
+		GenreID:          uuid.FromStringOrNil(film.GenreId),
+	}
+
+	if film.UserRating != nil {
+		userRating := int(*film.UserRating)
+		response.UserRating = &userRating
+	}
+
+	if film.OriginalTitle != nil {
+		response.OriginalTitle = film.OriginalTitle
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -333,7 +421,37 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.WriteJSON(w, feedbacks.Feedbacks)
+	response := []models.FilmFeedback{}
+	for i := range feedbacks.Feedbacks {
+		feedback := models.FilmFeedback{
+			ID:            uuid.FromStringOrNil(feedbacks.Feedbacks[i].Id),
+			UserID:        uuid.FromStringOrNil(feedbacks.Feedbacks[i].UserId),
+			FilmID:        uuid.FromStringOrNil(feedbacks.Feedbacks[i].FilmId),
+			Rating:        int(feedbacks.Feedbacks[i].Rating),
+			UserLogin:     feedbacks.Feedbacks[i].UserLogin,
+			UserAvatar:    feedbacks.Feedbacks[i].UserAvatar,
+			IsMine:        feedbacks.Feedbacks[i].IsMine,
+			NewFilmRating: feedbacks.Feedbacks[i].NewFilmRating,
+		}
+
+		if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedbacks.Feedbacks[i].CreatedAt); err == nil {
+			feedback.CreatedAt = createdAt
+		}
+		if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedbacks.Feedbacks[i].UpdatedAt); err == nil {
+			feedback.UpdatedAt = updatedAt
+		}
+
+		if feedbacks.Feedbacks[i].Title != nil {
+			feedback.Title = feedbacks.Feedbacks[i].Title
+		}
+		if feedbacks.Feedbacks[i].Text != nil {
+			feedback.Text = feedbacks.Feedbacks[i].Text
+		}
+
+		response = append(response, feedback)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -399,7 +517,33 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, feedback.Feedback)
+
+	response := models.FilmFeedback{
+		ID:            uuid.FromStringOrNil(feedback.Feedback.Id),
+		UserID:        uuid.FromStringOrNil(feedback.Feedback.UserId),
+		FilmID:        uuid.FromStringOrNil(feedback.Feedback.FilmId),
+		Rating:        int(feedback.Feedback.Rating),
+		UserLogin:     feedback.Feedback.UserLogin,
+		UserAvatar:    feedback.Feedback.UserAvatar,
+		IsMine:        feedback.Feedback.IsMine,
+		NewFilmRating: feedback.Feedback.NewFilmRating,
+	}
+
+	if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedback.Feedback.CreatedAt); err == nil {
+		response.CreatedAt = createdAt
+	}
+	if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedback.Feedback.UpdatedAt); err == nil {
+		response.UpdatedAt = updatedAt
+	}
+
+	if feedback.Feedback.Title != nil {
+		response.Title = feedback.Feedback.Title
+	}
+	if feedback.Feedback.Text != nil {
+		response.Text = feedback.Feedback.Text
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -461,6 +605,25 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	helpers.WriteJSON(w, rating.Feedback)
+
+	response := models.FilmFeedback{
+		ID:            uuid.FromStringOrNil(rating.Feedback.Id),
+		UserID:        uuid.FromStringOrNil(rating.Feedback.UserId),
+		FilmID:        uuid.FromStringOrNil(rating.Feedback.FilmId),
+		Rating:        int(rating.Feedback.Rating),
+		UserLogin:     rating.Feedback.UserLogin,
+		UserAvatar:    rating.Feedback.UserAvatar,
+		IsMine:        rating.Feedback.IsMine,
+		NewFilmRating: rating.Feedback.NewFilmRating,
+	}
+
+	if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", rating.Feedback.CreatedAt); err == nil {
+		response.CreatedAt = createdAt
+	}
+	if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", rating.Feedback.UpdatedAt); err == nil {
+		response.UpdatedAt = updatedAt
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

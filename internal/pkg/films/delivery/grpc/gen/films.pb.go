@@ -2208,8 +2208,8 @@ func (x *ActorPage) GetFilmsNumber() int32 {
 type Actor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RussianName   *string                `protobuf:"bytes,2,opt,name=russian_name,json=russianName,proto3,oneof" json:"russian_name,omitempty"`
-	OriginalName  string                 `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3" json:"original_name,omitempty"`
+	RussianName   string                 `protobuf:"bytes,2,opt,name=russian_name,json=russianName,proto3" json:"russian_name,omitempty"`
+	OriginalName  *string                `protobuf:"bytes,3,opt,name=original_name,json=originalName,proto3,oneof" json:"original_name,omitempty"`
 	Photo         string                 `protobuf:"bytes,4,opt,name=photo,proto3" json:"photo,omitempty"`
 	Height        int32                  `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
 	BirthDate     string                 `protobuf:"bytes,6,opt,name=birth_date,json=birthDate,proto3" json:"birth_date,omitempty"`
@@ -2259,15 +2259,15 @@ func (x *Actor) GetId() string {
 }
 
 func (x *Actor) GetRussianName() string {
-	if x != nil && x.RussianName != nil {
-		return *x.RussianName
+	if x != nil {
+		return x.RussianName
 	}
 	return ""
 }
 
 func (x *Actor) GetOriginalName() string {
-	if x != nil {
-		return x.OriginalName
+	if x != nil && x.OriginalName != nil {
+		return *x.OriginalName
 	}
 	return ""
 }
@@ -2691,11 +2691,11 @@ const file_films_proto_rawDesc = "" +
 	"\x0emarital_status\x18\n" +
 	" \x01(\tR\rmaritalStatus\x12!\n" +
 	"\ffilms_number\x18\v \x01(\x05R\vfilmsNumberB\x10\n" +
-	"\x0e_original_name\"\xde\x02\n" +
+	"\x0e_original_name\"\xdf\x02\n" +
 	"\x05Actor\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12&\n" +
-	"\frussian_name\x18\x02 \x01(\tH\x00R\vrussianName\x88\x01\x01\x12#\n" +
-	"\roriginal_name\x18\x03 \x01(\tR\foriginalName\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
+	"\frussian_name\x18\x02 \x01(\tR\vrussianName\x12(\n" +
+	"\roriginal_name\x18\x03 \x01(\tH\x00R\foriginalName\x88\x01\x01\x12\x14\n" +
 	"\x05photo\x18\x04 \x01(\tR\x05photo\x12\x16\n" +
 	"\x06height\x18\x05 \x01(\x05R\x06height\x12\x1d\n" +
 	"\n" +
@@ -2707,8 +2707,8 @@ const file_films_proto_rawDesc = "" +
 	"\vbirth_place\x18\t \x01(\tR\n" +
 	"birthPlace\x12%\n" +
 	"\x0emarital_status\x18\n" +
-	" \x01(\tR\rmaritalStatusB\x0f\n" +
-	"\r_russian_nameB\r\n" +
+	" \x01(\tR\rmaritalStatusB\x10\n" +
+	"\x0e_original_nameB\r\n" +
 	"\v_death_date\"+\n" +
 	"\x13ValidateUserRequest\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"n\n" +

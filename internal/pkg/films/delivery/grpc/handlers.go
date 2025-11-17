@@ -164,13 +164,13 @@ func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (
 			deathDateStrPtr = &deathDateStr
 		}
 
-		var originalName string
+		var originalName *string
 		if film.Actors[i].OriginalName != nil {
-			originalName = *film.Actors[i].OriginalName
+			originalName = film.Actors[i].OriginalName
 		}
 		actors = append(actors, &gen.Actor{
 			Id:            film.Actors[i].ID.String(),
-			RussianName:   &film.Actors[i].RussianName,
+			RussianName:   film.Actors[i].RussianName,
 			OriginalName:  originalName,
 			Photo:         film.Actors[i].Photo,
 			Height:        int32(film.Actors[i].Height),
