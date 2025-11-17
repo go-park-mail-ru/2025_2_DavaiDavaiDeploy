@@ -5,6 +5,7 @@ option go_package = "./internal/pkg/films/delivery/grpc/gen/;gen";
 service Films {
   rpc GetPromoFilm(EmptyRequest) returns (GetPromoFilmResponse) {}
   rpc GetFilms(GetFilmsRequest) returns (GetFilmsResponse) {}
+  rpc GetFilmsForCalendar(GetFilmsRequest) returns (GetFilmsForCalendarResponse) {}
   rpc GetFilm(GetFilmRequest) returns (GetFilmResponse) {}
   rpc GetFilmFeedbacks(GetFilmFeedbacksRequest) returns (GetFilmFeedbacksResponse) {}
   rpc SendFeedback(SendFeedbackRequest) returns (SendFeedbackResponse) {}
@@ -54,6 +55,10 @@ message GetFilmsRequest {
 
 message GetFilmsResponse {
   repeated MainPageFilm films = 1;
+}
+
+message GetFilmsForCalendarResponse {
+  repeated FilmInCalendar films = 1;
 }
 
 message GetFilmRequest {
@@ -257,4 +262,13 @@ message ValidateUserResponse {
   int32 Version = 2;  
   string Login = 3;
   string Avatar = 4;
+}
+
+message FilmInCalendar {
+  string ID = 1; 
+  string Cover = 2;
+  string Title = 3;
+  string OriginalTitle = 4;
+  string ShortDescription = 5;
+  string ReleaseDate = 6;
 }

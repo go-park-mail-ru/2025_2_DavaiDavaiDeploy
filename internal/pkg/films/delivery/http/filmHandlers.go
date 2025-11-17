@@ -11,6 +11,7 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"google.golang.org/grpc/codes"
 
@@ -96,6 +97,56 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	helpers.WriteJSON(w, mainPageFilms.Films)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	pager := helpers.GetPagerFromRequest(r)
+
+	filmsForCalendar, err := c.client.GetFilmsForCalendar(r.Context(), &gen.GetFilmsRequest{
+		Pager: &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+	})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.FilmInCalendar{}
+	for i := range filmsForCalendar.Films {
+		var film models.FilmInCalendar
+
+		film.ID = uuid.FromStringOrNil(filmsForCalendar.Films[i].ID)
+		film.Cover = filmsForCalendar.Films[i].Cover
+		film.Title = filmsForCalendar.Films[i].Title
+		film.OriginalTitle = &filmsForCalendar.Films[i].OriginalTitle
+		film.ShortDescription = filmsForCalendar.Films[i].ShortDescription
+
+		releaseDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", filmsForCalendar.Films[i].ReleaseDate)
+		if err != nil {
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+			return
+		}
+
+		film.ReleaseDate = releaseDate
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 

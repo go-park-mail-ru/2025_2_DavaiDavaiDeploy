@@ -356,3 +356,33 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	logger.Info("succesfully got user by login from db")
 	return user, nil
 }
+
+func (r *FilmRepository) GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GenreetFilmsWithDateOfReleaseQuery, limit, offset)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.FilmInCalendar
+	for rows.Next() {
+		var film models.FilmInCalendar
+		if err := rows.Scan(
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.OriginalTitle,
+			&film.ShortDescription,
+			&film.ReleaseDate,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
+}
