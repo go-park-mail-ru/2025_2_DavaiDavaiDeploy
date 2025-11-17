@@ -35,4 +35,5 @@ type FilmRepo interface {
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
 }

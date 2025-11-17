@@ -31,6 +31,8 @@ type FilmPage struct {
 	Actors           []Actor   `json:"actors" binding:"required"`
 	IsReviewed       bool      `json:"is_reviewed" binding:"required"`
 	UserRating       *int      `json:"user_rating,omitempty"`
+	GenreID          uuid.UUID `json:"genre_id" binding:"required"`
+	IsLiked          bool      `json:"is_liked" binding:"required"`
 }
 
 func (fp *FilmPage) Sanitize() {
