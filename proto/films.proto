@@ -21,7 +21,27 @@ service Films {
   rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse) {}
 
   rpc SaveFilm(SaveFilmRequest) returns (EmptyResponse) {}
-  rpc RemoveFilm(RemoveFilmRequest) returns (EmptyResponse) {};
+  rpc RemoveFilm(RemoveFilmRequest) returns (EmptyResponse) {}
+  rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {};
+}
+
+message GetFavFilmsRequest {
+  string user_id = 1;
+}
+
+message GetFavFilmsResponse {
+  repeated FavFilm films = 1;
+}
+
+message FavFilm {
+  string id = 1;
+  string title = 2;
+  string genre = 3;
+  int32 year = 4;
+  int32 duration = 5;
+  string image = 6;
+  string short_description = 7;
+  double rating = 8;
 }
 
 message SaveFilmRequest {

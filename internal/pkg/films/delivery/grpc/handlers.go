@@ -48,6 +48,37 @@ func (g GrpcFilmsHandler) GetPromoFilm(ctx context.Context, in *gen.EmptyRequest
 	}, nil
 }
 
+func (g GrpcFilmsHandler) GetFavFilms(ctx context.Context, in *gen.GetFavFilmsRequest) (*gen.GetFavFilmsResponse, error) {
+	favFilms, err := g.uc.GetUsersFavFilms(ctx, uuid.FromStringOrNil(in.UserId))
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.InvalidArgument, "bad request")
+		default:
+			return nil, status.Errorf(codes.Internal, "internal server error")
+		}
+	}
+
+	var result []*gen.FavFilm
+	for i := range favFilms {
+		favFilms[i].Sanitize()
+		result = append(result, &gen.FavFilm{
+			Id:               favFilms[i].ID.String(),
+			Title:            favFilms[i].Title,
+			Genre:            favFilms[i].Genre,
+			Year:             int32(favFilms[i].Year),
+			Duration:         int32(favFilms[i].Duration),
+			Image:            favFilms[i].Image,
+			ShortDescription: favFilms[i].ShortDescription,
+			Rating:           favFilms[i].Rating,
+		})
+	}
+
+	return &gen.GetFavFilmsResponse{
+		Films: result,
+	}, nil
+}
+
 func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsResponse, error) {
 	var result []*gen.MainPageFilm
 	req := models.Pager{
@@ -60,7 +91,7 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 		case errors.Is(err, films.ErrorNotFound):
 			return nil, status.Errorf(codes.NotFound, "films not found")
 		case errors.Is(err, films.ErrorBadRequest):
-			return nil, status.Errorf(codes.Internal, "bad request")
+			return nil, status.Errorf(codes.InvalidArgument, "bad request")
 		default:
 			return nil, status.Errorf(codes.Internal, "internal server error")
 		}

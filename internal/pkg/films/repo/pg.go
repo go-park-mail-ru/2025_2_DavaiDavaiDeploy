@@ -408,3 +408,35 @@ func (r *FilmRepository) GetFilmsForCalendar(ctx context.Context, limit, offset 
 	logger.Info("succesfully got films from db")
 	return films, nil
 }
+
+func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetUsersFavFilmsQuery, id)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return []models.FavFilm{}, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.FavFilm
+	for rows.Next() {
+		var film models.FavFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Title,
+			&film.Genre,
+			&film.Year,
+			&film.Duration,
+			&film.Image,
+			&film.ShortDescription,
+			&film.Rating,
+		); err != nil {
+			logger.Error("failed to scan fav films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got fav films from db")
+	return films, nil
+}

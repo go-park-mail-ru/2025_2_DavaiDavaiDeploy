@@ -52,3 +52,6 @@ var CheckUserLikeExistsQuery string
 
 //go:embed sql/getFilmsWithDateOfReleaseQuery.sql
 var GetFilmsWithDateOfReleaseQuery string
+
+//go:embed sql/getUsersFavFilmsQuery.sql
+var GetUsersFavFilmsQuery string
