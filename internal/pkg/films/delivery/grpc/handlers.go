@@ -103,11 +103,17 @@ func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFi
 
 	for i := range filmsForCalendar {
 		filmsForCalendar[i].Sanitize()
+
+		var originalTitlePtr *string
+		if filmsForCalendar[i].OriginalTitle != nil && *filmsForCalendar[i].OriginalTitle != "" {
+			originalTitlePtr = filmsForCalendar[i].OriginalTitle
+		}
+
 		result = append(result, &gen.FilmInCalendar{
 			ID:               filmsForCalendar[i].ID.String(),
 			Cover:            filmsForCalendar[i].Cover,
 			Title:            filmsForCalendar[i].Title,
-			OriginalTitle:    filmsForCalendar[i].OriginalTitle,
+			OriginalTitle:    originalTitlePtr,
 			ShortDescription: filmsForCalendar[i].ShortDescription,
 			ReleaseDate:      filmsForCalendar[i].ReleaseDate.String(),
 		})

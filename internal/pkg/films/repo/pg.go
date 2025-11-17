@@ -382,7 +382,7 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 func (r *FilmRepository) GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	rows, err := r.db.Query(ctx, GenreetFilmsWithDateOfReleaseQuery, limit, offset)
+	rows, err := r.db.Query(ctx, GetFilmsWithDateOfReleaseQuery, limit, offset)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
 		return nil, films.ErrorInternalServerError

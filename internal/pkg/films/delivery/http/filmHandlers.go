@@ -132,11 +132,11 @@ func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request
 		film.ID = uuid.FromStringOrNil(filmsForCalendar.Films[i].ID)
 		film.Cover = filmsForCalendar.Films[i].Cover
 		film.Title = filmsForCalendar.Films[i].Title
-		var originalTitle string
+
 		if filmsForCalendar.Films[i].OriginalTitle != nil {
-			originalTitle = *filmsForCalendar.Films[i].OriginalTitle
+			film.OriginalTitle = filmsForCalendar.Films[i].OriginalTitle
 		}
-		film.OriginalTitle = &originalTitle
+
 		film.ShortDescription = filmsForCalendar.Films[i].ShortDescription
 
 		releaseDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", filmsForCalendar.Films[i].ReleaseDate)

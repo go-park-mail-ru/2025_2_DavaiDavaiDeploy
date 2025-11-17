@@ -11,7 +11,7 @@ type FilmInCalendar struct {
 	ID               uuid.UUID `json:"id" binding:"required"`
 	Cover            string    `json:"cover" binding:"required"`
 	Title            string    `json:"title" binding:"required"`
-	OriginalTitle    *string   `json:"original_title" binding:"required"`
+	OriginalTitle    *string   `json:"original_title,omitempty"`
 	ShortDescription string    `json:"short_description" binding:"reqiured"`
 	ReleaseDate      time.Time `json:"release_date" binding:"required"`
 }
