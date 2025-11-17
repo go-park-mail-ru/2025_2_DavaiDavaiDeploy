@@ -129,8 +129,11 @@ func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	filmsForCalendar, err := c.client.GetFilmsForCalendar(r.Context(), &gen.GetFilmsRequest{
-		Pager: &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
+
+	filmsForCalendar, err := c.client.GetFilmsForCalendar(r.Context(), &gen.GetFilmsForCalendarRequest{
+		Pager:  &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		UserId: user.ID.String(),
 	})
 
 	if err != nil {
@@ -157,6 +160,7 @@ func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request
 		film.ID = uuid.FromStringOrNil(filmsForCalendar.Films[i].ID)
 		film.Cover = filmsForCalendar.Films[i].Cover
 		film.Title = filmsForCalendar.Films[i].Title
+		film.IsLiked = filmsForCalendar.Films[i].IsLiked
 
 		if filmsForCalendar.Films[i].OriginalTitle != nil {
 			film.OriginalTitle = filmsForCalendar.Films[i].OriginalTitle

@@ -73,7 +73,7 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 	return mainPageFilms, nil
 }
 
-func (uc *FilmUsecase) GetFilmsForCalendar(ctx context.Context, pager models.Pager) ([]models.FilmInCalendar, error) {
+func (uc *FilmUsecase) GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	filmsInCalendar, err := uc.filmRepo.GetFilmsForCalendar(ctx, pager.Count, pager.Offset)
@@ -84,6 +84,14 @@ func (uc *FilmUsecase) GetFilmsForCalendar(ctx context.Context, pager models.Pag
 	if len(filmsInCalendar) == 0 {
 		logger.Error("no films")
 		return []models.FilmInCalendar{}, films.ErrorNotFound
+	}
+
+	for i := range filmsInCalendar {
+		_, err = uc.filmRepo.CheckUserLikeExists(ctx, userID, filmsInCalendar[i].ID)
+		filmsInCalendar[i].IsLiked = false
+		if err == nil {
+			filmsInCalendar[i].IsLiked = true
+		}
 	}
 
 	return filmsInCalendar, nil

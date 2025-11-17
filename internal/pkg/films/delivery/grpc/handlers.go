@@ -83,13 +83,19 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 	}, nil
 }
 
-func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsForCalendarResponse, error) {
+func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFilmsForCalendarRequest) (*gen.GetFilmsForCalendarResponse, error) {
 	var result []*gen.FilmInCalendar
 	req := models.Pager{
 		Count:  int(in.Pager.Count),
 		Offset: int(in.Pager.Offset),
 	}
-	filmsForCalendar, err := g.uc.GetFilmsForCalendar(ctx, req)
+
+	userID, err := uuid.FromString(in.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
+	}
+
+	filmsForCalendar, err := g.uc.GetFilmsForCalendar(ctx, req, userID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
@@ -116,6 +122,7 @@ func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFi
 			OriginalTitle:    originalTitlePtr,
 			ShortDescription: filmsForCalendar[i].ShortDescription,
 			ReleaseDate:      filmsForCalendar[i].ReleaseDate.String(),
+			IsLiked:          filmsForCalendar[i].IsLiked,
 		})
 	}
 
