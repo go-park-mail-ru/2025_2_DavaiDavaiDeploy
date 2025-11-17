@@ -105,6 +105,12 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UU
 		film.UserRating = &feedback.Rating
 	}
 
+	_, err = uc.filmRepo.CheckUserLikeExists(ctx, userID, film.ID)
+	film.IsLiked = false
+	if err == nil {
+		film.IsLiked = true
+	}
+
 	return film, nil
 }
 

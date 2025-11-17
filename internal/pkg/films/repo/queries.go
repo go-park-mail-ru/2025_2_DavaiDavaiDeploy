@@ -47,5 +47,7 @@ var InsertIntoSavedQuery string
 //go:embed sql/deleteFromSavedQuery.sql
 var DeleteFromSavedQuery string
 
+//go:embed sql/checkUserLikeExistsQuery.sql
+var CheckUserLikeExistsQuery string
 //go:embed sql/getFilmsWithDateOfReleaseQuery.sql
 var GenreetFilmsWithDateOfReleaseQuery string

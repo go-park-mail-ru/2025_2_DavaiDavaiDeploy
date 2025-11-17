@@ -91,6 +91,8 @@ message GetFilmResponse {
   repeated Actor actors = 22;
   bool is_reviewed = 23;
   optional int32 user_rating = 24;
+  string genre_id = 25;
+  bool is_liked = 26;
 }
 
 message GetFilmFeedbacksRequest {

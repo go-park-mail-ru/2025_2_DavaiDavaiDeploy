@@ -168,7 +168,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
 		&result.Slogan, &result.Duration, &result.Image1, &result.Image2, &result.Image3,
-		&result.Genre, &result.Country, &result.NumberOfRatings,
+		&result.Genre, &result.GenreID, &result.Country, &result.NumberOfRatings,
 	)
 
 	if err != nil {
@@ -266,6 +266,28 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 	}
 	logger.Info("succesfully checked users feedback in db")
 	return feedback, nil
+}
+
+func (r *FilmRepository) CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var like models.FilmFeedback
+	err := r.db.QueryRow(
+		ctx,
+		CheckUserLikeExistsQuery,
+		userID, filmID,
+	).Scan(
+		&like.ID, &like.UserID, &like.FilmID,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user or film are not found: " + err.Error())
+			return models.FilmFeedback{}, films.ErrorNotFound
+		}
+		logger.Error("failed to scan like: " + err.Error())
+		return models.FilmFeedback{}, films.ErrorInternalServerError
+	}
+	logger.Info("succesfully checked users like in db")
+	return like, nil
 }
 
 func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
