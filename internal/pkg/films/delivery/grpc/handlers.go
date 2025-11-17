@@ -47,6 +47,7 @@ func (g GrpcFilmsHandler) GetPromoFilm(ctx context.Context, in *gen.EmptyRequest
 		Duration:         int32(film.Duration),
 	}, nil
 }
+
 func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsResponse, error) {
 	var result []*gen.MainPageFilm
 	req := models.Pager{
@@ -81,6 +82,42 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 		Films: result,
 	}, nil
 }
+
+func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsForCalendarResponse, error) {
+	var result []*gen.FilmInCalendar
+	req := models.Pager{
+		Count:  int(in.Pager.Count),
+		Offset: int(in.Pager.Offset),
+	}
+	filmsForCalendar, err := g.uc.GetFilmsForCalendar(ctx, req)
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "films not found")
+		case errors.Is(err, films.ErrorBadRequest):
+			return nil, status.Errorf(codes.Internal, "bad request")
+		default:
+			return nil, status.Errorf(codes.Internal, "internal server error")
+		}
+	}
+
+	for i := range filmsForCalendar {
+		filmsForCalendar[i].Sanitize()
+		result = append(result, &gen.FilmInCalendar{
+			ID:               filmsForCalendar[i].ID.String(),
+			Cover:            filmsForCalendar[i].Cover,
+			Title:            filmsForCalendar[i].Title,
+			OriginalTitle:    filmsForCalendar[i].OriginalTitle,
+			ShortDescription: filmsForCalendar[i].ShortDescription,
+			ReleaseDate:      filmsForCalendar[i].ReleaseDate.String(),
+		})
+	}
+
+	return &gen.GetFilmsForCalendarResponse{
+		Films: result,
+	}, nil
+}
+
 func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (*gen.GetFilmResponse, error) {
 	var actors []*gen.Actor
 

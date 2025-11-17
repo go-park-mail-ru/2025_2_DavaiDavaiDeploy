@@ -19,21 +19,22 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Films_GetPromoFilm_FullMethodName     = "/films.Films/GetPromoFilm"
-	Films_GetFilms_FullMethodName         = "/films.Films/GetFilms"
-	Films_GetFilm_FullMethodName          = "/films.Films/GetFilm"
-	Films_GetFilmFeedbacks_FullMethodName = "/films.Films/GetFilmFeedbacks"
-	Films_SendFeedback_FullMethodName     = "/films.Films/SendFeedback"
-	Films_SetRating_FullMethodName        = "/films.Films/SetRating"
-	Films_SiteMap_FullMethodName          = "/films.Films/SiteMap"
-	Films_GetGenre_FullMethodName         = "/films.Films/GetGenre"
-	Films_GetGenres_FullMethodName        = "/films.Films/GetGenres"
-	Films_GetFilmsByGenre_FullMethodName  = "/films.Films/GetFilmsByGenre"
-	Films_GetActor_FullMethodName         = "/films.Films/GetActor"
-	Films_GetFilmsByActor_FullMethodName  = "/films.Films/GetFilmsByActor"
-	Films_ValidateUser_FullMethodName     = "/films.Films/ValidateUser"
-	Films_SaveFilm_FullMethodName         = "/films.Films/SaveFilm"
-	Films_RemoveFilm_FullMethodName       = "/films.Films/RemoveFilm"
+	Films_GetPromoFilm_FullMethodName        = "/films.Films/GetPromoFilm"
+	Films_GetFilms_FullMethodName            = "/films.Films/GetFilms"
+	Films_GetFilmsForCalendar_FullMethodName = "/films.Films/GetFilmsForCalendar"
+	Films_GetFilm_FullMethodName             = "/films.Films/GetFilm"
+	Films_GetFilmFeedbacks_FullMethodName    = "/films.Films/GetFilmFeedbacks"
+	Films_SendFeedback_FullMethodName        = "/films.Films/SendFeedback"
+	Films_SetRating_FullMethodName           = "/films.Films/SetRating"
+	Films_SiteMap_FullMethodName             = "/films.Films/SiteMap"
+	Films_GetGenre_FullMethodName            = "/films.Films/GetGenre"
+	Films_GetGenres_FullMethodName           = "/films.Films/GetGenres"
+	Films_GetFilmsByGenre_FullMethodName     = "/films.Films/GetFilmsByGenre"
+	Films_GetActor_FullMethodName            = "/films.Films/GetActor"
+	Films_GetFilmsByActor_FullMethodName     = "/films.Films/GetFilmsByActor"
+	Films_ValidateUser_FullMethodName        = "/films.Films/ValidateUser"
+	Films_SaveFilm_FullMethodName            = "/films.Films/SaveFilm"
+	Films_RemoveFilm_FullMethodName          = "/films.Films/RemoveFilm"
 )
 
 // FilmsClient is the client API for Films service.
@@ -42,6 +43,7 @@ const (
 type FilmsClient interface {
 	GetPromoFilm(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*GetPromoFilmResponse, error)
 	GetFilms(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsResponse, error)
+	GetFilmsForCalendar(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error)
 	GetFilm(ctx context.Context, in *GetFilmRequest, opts ...grpc.CallOption) (*GetFilmResponse, error)
 	GetFilmFeedbacks(ctx context.Context, in *GetFilmFeedbacksRequest, opts ...grpc.CallOption) (*GetFilmFeedbacksResponse, error)
 	SendFeedback(ctx context.Context, in *SendFeedbackRequest, opts ...grpc.CallOption) (*SendFeedbackResponse, error)
@@ -79,6 +81,16 @@ func (c *filmsClient) GetFilms(ctx context.Context, in *GetFilmsRequest, opts ..
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFilmsResponse)
 	err := c.cc.Invoke(ctx, Films_GetFilms_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filmsClient) GetFilmsForCalendar(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFilmsForCalendarResponse)
+	err := c.cc.Invoke(ctx, Films_GetFilmsForCalendar_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,6 +233,7 @@ func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opt
 type FilmsServer interface {
 	GetPromoFilm(context.Context, *EmptyRequest) (*GetPromoFilmResponse, error)
 	GetFilms(context.Context, *GetFilmsRequest) (*GetFilmsResponse, error)
+	GetFilmsForCalendar(context.Context, *GetFilmsRequest) (*GetFilmsForCalendarResponse, error)
 	GetFilm(context.Context, *GetFilmRequest) (*GetFilmResponse, error)
 	GetFilmFeedbacks(context.Context, *GetFilmFeedbacksRequest) (*GetFilmFeedbacksResponse, error)
 	SendFeedback(context.Context, *SendFeedbackRequest) (*SendFeedbackResponse, error)
@@ -249,6 +262,9 @@ func (UnimplementedFilmsServer) GetPromoFilm(context.Context, *EmptyRequest) (*G
 }
 func (UnimplementedFilmsServer) GetFilms(context.Context, *GetFilmsRequest) (*GetFilmsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilms not implemented")
+}
+func (UnimplementedFilmsServer) GetFilmsForCalendar(context.Context, *GetFilmsRequest) (*GetFilmsForCalendarResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFilmsForCalendar not implemented")
 }
 func (UnimplementedFilmsServer) GetFilm(context.Context, *GetFilmRequest) (*GetFilmResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilm not implemented")
@@ -342,6 +358,24 @@ func _Films_GetFilms_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(FilmsServer).GetFilms(ctx, req.(*GetFilmsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Films_GetFilmsForCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFilmsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetFilmsForCalendar(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetFilmsForCalendar_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetFilmsForCalendar(ctx, req.(*GetFilmsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -594,6 +628,10 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFilms",
 			Handler:    _Films_GetFilms_Handler,
+		},
+		{
+			MethodName: "GetFilmsForCalendar",
+			Handler:    _Films_GetFilmsForCalendar_Handler,
 		},
 		{
 			MethodName: "GetFilm",
