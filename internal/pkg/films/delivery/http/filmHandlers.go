@@ -235,6 +235,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 			ZodiacSign:    actor.ZodiacSign,
 			BirthPlace:    actor.BirthPlace,
 			MaritalStatus: actor.MaritalStatus,
+			RussianName:   actor.RussianName,
 		}
 
 		if actor.OriginalName != nil {
