@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS film (
     image1 text,
     image2 text,
     image3 text,
+    release_date DATE,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT film_age_category_check CHECK (((age_category IS NULL) OR ((length(age_category) > 0) AND (length(age_category) <= 5)))),
@@ -79,8 +80,13 @@ CREATE TABLE IF NOT EXISTS film (
     CONSTRAINT film_title_check CHECK (((length(title) > 0) AND (length(title) <= 100))),
     CONSTRAINT film_trailer_url_check CHECK (((trailer_url IS NULL) OR ((length(trailer_url) > 0) AND (length(trailer_url) <= 200)))),
     CONSTRAINT film_worldwide_fees_check CHECK ((worldwide_fees >= 0)),
-    CONSTRAINT film_year_check CHECK (((year >= 1895) AND ((year)::numeric <= (EXTRACT(year FROM CURRENT_DATE) + (5)::numeric))))
+    CONSTRAINT film_year_check CHECK (((year >= 1895) AND ((year)::numeric <= (EXTRACT(year FROM CURRENT_DATE) + (5)::numeric)))),
+    CONSTRAINT film_release_date_check CHECK (
+        (release_date IS NULL) OR 
+        (release_date >= '1895-01-01'::DATE AND release_date <= (CURRENT_DATE + INTERVAL '5 years'))
+    )
 );
+
 
 CREATE TABLE IF NOT EXISTS film_feedback (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
