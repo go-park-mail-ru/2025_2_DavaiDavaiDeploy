@@ -185,6 +185,8 @@ func main() {
 	protectedFilmRouter.Use(authHandler.Middleware)
 	protectedFilmRouter.HandleFunc("/{id}/feedback", filmHandler.SendFeedback).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
+	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
+	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodPost, http.MethodOptions)
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
