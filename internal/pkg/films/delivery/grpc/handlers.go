@@ -226,7 +226,7 @@ func (g GrpcFilmsHandler) SaveFilm(ctx context.Context, in *gen.SaveFilmRequest)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
 	}
-	err = g.uc.SaveFilm(ctx, filmID, userID)
+	err = g.uc.SaveFilm(ctx, userID, filmID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorBadRequest):
@@ -246,7 +246,7 @@ func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequ
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
 	}
-	err = g.uc.RemoveFilm(ctx, filmID, userID)
+	err = g.uc.RemoveFilm(ctx, userID, filmID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorBadRequest):
