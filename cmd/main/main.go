@@ -167,11 +167,11 @@ func main() {
 	userRouter.HandleFunc("/{id}", userHandler.GetUser).Methods(http.MethodGet)
 
 	// Protected user routes
-	protectedUserRouter := userRouter.PathPrefix("/change").Subrouter()
+	protectedUserRouter := userRouter.PathPrefix("").Subrouter()
 	protectedUserRouter.Use(userHandler.Middleware)
-	protectedUserRouter.HandleFunc("/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
-	protectedUserRouter.HandleFunc("/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
-	protectedUserRouter.HandleFunc("/saved", filmHandler.GetUsersFavFilms).Methods(http.MethodPost, http.MethodOptions)
+	protectedUserRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
+	protectedUserRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
+	protectedUserRouter.HandleFunc("/saved", filmHandler.GetUsersFavFilms).Methods(http.MethodGet)
 
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()

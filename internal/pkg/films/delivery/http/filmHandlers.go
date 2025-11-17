@@ -597,7 +597,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
-// @Param input body models.FilmRatingInput true "Rating data (rating 1-10 is required)"
+// @Param input body gen.FilmRatingInput true "Rating data (rating 1-10 is required)"
 // @Success 200 {object} models.FilmFeedback
 // @Failure 400
 // @Failure 401
