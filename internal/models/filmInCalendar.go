@@ -14,6 +14,7 @@ type FilmInCalendar struct {
 	OriginalTitle    *string   `json:"original_title,omitempty"`
 	ShortDescription string    `json:"short_description" binding:"reqiured"`
 	ReleaseDate      time.Time `json:"release_date" binding:"required"`
+	IsLiked          bool      `json:"is_liked" binding:"required"`
 }
 
 func (fic *FilmInCalendar) Sanitize() {

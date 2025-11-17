@@ -43,7 +43,7 @@ const (
 type FilmsClient interface {
 	GetPromoFilm(ctx context.Context, in *EmptyRequest, opts ...grpc.CallOption) (*GetPromoFilmResponse, error)
 	GetFilms(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsResponse, error)
-	GetFilmsForCalendar(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error)
+	GetFilmsForCalendar(ctx context.Context, in *GetFilmsForCalendarRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error)
 	GetFilm(ctx context.Context, in *GetFilmRequest, opts ...grpc.CallOption) (*GetFilmResponse, error)
 	GetFilmFeedbacks(ctx context.Context, in *GetFilmFeedbacksRequest, opts ...grpc.CallOption) (*GetFilmFeedbacksResponse, error)
 	SendFeedback(ctx context.Context, in *SendFeedbackRequest, opts ...grpc.CallOption) (*SendFeedbackResponse, error)
@@ -87,7 +87,7 @@ func (c *filmsClient) GetFilms(ctx context.Context, in *GetFilmsRequest, opts ..
 	return out, nil
 }
 
-func (c *filmsClient) GetFilmsForCalendar(ctx context.Context, in *GetFilmsRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error) {
+func (c *filmsClient) GetFilmsForCalendar(ctx context.Context, in *GetFilmsForCalendarRequest, opts ...grpc.CallOption) (*GetFilmsForCalendarResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetFilmsForCalendarResponse)
 	err := c.cc.Invoke(ctx, Films_GetFilmsForCalendar_FullMethodName, in, out, cOpts...)
@@ -233,7 +233,7 @@ func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opt
 type FilmsServer interface {
 	GetPromoFilm(context.Context, *EmptyRequest) (*GetPromoFilmResponse, error)
 	GetFilms(context.Context, *GetFilmsRequest) (*GetFilmsResponse, error)
-	GetFilmsForCalendar(context.Context, *GetFilmsRequest) (*GetFilmsForCalendarResponse, error)
+	GetFilmsForCalendar(context.Context, *GetFilmsForCalendarRequest) (*GetFilmsForCalendarResponse, error)
 	GetFilm(context.Context, *GetFilmRequest) (*GetFilmResponse, error)
 	GetFilmFeedbacks(context.Context, *GetFilmFeedbacksRequest) (*GetFilmFeedbacksResponse, error)
 	SendFeedback(context.Context, *SendFeedbackRequest) (*SendFeedbackResponse, error)
@@ -263,7 +263,7 @@ func (UnimplementedFilmsServer) GetPromoFilm(context.Context, *EmptyRequest) (*G
 func (UnimplementedFilmsServer) GetFilms(context.Context, *GetFilmsRequest) (*GetFilmsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilms not implemented")
 }
-func (UnimplementedFilmsServer) GetFilmsForCalendar(context.Context, *GetFilmsRequest) (*GetFilmsForCalendarResponse, error) {
+func (UnimplementedFilmsServer) GetFilmsForCalendar(context.Context, *GetFilmsForCalendarRequest) (*GetFilmsForCalendarResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilmsForCalendar not implemented")
 }
 func (UnimplementedFilmsServer) GetFilm(context.Context, *GetFilmRequest) (*GetFilmResponse, error) {
@@ -363,7 +363,7 @@ func _Films_GetFilms_Handler(srv interface{}, ctx context.Context, dec func(inte
 }
 
 func _Films_GetFilmsForCalendar_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFilmsRequest)
+	in := new(GetFilmsForCalendarRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -375,7 +375,7 @@ func _Films_GetFilmsForCalendar_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: Films_GetFilmsForCalendar_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(FilmsServer).GetFilmsForCalendar(ctx, req.(*GetFilmsRequest))
+		return srv.(FilmsServer).GetFilmsForCalendar(ctx, req.(*GetFilmsForCalendarRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

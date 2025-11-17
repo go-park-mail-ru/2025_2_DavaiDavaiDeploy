@@ -18,7 +18,7 @@ type FilmUsecase interface {
 	SiteMap(ctx context.Context) (models.Urlset, error)
 	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
 	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
-	GetFilmsForCalendar(ctx context.Context, pager models.Pager) ([]models.FilmInCalendar, error)
+	GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error)
 }
 
 type FilmRepo interface {
