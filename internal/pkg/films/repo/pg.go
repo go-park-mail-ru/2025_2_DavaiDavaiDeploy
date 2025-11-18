@@ -437,6 +437,6 @@ func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]
 		}
 		films = append(films, film)
 	}
-	logger.Info("succesfully got fav films from db")
+	logger.Info(fmt.Sprintf("retrieved %d fav films from db for user %s", len(films), id.String()))
 	return films, nil
 }
