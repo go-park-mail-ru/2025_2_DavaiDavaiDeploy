@@ -25,6 +25,8 @@ import (
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -141,6 +143,7 @@ func main() {
 
 	mainRouter := mux.NewRouter()
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
+	mainRouter.PathPrefix("/metrics").Handler(promhttp.Handler())
 
 	apiRouter := mainRouter.PathPrefix("/api").Subrouter()
 	apiRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

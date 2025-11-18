@@ -98,9 +98,50 @@ services:
     networks:
       - ddd-network
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - ddd-network
+
+  node_exporter:
+    depends_on:
+      - prometheus
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    hostname: node_exporter
+    ports:
+      - "9100:9100"
+    networks:
+       - ddd-network
+
+  grafana:
+    image: grafana/grafana-enterprise
+    volumes:
+      - ${GRAFANA_DIR}:/var/lib/grafana/
+    ports:
+      - "8099:3000"
+    networks:
+      - ddd-network
+
 
 volumes:
   postgres_data:
+  graphana_data:
 
 networks:
   ddd-network:
