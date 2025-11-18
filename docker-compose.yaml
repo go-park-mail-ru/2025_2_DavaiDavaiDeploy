@@ -132,7 +132,7 @@ services:
   grafana:
     image: grafana/grafana-enterprise
     volumes:
-      - ${GRAFANA_DIR}:/var/lib/grafana/
+      - graphana_data:/var/lib/grafana/
     ports:
       - "8099:3000"
     networks:
