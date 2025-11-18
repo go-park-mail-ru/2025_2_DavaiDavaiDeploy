@@ -88,6 +88,34 @@ definitions:
     - new_password
     - old_password
     type: object
+  models.FavFilm:
+    properties:
+      duration:
+        type: integer
+      genre:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      rating:
+        type: number
+      short_description:
+        type: string
+      title:
+        type: string
+      year:
+        type: integer
+    required:
+    - duration
+    - genre
+    - id
+    - image
+    - rating
+    - short_description
+    - title
+    - year
+    type: object
   models.FilmFeedback:
     properties:
       created_at:
@@ -147,6 +175,29 @@ definitions:
     required:
     - rating
     - text
+    - title
+    type: object
+  models.FilmInCalendar:
+    properties:
+      cover:
+        type: string
+      id:
+        type: string
+      is_liked:
+        type: boolean
+      original_title:
+        type: string
+      release_date:
+        type: string
+      short_description:
+        type: string
+      title:
+        type: string
+    required:
+    - cover
+    - id
+    - is_liked
+    - release_date
     - title
     type: object
   models.FilmPage:
@@ -546,6 +597,42 @@ paths:
       tags:
       - films
   /films/{id}/feedbacks:
+    get:
+      description: Get all feedbacks/reviews for a specific film
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 10
+        description: Number of feedbacks
+        in: query
+        name: count
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FilmFeedback'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get film feedbacks
+      tags:
+      - films
     post:
       consumes:
       - application/json
@@ -611,6 +698,109 @@ paths:
         "500":
           description: Internal Server Error
       summary: Rate a film
+      tags:
+      - films
+  /films/{id}/remove:
+    delete:
+      description: Remove film from user's favorite list
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Remove film from favorites
+      tags:
+      - films
+  /films/{id}/save:
+    post:
+      description: Add film to user's favorite list
+      parameters:
+      - description: Film ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Save film to favorites
+      tags:
+      - films
+  /films/calendar:
+    get:
+      description: Get films with release dates for calendar view
+      parameters:
+      - default: 10
+        description: Number of films
+        in: query
+        name: count
+        type: integer
+      - default: 0
+        description: Offset
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FilmInCalendar'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get films for calendar
+      tags:
+      - films
+  /films/favorites:
+    get:
+      description: Get all films saved by the current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FavFilm'
+            type: array
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get user's favorite films
       tags:
       - films
   /films/promo:
