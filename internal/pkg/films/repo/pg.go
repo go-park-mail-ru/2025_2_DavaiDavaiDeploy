@@ -435,6 +435,8 @@ func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]
 			logger.Error("failed to scan fav films: " + err.Error())
 			continue
 		}
+		rating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", film.Rating), 64)
+		film.Rating = rating
 		films = append(films, film)
 	}
 	logger.Info(fmt.Sprintf("retrieved %d fav films from db for user %s", len(films), id.String()))
