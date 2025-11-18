@@ -11,6 +11,7 @@ import (
 	"log"
 	"log/slog"
 	"net"
+	"net/http"
 	"os/signal"
 	"syscall"
 
@@ -25,8 +26,10 @@ import (
 	"kinopoisk/internal/pkg/middleware/logger"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
 	_ "kinopoisk/docs"
@@ -79,6 +82,17 @@ func main() {
 
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
 	gen.RegisterFilmsServer(gRPCServer, filmHandler)
+
+	r := mux.NewRouter().PathPrefix("").Subrouter()
+	r.PathPrefix("/metrics").Handler(promhttp.Handler())
+	http.Handle("/", r)
+	httpSrv := http.Server{Handler: r, Addr: ":5459"}
+	//запуск мониторинга
+	go func() {
+		if err := httpSrv.ListenAndServe(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	go func() {
 		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", 5460))

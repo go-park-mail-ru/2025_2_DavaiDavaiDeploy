@@ -17,8 +17,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"google.golang.org/grpc"
 
 	authHandler "kinopoisk/internal/pkg/auth/delivery/grpc"
@@ -134,6 +136,17 @@ func main() {
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
 	gen.RegisterAuthServer(gRPCServer, authHandler)
+
+	r := mux.NewRouter().PathPrefix("").Subrouter()
+	r.PathPrefix("/metrics").Handler(promhttp.Handler())
+	http.Handle("/", r)
+	httpSrv := http.Server{Handler: r, Addr: ":5460"}
+	//запуск мониторинга
+	go func() {
+		if err := httpSrv.ListenAndServe(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	go func() {
 		listener, err := net.Listen("tcp", fmt.Sprintf(":%d", 5459))
