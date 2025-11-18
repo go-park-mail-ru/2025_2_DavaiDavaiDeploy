@@ -8,6 +8,7 @@ import (
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
@@ -75,8 +76,13 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 
 func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	user, _ := r.Context().Value(auth.UserKey).(models.User)
-	favFilms, err := c.client.GetFavFilms(r.Context(), &gen.GetFavFilmsRequest{UserId: user.ID.String()})
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+	favFilms, err := c.client.GetFavFilms(r.Context(), &gen.GetFavFilmsRequest{UserId: userID.String()})
 	if err != nil {
 		st, _ := status.FromError(err)
 
