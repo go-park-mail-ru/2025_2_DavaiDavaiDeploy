@@ -74,6 +74,16 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// GetUsersFavFilms godoc
+// @Summary Get user's favorite films
+// @Description Get all films saved by the current user
+// @Tags films
+// @Produce json
+// @Success 200 {array} models.FavFilm
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /films/favorites [get]
 func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
@@ -170,6 +180,18 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// GetFilmsForCalendar godoc
+// @Summary Get films for calendar
+// @Description Get films with release dates for calendar view
+// @Tags films
+// @Produce json
+// @Param count query int false "Number of films" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {array} models.FilmInCalendar
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /films/calendar [get]
 func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
@@ -371,6 +393,18 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
+// SaveFilm godoc
+// @Summary Save film to favorites
+// @Description Add film to user's favorite list
+// @Tags films
+// @Produce json
+// @Param id path string true "Film ID"
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /films/{id}/save [post]
 func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	user, ok := r.Context().Value(auth.UserKey).(models.User)
@@ -405,6 +439,18 @@ func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// RemoveFilm godoc
+// @Summary Remove film from favorites
+// @Description Remove film from user's favorite list
+// @Tags films
+// @Produce json
+// @Param id path string true "Film ID"
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /films/{id}/remove [delete]
 func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	user, ok := r.Context().Value(auth.UserKey).(models.User)
@@ -439,6 +485,19 @@ func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// GetFilmFeedbacks godoc
+// @Summary Get film feedbacks
+// @Description Get all feedbacks/reviews for a specific film
+// @Tags films
+// @Produce json
+// @Param id path string true "Film ID"
+// @Param count query int false "Number of feedbacks" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {array} models.FilmFeedback
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /films/{id}/feedbacks [get]
 func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
