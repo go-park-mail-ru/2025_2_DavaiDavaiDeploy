@@ -79,7 +79,7 @@ func main() {
 	r := mux.NewRouter().PathPrefix("").Subrouter()
 	r.PathPrefix("/metrics").Handler(promhttp.Handler())
 	http.Handle("/", r)
-	httpSrv := http.Server{Handler: r, Addr: ":5462"}
+	httpSrv := http.Server{Handler: r, Addr: ":5461"}
 	//запуск мониторинга
 	go func() {
 		if err := httpSrv.ListenAndServe(); err != nil {
