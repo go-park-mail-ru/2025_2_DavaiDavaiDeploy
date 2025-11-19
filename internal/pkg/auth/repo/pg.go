@@ -114,3 +114,47 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	logger.Info("succesfully got user by login from db")
 	return user, nil
 }
+
+func (r *AuthRepository) Enable2FA(ctx context.Context, id uuid.UUID) (models.EnableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var user models.EnableTwoFactorResponse
+	err := r.db.QueryRow(
+		ctx,
+		Enable2FaQuery,
+		id,
+	).Scan(
+		&user.Has2FA,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return models.EnableTwoFactorResponse{}, auth.ErrorBadRequest
+		}
+		logger.Error("failed to scan user: " + err.Error())
+		return models.EnableTwoFactorResponse{}, auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully updated 2fa status in db")
+	return user, nil
+}
+
+func (r *AuthRepository) Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var user models.DisableTwoFactorResponse
+	err := r.db.QueryRow(
+		ctx,
+		Disable2FaQuery,
+		id,
+	).Scan(
+		&user.Has2FA,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
+		}
+		logger.Error("failed to scan user: " + err.Error())
+		return models.DisableTwoFactorResponse{}, auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully updated 2fa status in db")
+	return user, nil
+}

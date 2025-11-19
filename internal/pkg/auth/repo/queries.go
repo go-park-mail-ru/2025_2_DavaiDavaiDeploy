@@ -16,3 +16,9 @@ var IncrementUserVersionQuery string
 
 //go:embed sql/getUserByLoginQuery.sql
 var GetUserByLoginQuery string
+
+//go:embed sql/enable2FaQuery.sql
+var Enable2FaQuery string
+
+//go:embed sql/disable2FaQuery.sql
+var Disable2FaQuery string
