@@ -20,6 +20,6 @@ COPY .env .
 ENV TZ="Europe/Moscow"
 ENV ZONEINFO=/zoneinfo.zip
 
-EXPOSE 5461
+EXPOSE 5462
 
 ENTRYPOINT ["./.bin"]

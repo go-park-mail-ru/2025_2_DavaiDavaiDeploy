@@ -94,7 +94,7 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 	customHTTPClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Пропускаем проверку SSL
+				InsecureSkipVerify: true,
 			},
 		},
 	}
@@ -118,6 +118,7 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 func main() {
 	_ = godotenv.Load()
 
+	// Подключение к auth microservice
 	authConn, err := grpc.Dial("auth:5459", grpc.WithInsecure())
 	if err != nil {
 		log.Printf("unable to connect to auth microservice: %v\n", err)
@@ -125,6 +126,7 @@ func main() {
 	}
 	defer authConn.Close()
 
+	// Подключение к films microservice
 	filmConn, err := grpc.Dial("films:5460", grpc.WithInsecure())
 	if err != nil {
 		log.Printf("unable to connect to films microservice: %v\n", err)
@@ -132,7 +134,8 @@ func main() {
 	}
 	defer filmConn.Close()
 
-	searchConn, err := grpc.Dial("films:5462", grpc.WithInsecure())
+	// Подключение к search microservice (порт 5462)
+	searchConn, err := grpc.Dial("search:5462", grpc.WithInsecure())
 	if err != nil {
 		log.Printf("unable to connect to search microservice: %v\n", err)
 		return
@@ -167,6 +170,7 @@ func main() {
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
+
 	// Auth routes
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
@@ -225,7 +229,7 @@ func main() {
 	}
 
 	go func() {
-		log.Println("Starting server!")
+		log.Println("Starting main server on port 5458!")
 		err := filmSrv.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			log.Printf("Server start error: %v", err)
