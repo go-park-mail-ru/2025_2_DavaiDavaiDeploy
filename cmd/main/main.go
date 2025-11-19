@@ -169,6 +169,7 @@ func main() {
 
 	// Search routes
 	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	// Auth routes
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
