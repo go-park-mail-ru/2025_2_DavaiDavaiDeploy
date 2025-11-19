@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS actor (
     zodiac_sign text,
     birth_place text,
     marital_status text,
+	tsvector_column tsvector,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT actor_birth_date_check CHECK ((birth_date <= CURRENT_DATE)),
@@ -65,6 +66,7 @@ CREATE TABLE IF NOT EXISTS film (
     release_date DATE,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+	tsvector_column tsvector,
     CONSTRAINT film_age_category_check CHECK (((age_category IS NULL) OR ((length(age_category) > 0) AND (length(age_category) <= 5)))),
     CONSTRAINT film_budget_check CHECK ((budget >= 0)),
     CONSTRAINT film_cover_check CHECK (((cover IS NULL) OR ((length(cover) > 0) AND (length(cover) <= 100)))),
@@ -221,3 +223,67 @@ CREATE TABLE IF NOT EXISTS fav_films (
 CREATE TRIGGER set_fav_films_timestamps 
     BEFORE INSERT OR UPDATE ON fav_films
     FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+
+
+CREATE TEXT SEARCH CONFIGURATION ru (COPY = russian);
+
+ALTER TEXT SEARCH CONFIGURATION ru
+ALTER MAPPING FOR hword, hword_part, word
+WITH russian_stem;
+
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE OR REPLACE FUNCTION make_film_tsvector(title TEXT, description TEXT, short_description TEXT)
+RETURNS tsvector AS
+$$
+BEGIN
+    RETURN (
+        setweight(to_tsvector('ru', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('ru', coalesce(description, '')), 'B') ||
+		setweight(to_tsvector('ru', coalesce(short_description, '')), 'C')
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION make_actor_tsvector(russian_name TEXT, original_name TEXT)
+RETURNS tsvector AS
+$$
+BEGIN
+    RETURN (
+        setweight(to_tsvector('ru', coalesce(russian_name, '')), 'A') ||
+        setweight(to_tsvector('ru', coalesce(original_name, '')), 'B')
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+UPDATE film SET tsvector_column = make_film_tsvector(title, description, short_description);
+UPDATE actor SET tsvector_column = make_actor_tsvector(russian_name, original_name);
+
+CREATE OR REPLACE FUNCTION update_film_tsvector() RETURNS trigger AS $$ 
+BEGIN
+    NEW.tsvector_column := make_film_tsvector(NEW.title, NEW.description, NEW.short_description);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_update_film_tsv ON film;
+CREATE TRIGGER trg_update_film_tsv
+BEFORE INSERT OR UPDATE ON film
+FOR EACH ROW EXECUTE FUNCTION update_film_tsvector();
+
+
+CREATE OR REPLACE FUNCTION update_actor_tsvector() RETURNS trigger AS $$ 
+BEGIN
+    NEW.tsvector_column := make_actor_tsvector(NEW.russian_name, NEW.original_name);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_update_actor_tsv ON actor;
+CREATE TRIGGER trg_update_actor_tsv
+BEFORE INSERT OR UPDATE ON actor
+FOR EACH ROW EXECUTE FUNCTION update_actor_tsvector();
+
+CREATE INDEX IF NOT EXISTS idx_film_tsv ON film USING GIN (tsvector_column);
+CREATE INDEX IF NOT EXISTS idx_actor_tsv ON actor USING GIN (tsvector_column);
