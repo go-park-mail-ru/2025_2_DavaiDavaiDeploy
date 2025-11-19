@@ -167,7 +167,8 @@ func main() {
 	apiRouter.Use(cors.CorsMiddleware)
 	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
 
-	// Search routes
+	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
+
 	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
 
 	// Auth routes
@@ -179,6 +180,8 @@ func main() {
 	protectedAuthRouter.Use(authHandler.Middleware)
 	protectedAuthRouter.HandleFunc("/check", authHandler.CheckAuth).Methods(http.MethodGet, http.MethodOptions)
 	protectedAuthRouter.HandleFunc("/logout", authHandler.LogOutUser).Methods(http.MethodPost, http.MethodOptions)
+	protectedAuthRouter.HandleFunc("/enable2fa", authHandler.Enable2FA).Methods(http.MethodPost, http.MethodOptions)
+	protectedAuthRouter.HandleFunc("/disable2fa", authHandler.Disable2FA).Methods(http.MethodPost, http.MethodOptions)
 
 	// User routes
 	userRouter := apiRouter.PathPrefix("/users").Subrouter()
@@ -207,7 +210,7 @@ func main() {
 	protectedFilmRouter.HandleFunc("/{id}/feedback", filmHandler.SendFeedback).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
-	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodPost, http.MethodOptions)
+	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodDelete, http.MethodOptions)
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
