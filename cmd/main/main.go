@@ -164,6 +164,8 @@ func main() {
 	protectedAuthRouter.Use(authHandler.Middleware)
 	protectedAuthRouter.HandleFunc("/check", authHandler.CheckAuth).Methods(http.MethodGet, http.MethodOptions)
 	protectedAuthRouter.HandleFunc("/logout", authHandler.LogOutUser).Methods(http.MethodPost, http.MethodOptions)
+	protectedAuthRouter.HandleFunc("/enable2fa", authHandler.Enable2FA).Methods(http.MethodPost, http.MethodOptions)
+	protectedAuthRouter.HandleFunc("/disable2fa", authHandler.Disable2FA).Methods(http.MethodPost, http.MethodOptions)
 
 	// User routes
 	userRouter := apiRouter.PathPrefix("/users").Subrouter()
