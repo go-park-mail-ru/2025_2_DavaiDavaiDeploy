@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
+	"github.com/skip2/go-qrcode"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -142,6 +145,68 @@ func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {
 	}
 
 	return nil
+}
+
+func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
+	secret := make([]byte, 20)
+	_, err := rand.Read(secret)
+	if err != nil {
+		return []byte{}, "", err
+	}
+
+	secretBase32 := base32.StdEncoding.EncodeToString(secret)
+
+	issuer := "kinopoisk"
+	otpURL := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s",
+		url.PathEscape(issuer),
+		url.PathEscape(login),
+		secretBase32,
+		url.PathEscape(issuer))
+
+	qrCode, err := qrcode.Encode(otpURL, qrcode.Medium, 256)
+	if err != nil {
+		return []byte{}, "", err
+	}
+
+	return qrCode, secretBase32, nil
+}
+
+func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	if has2FA == true {
+		logger.Error("user already enabled the 2fa")
+		return models.EnableTwoFactorResponse{}, auth.ErrorBadRequest
+	}
+
+	user, err := uc.authRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		logger.Error("failed to get user by ID: " + err.Error())
+		return models.EnableTwoFactorResponse{}, err
+	}
+
+	qrCode, secret, err := uc.GenerateQRCode(user.Login)
+	if err != nil {
+		logger.Error("failed to generate QR code: " + err.Error())
+		return models.EnableTwoFactorResponse{}, auth.ErrorInternalServerError
+	}
+
+	response, err := uc.authRepo.Enable2FA(ctx, userID, secret)
+	if err != nil {
+		logger.Error("failed to enable 2FA: " + err.Error())
+		return models.EnableTwoFactorResponse{}, err
+	}
+
+	response.QrCode = qrCode
+	return response, nil
+}
+
+func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	if has2FA == false {
+		logger.Error("user already disabled the 2fa")
+		return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
+	}
+	return uc.authRepo.Disable2FA(ctx, userID)
 }
 
 func (uc *AuthUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {

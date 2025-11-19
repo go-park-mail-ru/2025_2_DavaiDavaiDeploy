@@ -7,8 +7,7 @@ SELECT
         0.0
     ) as rating,
     f.year,
-    g.title as genre,
-    ts_rank(f.tsvector_column, plainto_tsquery('ru', $1)) as relevance
+    g.title as genre
 FROM film f
 JOIN genre g ON f.genre_id = g.id
 WHERE f.tsvector_column @@ plainto_tsquery('ru', $1)
