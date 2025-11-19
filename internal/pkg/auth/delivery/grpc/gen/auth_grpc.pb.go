@@ -42,7 +42,7 @@ type AuthClient interface {
 	ChangeAvatar(ctx context.Context, in *ChangeAvatarRequest, opts ...grpc.CallOption) (*AuthResponse, error)
 	ValidateAndGetUser(ctx context.Context, in *ValidateAndGetUserRequest, opts ...grpc.CallOption) (*UserResponse, error)
 	Enable2Fa(ctx context.Context, in *Enable2FaRequest, opts ...grpc.CallOption) (*Enable2FaResponse, error)
-	Disable2Fa(ctx context.Context, in *Disable2FaRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	Disable2Fa(ctx context.Context, in *Disable2FaRequest, opts ...grpc.CallOption) (*Disable2FaResponse, error)
 }
 
 type authClient struct {
@@ -133,9 +133,9 @@ func (c *authClient) Enable2Fa(ctx context.Context, in *Enable2FaRequest, opts .
 	return out, nil
 }
 
-func (c *authClient) Disable2Fa(ctx context.Context, in *Disable2FaRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+func (c *authClient) Disable2Fa(ctx context.Context, in *Disable2FaRequest, opts ...grpc.CallOption) (*Disable2FaResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptyResponse)
+	out := new(Disable2FaResponse)
 	err := c.cc.Invoke(ctx, Auth_Disable2Fa_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -155,7 +155,7 @@ type AuthServer interface {
 	ChangeAvatar(context.Context, *ChangeAvatarRequest) (*AuthResponse, error)
 	ValidateAndGetUser(context.Context, *ValidateAndGetUserRequest) (*UserResponse, error)
 	Enable2Fa(context.Context, *Enable2FaRequest) (*Enable2FaResponse, error)
-	Disable2Fa(context.Context, *Disable2FaRequest) (*EmptyResponse, error)
+	Disable2Fa(context.Context, *Disable2FaRequest) (*Disable2FaResponse, error)
 	mustEmbedUnimplementedAuthServer()
 }
 
@@ -190,7 +190,7 @@ func (UnimplementedAuthServer) ValidateAndGetUser(context.Context, *ValidateAndG
 func (UnimplementedAuthServer) Enable2Fa(context.Context, *Enable2FaRequest) (*Enable2FaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Enable2Fa not implemented")
 }
-func (UnimplementedAuthServer) Disable2Fa(context.Context, *Disable2FaRequest) (*EmptyResponse, error) {
+func (UnimplementedAuthServer) Disable2Fa(context.Context, *Disable2FaRequest) (*Disable2FaResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Disable2Fa not implemented")
 }
 func (UnimplementedAuthServer) mustEmbedUnimplementedAuthServer() {}

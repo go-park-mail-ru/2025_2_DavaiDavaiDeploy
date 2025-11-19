@@ -15,6 +15,9 @@ type AuthUsecase interface {
 	SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error)
 	LogOutUser(ctx context.Context, userID uuid.UUID) error
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
+	Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error)
+	Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error)
+	GenerateQRCode(login string) (string, error)
 }
 
 type AuthRepo interface {
@@ -25,4 +28,5 @@ type AuthRepo interface {
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
 	Enable2FA(ctx context.Context, id uuid.UUID) (models.EnableTwoFactorResponse, error)
 	Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error)
+	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 }

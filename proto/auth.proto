@@ -12,11 +12,12 @@ service Auth {
   rpc ValidateAndGetUser(ValidateAndGetUserRequest) returns (UserResponse) {}
 
   rpc Enable2fa(Enable2faRequest) returns (Enable2faResponse) {}
-  rpc Disable2fa(Disable2faRequest) returns (EmptyResponse) {}
+  rpc Disable2fa(Disable2faRequest) returns (Disable2faResponse) {}
 }
 
 message Enable2faRequest {
   string ID = 1;
+  bool Has2fa = 2;
 }
 
 message Enable2faResponse {
@@ -26,6 +27,11 @@ message Enable2faResponse {
 
 message Disable2faRequest {
   string ID = 1;
+  bool Has2fa = 2;
+}
+
+message Disable2faResponse {
+  bool Has2fa = 1;
 }
 
 message EmptyResponse {}

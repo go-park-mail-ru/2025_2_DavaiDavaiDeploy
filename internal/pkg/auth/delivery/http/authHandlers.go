@@ -249,6 +249,7 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			Version: int(user.Version),
 			Login:   user.Login,
 			Avatar:  user.Avatar,
+			Has2FA:  user.Has2Fa,
 		}
 		ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -276,6 +277,71 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.WriteJSON(w, user)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (a *AuthHandler) Enable2FA(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	result, err := a.client.Enable2Fa(r.Context(), &gen.Enable2FaRequest{ID: user.ID.String(), Has2Fa: user.Has2FA})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := models.EnableTwoFactorResponse{
+		Has2FA: result.Has2Fa,
+		QrCode: result.QrCode,
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (a *AuthHandler) Disable2FA(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	result, err := a.client.Disable2Fa(r.Context(), &gen.Disable2FaRequest{ID: user.ID.String(), Has2Fa: user.Has2FA})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := models.EnableTwoFactorResponse{
+		Has2FA: result.Has2Fa,
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
