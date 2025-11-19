@@ -22,7 +22,7 @@ func NewGrpcSearchHandler(uc search.SearchUsecase) *GrpcSearchHandler {
 	return &GrpcSearchHandler{uc: uc}
 }
 
-func (g GrpcSearchHandler) GetFilmsAndActorsFromSearch(ctx context.Context, in *gen.SearchFilmsAndActorsRequest) (*gen.SearchFilmsAndActorsResponse, error) {
+func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.SearchFilmsAndActorsRequest) (*gen.SearchFilmsAndActorsResponse, error) {
 	var filmsResult []*gen.MainPageFilm
 	filmsPager := models.Pager{
 		Count:  int(in.FilmsPager.Count),
