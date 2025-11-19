@@ -181,6 +181,7 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 
 	user, err := uc.authRepo.GetUserByID(ctx, userID)
 	if err != nil {
+		logger.Error("failed to get user by ID: " + err.Error())
 		return models.EnableTwoFactorResponse{}, err
 	}
 
@@ -192,6 +193,7 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 
 	response, err := uc.authRepo.Enable2FA(ctx, userID)
 	if err != nil {
+		logger.Error("failed to enable 2FA: " + err.Error())
 		return models.EnableTwoFactorResponse{}, err
 	}
 

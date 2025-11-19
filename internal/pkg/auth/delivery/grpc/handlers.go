@@ -235,7 +235,7 @@ func (g GrpcAuthHandler) Enable2Fa(ctx context.Context, in *gen.Enable2FaRequest
 }
 
 func (g GrpcAuthHandler) Disable2Fa(ctx context.Context, in *gen.Disable2FaRequest) (*gen.Disable2FaResponse, error) {
-	user, err := g.auc.Enable2FA(ctx, uuid.FromStringOrNil(in.ID), in.Has2Fa)
+	user, err := g.auc.Disable2FA(ctx, uuid.FromStringOrNil(in.ID), in.Has2Fa)
 	if err != nil {
 		switch err {
 		case users.ErrorUnauthorized:
@@ -246,7 +246,6 @@ func (g GrpcAuthHandler) Disable2Fa(ctx context.Context, in *gen.Disable2FaReque
 			return nil, status.Errorf(codes.Internal, "%v", err)
 		}
 	}
-	user.Sanitize()
 
 	return &gen.Disable2FaResponse{
 		Has2Fa: user.Has2FA,
