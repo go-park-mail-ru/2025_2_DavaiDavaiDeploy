@@ -144,6 +144,14 @@ func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
+func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID) (models.EnableTwoFactorResponse, error) {
+	return uc.authRepo.Enable2FA(ctx, userID)
+}
+
+func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID) (models.DisableTwoFactorResponse, error) {
+	return uc.authRepo.Disable2FA(ctx, userID)
+}
+
 func (uc *AuthUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 

@@ -23,4 +23,6 @@ type AuthRepo interface {
 	CheckUserLogin(ctx context.Context, login string) (models.User, error)
 	IncrementUserVersion(ctx context.Context, userID uuid.UUID) error
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
+	Enable2FA(ctx context.Context, id uuid.UUID) (models.EnableTwoFactorResponse, error)
+	Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error)
 }
