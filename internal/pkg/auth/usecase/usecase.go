@@ -5,7 +5,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base32"
-	"encoding/base64"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
@@ -148,11 +147,11 @@ func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {
 	return nil
 }
 
-func (uc *AuthUsecase) GenerateQRCode(login string) (string, error) {
+func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 	secret := make([]byte, 20)
 	_, err := rand.Read(secret)
 	if err != nil {
-		return "", err
+		return []byte{}, "", err
 	}
 
 	secretBase32 := base32.StdEncoding.EncodeToString(secret)
@@ -166,10 +165,10 @@ func (uc *AuthUsecase) GenerateQRCode(login string) (string, error) {
 
 	qrCode, err := qrcode.Encode(otpURL, qrcode.Medium, 256)
 	if err != nil {
-		return "", err
+		return []byte{}, "", err
 	}
 
-	return base64.StdEncoding.EncodeToString(qrCode), nil
+	return qrCode, secretBase32, nil
 }
 
 func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error) {
@@ -185,13 +184,13 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 		return models.EnableTwoFactorResponse{}, err
 	}
 
-	qrCode, err := uc.GenerateQRCode(user.Login)
+	qrCode, secret, err := uc.GenerateQRCode(user.Login)
 	if err != nil {
 		logger.Error("failed to generate QR code: " + err.Error())
 		return models.EnableTwoFactorResponse{}, auth.ErrorInternalServerError
 	}
 
-	response, err := uc.authRepo.Enable2FA(ctx, userID)
+	response, err := uc.authRepo.Enable2FA(ctx, userID, secret)
 	if err != nil {
 		logger.Error("failed to enable 2FA: " + err.Error())
 		return models.EnableTwoFactorResponse{}, err

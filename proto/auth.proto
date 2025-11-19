@@ -22,7 +22,7 @@ message Enable2faRequest {
 
 message Enable2faResponse {
   bool Has2fa = 1;
-  string QrCode = 2;
+  bytes QrCode = 2;
 }
 
 message Disable2faRequest {

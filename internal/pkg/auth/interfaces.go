@@ -17,7 +17,7 @@ type AuthUsecase interface {
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error)
 	Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error)
-	GenerateQRCode(login string) (string, error)
+	GenerateQRCode(login string) ([]byte, string, error)
 }
 
 type AuthRepo interface {
@@ -26,7 +26,7 @@ type AuthRepo interface {
 	CheckUserLogin(ctx context.Context, login string) (models.User, error)
 	IncrementUserVersion(ctx context.Context, userID uuid.UUID) error
 	GetUserByLogin(ctx context.Context, login string) (models.User, error)
-	Enable2FA(ctx context.Context, id uuid.UUID) (models.EnableTwoFactorResponse, error)
+	Enable2FA(ctx context.Context, id uuid.UUID, secret string) (models.EnableTwoFactorResponse, error)
 	Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 }

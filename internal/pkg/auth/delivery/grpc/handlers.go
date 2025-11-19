@@ -226,7 +226,6 @@ func (g GrpcAuthHandler) Enable2Fa(ctx context.Context, in *gen.Enable2FaRequest
 			return nil, status.Errorf(codes.Internal, "%v", err)
 		}
 	}
-	user.Sanitize()
 
 	return &gen.Enable2FaResponse{
 		Has2Fa: user.Has2FA,

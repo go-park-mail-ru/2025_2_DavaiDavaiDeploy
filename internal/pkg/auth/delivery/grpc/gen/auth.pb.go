@@ -76,7 +76,7 @@ func (x *Enable2FaRequest) GetHas2Fa() bool {
 type Enable2FaResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Has2Fa        bool                   `protobuf:"varint,1,opt,name=Has2fa,proto3" json:"Has2fa,omitempty"`
-	QrCode        string                 `protobuf:"bytes,2,opt,name=QrCode,proto3" json:"QrCode,omitempty"`
+	QrCode        []byte                 `protobuf:"bytes,2,opt,name=QrCode,proto3" json:"QrCode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -118,11 +118,11 @@ func (x *Enable2FaResponse) GetHas2Fa() bool {
 	return false
 }
 
-func (x *Enable2FaResponse) GetQrCode() string {
+func (x *Enable2FaResponse) GetQrCode() []byte {
 	if x != nil {
 		return x.QrCode
 	}
-	return ""
+	return nil
 }
 
 type Disable2FaRequest struct {
@@ -828,7 +828,7 @@ const file_auth_proto_rawDesc = "" +
 	"\x06Has2fa\x18\x02 \x01(\bR\x06Has2fa\"C\n" +
 	"\x11Enable2faResponse\x12\x16\n" +
 	"\x06Has2fa\x18\x01 \x01(\bR\x06Has2fa\x12\x16\n" +
-	"\x06QrCode\x18\x02 \x01(\tR\x06QrCode\";\n" +
+	"\x06QrCode\x18\x02 \x01(\fR\x06QrCode\";\n" +
 	"\x11Disable2faRequest\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x16\n" +
 	"\x06Has2fa\x18\x02 \x01(\bR\x06Has2fa\",\n" +

@@ -25,3 +25,6 @@ var Disable2FaQuery string
 
 //go:embed sql/getUserByIDQuery.sql
 var GetUserByIDQuery string
+
+//go:embed sql/checkUserTwoFactorQuery.sql
+var CheckUserTwoFactorQuery string
