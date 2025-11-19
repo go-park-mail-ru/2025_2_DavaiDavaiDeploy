@@ -1,0 +1,7 @@
+syntax = "proto3";
+package search;
+option go_package = "./internal/pkg/search/delivery/grpc/gen/;gen";
+
+service Search {
+    rpc SearchFilmsAndActors(SearchFilmsAndActorsRequest) returns (SearchFilmsAndActorsResponse) {}
+}
