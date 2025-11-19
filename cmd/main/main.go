@@ -22,6 +22,7 @@ import (
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
+	searchHandlers "kinopoisk/internal/pkg/search/delivery/http"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	"os"
 
@@ -37,6 +38,7 @@ import (
 
 	authGen "kinopoisk/internal/pkg/auth/delivery/grpc/gen"
 	filmGen "kinopoisk/internal/pkg/films/delivery/grpc/gen"
+	searchGen "kinopoisk/internal/pkg/search/delivery/grpc/gen"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -130,14 +132,23 @@ func main() {
 	}
 	defer filmConn.Close()
 
+	searchConn, err := grpc.Dial("films:5462", grpc.WithInsecure())
+	if err != nil {
+		log.Printf("unable to connect to search microservice: %v\n", err)
+		return
+	}
+	defer searchConn.Close()
+
 	filmClient := filmGen.NewFilmsClient(filmConn)
 	authClient := authGen.NewAuthClient(authConn)
+	searchClient := searchGen.NewSearchClient(searchConn)
 
 	authHandler := authHandlers.NewAuthHandler(authClient)
 	userHandler := userHandlers.NewUserHandler(authClient)
 	genreHandler := genreHandlers.NewGenreHandler(filmClient)
 	actorHandler := actorHandlers.NewActorHandler(filmClient)
 	filmHandler := filmHandlers.NewFilmHandler(filmClient)
+	searchHandler := searchHandlers.NewSearchHandler(searchClient)
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -155,6 +166,7 @@ func main() {
 
 	//apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
+	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
 	// Auth routes
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)

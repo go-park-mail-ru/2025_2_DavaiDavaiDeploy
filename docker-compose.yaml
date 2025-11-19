@@ -23,8 +23,6 @@ services:
         condition: service_started
       films:
         condition: service_started
-      search:
-        condition: service_started
     networks:
       - ddd-network
 
@@ -63,13 +61,13 @@ services:
         condition: service_healthy
     networks:
       - ddd-network
-      
+
   search:
     build:
       context: .
       dockerfile: ./build/search.Dockerfile
     ports:
-      - 5461:5461
+      - 5462:5462
     volumes:
       - ./static/:/opt/static/
     environment:
