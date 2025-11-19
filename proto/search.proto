@@ -5,3 +5,27 @@ option go_package = "./internal/pkg/search/delivery/grpc/gen/;gen";
 service Search {
     rpc SearchFilmsAndActors(SearchFilmsAndActorsRequest) returns (SearchFilmsAndActorsResponse) {}
 }
+
+message SearchFilmsAndActorsRequest {
+    string SearchString = 1;
+}
+
+message SearchFilmsAndActorsResponse {
+    repeated MainPageActor actors = 1;
+    repeated MainPageFilm films = 2;
+}
+
+message MainPageFilm {
+  string id = 1;
+  string cover = 2;
+  string title = 3;
+  double rating = 4;
+  int32 year = 6;
+  string genre = 7;
+}
+
+message MainPageActor {
+    string id = 1;
+    string russian_name = 2;
+    string photo = 3;
+}
