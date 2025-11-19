@@ -299,7 +299,7 @@ func (a *AuthHandler) Enable2FA(w http.ResponseWriter, r *http.Request) {
 		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
-			helpers.WriteError(w, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusBadRequest)
 		}
 		return
 	}
@@ -332,7 +332,7 @@ func (a *AuthHandler) Disable2FA(w http.ResponseWriter, r *http.Request) {
 		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
-			helpers.WriteError(w, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusBadRequest)
 		}
 		return
 	}
