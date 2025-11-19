@@ -736,3 +736,35 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+func (c *FilmHandler) SiteMap(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	urlSet, err := c.client.SiteMap(r.Context(), &gen.EmptyRequest{})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := models.Urlset{
+		Xmlns: urlSet.Urlset.Xmlns,
+		URL:   make([]models.URLItem, 0, len(urlSet.Urlset.Url)),
+	}
+
+	for _, urlItem := range urlSet.Urlset.Url {
+		response.URL = append(response.URL, models.URLItem{
+			Loc:      urlItem.Loc,
+			Priority: urlItem.Priority,
+		})
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
