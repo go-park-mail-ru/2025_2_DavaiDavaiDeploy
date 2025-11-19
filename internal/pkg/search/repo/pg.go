@@ -21,10 +21,10 @@ func NewSearchRepository(db pgxtype.Querier) *SearchRepository {
 	return &SearchRepository{db: db}
 }
 
-func (r *SearchRepository) GetFilmsFromSearch(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error) {
+func (r *SearchRepository) GetFilmsFromSearch(ctx context.Context, searchString string, limit, offset int) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	rows, err := r.db.Query(ctx, GetFilmsFromSearchQuery, limit, offset)
+	rows, err := r.db.Query(ctx, GetFilmsFromSearchQuery, searchString, limit, offset)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
 		return nil, films.ErrorInternalServerError
@@ -53,10 +53,10 @@ func (r *SearchRepository) GetFilmsFromSearch(ctx context.Context, limit, offset
 	return films, nil
 }
 
-func (r *SearchRepository) GetActorsFromSearch(ctx context.Context, limit, offset int) ([]models.MainPageActor, error) {
+func (r *SearchRepository) GetActorsFromSearch(ctx context.Context, searchString string, limit, offset int) ([]models.MainPageActor, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	rows, err := r.db.Query(ctx, GetActorsFromSearchQuery, limit, offset)
+	rows, err := r.db.Query(ctx, GetActorsFromSearchQuery, searchString, limit, offset)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
 		return nil, actors.ErrorInternalServerError

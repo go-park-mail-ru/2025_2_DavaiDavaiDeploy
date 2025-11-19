@@ -8,24 +8,31 @@ service Search {
 
 message SearchFilmsAndActorsRequest {
     string SearchString = 1;
+    Pager FilmsPager = 2;
+    Pager ActorsPager = 3;
 }
 
 message SearchFilmsAndActorsResponse {
-    repeated MainPageActor actors = 1;
-    repeated MainPageFilm films = 2;
+    repeated MainPageActor Actors = 1;
+    repeated MainPageFilm Films = 2;
 }
 
 message MainPageFilm {
-  string id = 1;
-  string cover = 2;
-  string title = 3;
-  double rating = 4;
-  int32 year = 6;
-  string genre = 7;
+  string ID = 1;
+  string Cover = 2;
+  string Title = 3;
+  double Rating = 4;
+  int32 Year = 6;
+  string Genre = 7;
 }
 
 message MainPageActor {
-    string id = 1;
-    string russian_name = 2;
-    string photo = 3;
+    string ID = 1;
+    string RussianName = 2;
+    string Photo = 3;
+}
+
+message Pager {
+  int32 count = 1;
+  int32 offset = 2;
 }

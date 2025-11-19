@@ -19,10 +19,10 @@ func NewSearchUsecase(repo search.SearchRepo) *SearchUsecase {
 	}
 }
 
-func (uc *SearchUsecase) GetFilmsFromSearch(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error) {
+func (uc *SearchUsecase) GetFilmsFromSearch(ctx context.Context, searchString string, pager models.Pager) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	mainPageFilms, err := uc.searchRepo.GetFilmsFromSearch(ctx, pager.Count, pager.Offset)
+	mainPageFilms, err := uc.searchRepo.GetFilmsFromSearch(ctx, searchString, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.MainPageFilm{}, err
 	}
@@ -35,10 +35,10 @@ func (uc *SearchUsecase) GetFilmsFromSearch(ctx context.Context, pager models.Pa
 	return mainPageFilms, nil
 }
 
-func (uc *SearchUsecase) GetActorsFromSearch(ctx context.Context, pager models.Pager) ([]models.MainPageActor, error) {
+func (uc *SearchUsecase) GetActorsFromSearch(ctx context.Context, searchString string, pager models.Pager) ([]models.MainPageActor, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	mainPageActors, err := uc.searchRepo.GetActorsFromSearch(ctx, pager.Count, pager.Offset)
+	mainPageActors, err := uc.searchRepo.GetActorsFromSearch(ctx, searchString, pager.Count, pager.Offset)
 	if err != nil {
 		return []models.MainPageActor{}, err
 	}

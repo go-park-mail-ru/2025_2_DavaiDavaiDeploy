@@ -24,6 +24,8 @@ const (
 type SearchFilmsAndActorsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SearchString  string                 `protobuf:"bytes,1,opt,name=SearchString,proto3" json:"SearchString,omitempty"`
+	FilmsPager    *Pager                 `protobuf:"bytes,2,opt,name=FilmsPager,proto3" json:"FilmsPager,omitempty"`
+	ActorsPager   *Pager                 `protobuf:"bytes,3,opt,name=ActorsPager,proto3" json:"ActorsPager,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -65,10 +67,24 @@ func (x *SearchFilmsAndActorsRequest) GetSearchString() string {
 	return ""
 }
 
+func (x *SearchFilmsAndActorsRequest) GetFilmsPager() *Pager {
+	if x != nil {
+		return x.FilmsPager
+	}
+	return nil
+}
+
+func (x *SearchFilmsAndActorsRequest) GetActorsPager() *Pager {
+	if x != nil {
+		return x.ActorsPager
+	}
+	return nil
+}
+
 type SearchFilmsAndActorsResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Actors        []*MainPageActor       `protobuf:"bytes,1,rep,name=actors,proto3" json:"actors,omitempty"`
-	Films         []*MainPageFilm        `protobuf:"bytes,2,rep,name=films,proto3" json:"films,omitempty"`
+	Actors        []*MainPageActor       `protobuf:"bytes,1,rep,name=Actors,proto3" json:"Actors,omitempty"`
+	Films         []*MainPageFilm        `protobuf:"bytes,2,rep,name=Films,proto3" json:"Films,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -119,12 +135,12 @@ func (x *SearchFilmsAndActorsResponse) GetFilms() []*MainPageFilm {
 
 type MainPageFilm struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Cover         string                 `protobuf:"bytes,2,opt,name=cover,proto3" json:"cover,omitempty"`
-	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
-	Rating        float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
-	Year          int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
-	Genre         string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
+	ID            string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	Cover         string                 `protobuf:"bytes,2,opt,name=Cover,proto3" json:"Cover,omitempty"`
+	Title         string                 `protobuf:"bytes,3,opt,name=Title,proto3" json:"Title,omitempty"`
+	Rating        float64                `protobuf:"fixed64,4,opt,name=Rating,proto3" json:"Rating,omitempty"`
+	Year          int32                  `protobuf:"varint,6,opt,name=Year,proto3" json:"Year,omitempty"`
+	Genre         string                 `protobuf:"bytes,7,opt,name=Genre,proto3" json:"Genre,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -159,9 +175,9 @@ func (*MainPageFilm) Descriptor() ([]byte, []int) {
 	return file_search_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *MainPageFilm) GetId() string {
+func (x *MainPageFilm) GetID() string {
 	if x != nil {
-		return x.Id
+		return x.ID
 	}
 	return ""
 }
@@ -203,9 +219,9 @@ func (x *MainPageFilm) GetGenre() string {
 
 type MainPageActor struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	RussianName   string                 `protobuf:"bytes,2,opt,name=russian_name,json=russianName,proto3" json:"russian_name,omitempty"`
-	Photo         string                 `protobuf:"bytes,3,opt,name=photo,proto3" json:"photo,omitempty"`
+	ID            string                 `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
+	RussianName   string                 `protobuf:"bytes,2,opt,name=RussianName,proto3" json:"RussianName,omitempty"`
+	Photo         string                 `protobuf:"bytes,3,opt,name=Photo,proto3" json:"Photo,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -240,9 +256,9 @@ func (*MainPageActor) Descriptor() ([]byte, []int) {
 	return file_search_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *MainPageActor) GetId() string {
+func (x *MainPageActor) GetID() string {
 	if x != nil {
-		return x.Id
+		return x.ID
 	}
 	return ""
 }
@@ -261,27 +277,86 @@ func (x *MainPageActor) GetPhoto() string {
 	return ""
 }
 
+type Pager struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Count         int32                  `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
+	Offset        int32                  `protobuf:"varint,2,opt,name=offset,proto3" json:"offset,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Pager) Reset() {
+	*x = Pager{}
+	mi := &file_search_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Pager) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Pager) ProtoMessage() {}
+
+func (x *Pager) ProtoReflect() protoreflect.Message {
+	mi := &file_search_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Pager.ProtoReflect.Descriptor instead.
+func (*Pager) Descriptor() ([]byte, []int) {
+	return file_search_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Pager) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+func (x *Pager) GetOffset() int32 {
+	if x != nil {
+		return x.Offset
+	}
+	return 0
+}
+
 var File_search_proto protoreflect.FileDescriptor
 
 const file_search_proto_rawDesc = "" +
 	"\n" +
-	"\fsearch.proto\x12\x06search\"A\n" +
+	"\fsearch.proto\x12\x06search\"\xa1\x01\n" +
 	"\x1bSearchFilmsAndActorsRequest\x12\"\n" +
-	"\fSearchString\x18\x01 \x01(\tR\fSearchString\"y\n" +
+	"\fSearchString\x18\x01 \x01(\tR\fSearchString\x12-\n" +
+	"\n" +
+	"FilmsPager\x18\x02 \x01(\v2\r.search.PagerR\n" +
+	"FilmsPager\x12/\n" +
+	"\vActorsPager\x18\x03 \x01(\v2\r.search.PagerR\vActorsPager\"y\n" +
 	"\x1cSearchFilmsAndActorsResponse\x12-\n" +
-	"\x06actors\x18\x01 \x03(\v2\x15.search.MainPageActorR\x06actors\x12*\n" +
-	"\x05films\x18\x02 \x03(\v2\x14.search.MainPageFilmR\x05films\"\x8c\x01\n" +
+	"\x06Actors\x18\x01 \x03(\v2\x15.search.MainPageActorR\x06Actors\x12*\n" +
+	"\x05Films\x18\x02 \x03(\v2\x14.search.MainPageFilmR\x05Films\"\x8c\x01\n" +
 	"\fMainPageFilm\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
-	"\x05cover\x18\x02 \x01(\tR\x05cover\x12\x14\n" +
-	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12\x12\n" +
-	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
-	"\x05genre\x18\a \x01(\tR\x05genre\"X\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x14\n" +
+	"\x05Cover\x18\x02 \x01(\tR\x05Cover\x12\x14\n" +
+	"\x05Title\x18\x03 \x01(\tR\x05Title\x12\x16\n" +
+	"\x06Rating\x18\x04 \x01(\x01R\x06Rating\x12\x12\n" +
+	"\x04Year\x18\x06 \x01(\x05R\x04Year\x12\x14\n" +
+	"\x05Genre\x18\a \x01(\tR\x05Genre\"W\n" +
 	"\rMainPageActor\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12!\n" +
-	"\frussian_name\x18\x02 \x01(\tR\vrussianName\x12\x14\n" +
-	"\x05photo\x18\x03 \x01(\tR\x05photo2m\n" +
+	"\x02ID\x18\x01 \x01(\tR\x02ID\x12 \n" +
+	"\vRussianName\x18\x02 \x01(\tR\vRussianName\x12\x14\n" +
+	"\x05Photo\x18\x03 \x01(\tR\x05Photo\"5\n" +
+	"\x05Pager\x12\x14\n" +
+	"\x05count\x18\x01 \x01(\x05R\x05count\x12\x16\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset2m\n" +
 	"\x06Search\x12c\n" +
 	"\x14SearchFilmsAndActors\x12#.search.SearchFilmsAndActorsRequest\x1a$.search.SearchFilmsAndActorsResponse\"\x00B.Z,./internal/pkg/search/delivery/grpc/gen/;genb\x06proto3"
 
@@ -297,23 +372,26 @@ func file_search_proto_rawDescGZIP() []byte {
 	return file_search_proto_rawDescData
 }
 
-var file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_search_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_search_proto_goTypes = []any{
 	(*SearchFilmsAndActorsRequest)(nil),  // 0: search.SearchFilmsAndActorsRequest
 	(*SearchFilmsAndActorsResponse)(nil), // 1: search.SearchFilmsAndActorsResponse
 	(*MainPageFilm)(nil),                 // 2: search.MainPageFilm
 	(*MainPageActor)(nil),                // 3: search.MainPageActor
+	(*Pager)(nil),                        // 4: search.Pager
 }
 var file_search_proto_depIdxs = []int32{
-	3, // 0: search.SearchFilmsAndActorsResponse.actors:type_name -> search.MainPageActor
-	2, // 1: search.SearchFilmsAndActorsResponse.films:type_name -> search.MainPageFilm
-	0, // 2: search.Search.SearchFilmsAndActors:input_type -> search.SearchFilmsAndActorsRequest
-	1, // 3: search.Search.SearchFilmsAndActors:output_type -> search.SearchFilmsAndActorsResponse
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	4, // 0: search.SearchFilmsAndActorsRequest.FilmsPager:type_name -> search.Pager
+	4, // 1: search.SearchFilmsAndActorsRequest.ActorsPager:type_name -> search.Pager
+	3, // 2: search.SearchFilmsAndActorsResponse.Actors:type_name -> search.MainPageActor
+	2, // 3: search.SearchFilmsAndActorsResponse.Films:type_name -> search.MainPageFilm
+	0, // 4: search.Search.SearchFilmsAndActors:input_type -> search.SearchFilmsAndActorsRequest
+	1, // 5: search.Search.SearchFilmsAndActors:output_type -> search.SearchFilmsAndActorsResponse
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_search_proto_init() }
@@ -327,7 +405,7 @@ func file_search_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_search_proto_rawDesc), len(file_search_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
