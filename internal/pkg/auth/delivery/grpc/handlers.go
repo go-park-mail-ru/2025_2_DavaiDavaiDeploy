@@ -210,5 +210,45 @@ func (g GrpcAuthHandler) ValidateAndGetUser(ctx context.Context, in *gen.Validat
 		Version: int32(user.Version),
 		Login:   user.Login,
 		Avatar:  user.Avatar,
+		Has2Fa:  user.Has2FA,
+	}, err
+}
+
+func (g GrpcAuthHandler) Enable2Fa(ctx context.Context, in *gen.Enable2FaRequest) (*gen.Enable2FaResponse, error) {
+	user, err := g.auc.Enable2FA(ctx, uuid.FromStringOrNil(in.ID), in.Has2Fa)
+	if err != nil {
+		switch err {
+		case users.ErrorUnauthorized:
+			return nil, status.Errorf(codes.Unauthenticated, "%v", err)
+		case users.ErrorBadRequest:
+			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		default:
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+	}
+	user.Sanitize()
+
+	return &gen.Enable2FaResponse{
+		Has2Fa: user.Has2FA,
+		QrCode: user.QrCode,
+	}, err
+}
+
+func (g GrpcAuthHandler) Disable2Fa(ctx context.Context, in *gen.Disable2FaRequest) (*gen.Disable2FaResponse, error) {
+	user, err := g.auc.Enable2FA(ctx, uuid.FromStringOrNil(in.ID), in.Has2Fa)
+	if err != nil {
+		switch err {
+		case users.ErrorUnauthorized:
+			return nil, status.Errorf(codes.Unauthenticated, "%v", err)
+		case users.ErrorBadRequest:
+			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		default:
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+	}
+	user.Sanitize()
+
+	return &gen.Disable2FaResponse{
+		Has2Fa: user.Has2FA,
 	}, err
 }

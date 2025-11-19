@@ -22,3 +22,6 @@ var Enable2FaQuery string
 
 //go:embed sql/disable2FaQuery.sql
 var Disable2FaQuery string
+
+//go:embed sql/getUserByIDQuery.sql
+var GetUserByIDQuery string
