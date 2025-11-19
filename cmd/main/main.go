@@ -22,6 +22,7 @@ import (
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
+	searchHandlers "kinopoisk/internal/pkg/search/delivery/http"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	"os"
 
@@ -37,6 +38,7 @@ import (
 
 	authGen "kinopoisk/internal/pkg/auth/delivery/grpc/gen"
 	filmGen "kinopoisk/internal/pkg/films/delivery/grpc/gen"
+	searchGen "kinopoisk/internal/pkg/search/delivery/grpc/gen"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -92,7 +94,7 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 	customHTTPClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Пропускаем проверку SSL
+				InsecureSkipVerify: true,
 			},
 		},
 	}
@@ -116,6 +118,7 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 func main() {
 	_ = godotenv.Load()
 
+	// Подключение к auth microservice
 	authConn, err := grpc.Dial("auth:5459", grpc.WithInsecure())
 	if err != nil {
 		log.Printf("unable to connect to auth microservice: %v\n", err)
@@ -123,6 +126,7 @@ func main() {
 	}
 	defer authConn.Close()
 
+	// Подключение к films microservice
 	filmConn, err := grpc.Dial("films:5460", grpc.WithInsecure())
 	if err != nil {
 		log.Printf("unable to connect to films microservice: %v\n", err)
@@ -130,14 +134,24 @@ func main() {
 	}
 	defer filmConn.Close()
 
+	// Подключение к search microservice (порт 5462)
+	searchConn, err := grpc.Dial("search:5462", grpc.WithInsecure())
+	if err != nil {
+		log.Printf("unable to connect to search microservice: %v\n", err)
+		return
+	}
+	defer searchConn.Close()
+
 	filmClient := filmGen.NewFilmsClient(filmConn)
 	authClient := authGen.NewAuthClient(authConn)
+	searchClient := searchGen.NewSearchClient(searchConn)
 
 	authHandler := authHandlers.NewAuthHandler(authClient)
 	userHandler := userHandlers.NewUserHandler(authClient)
 	genreHandler := genreHandlers.NewGenreHandler(filmClient)
 	actorHandler := actorHandlers.NewActorHandler(filmClient)
 	filmHandler := filmHandlers.NewFilmHandler(filmClient)
+	searchHandler := searchHandlers.NewSearchHandler(searchClient)
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
@@ -153,6 +167,8 @@ func main() {
 	apiRouter.Use(cors.CorsMiddleware)
 	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
 
+	// Search routes
+	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	// Auth routes
@@ -211,7 +227,7 @@ func main() {
 	}
 
 	go func() {
-		log.Println("Starting server!")
+		log.Println("Starting main server on port 5458!")
 		err := filmSrv.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
 			log.Printf("Server start error: %v", err)

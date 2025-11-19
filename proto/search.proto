@@ -1,0 +1,38 @@
+syntax = "proto3";
+package search;
+option go_package = "./internal/pkg/search/delivery/grpc/gen/;gen";
+
+service Search {
+    rpc SearchFilmsAndActors(SearchFilmsAndActorsRequest) returns (SearchFilmsAndActorsResponse) {}
+}
+
+message SearchFilmsAndActorsRequest {
+    string SearchString = 1;
+    Pager FilmsPager = 2;
+    Pager ActorsPager = 3;
+}
+
+message SearchFilmsAndActorsResponse {
+    repeated MainPageActor Actors = 1;
+    repeated MainPageFilm Films = 2;
+}
+
+message MainPageFilm {
+  string ID = 1;
+  string Cover = 2;
+  string Title = 3;
+  double Rating = 4;
+  int32 Year = 6;
+  string Genre = 7;
+}
+
+message MainPageActor {
+    string ID = 1;
+    string RussianName = 2;
+    string Photo = 3;
+}
+
+message Pager {
+  int32 count = 1;
+  int32 offset = 2;
+}

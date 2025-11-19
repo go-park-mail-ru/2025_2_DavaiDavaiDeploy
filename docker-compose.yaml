@@ -15,6 +15,7 @@ services:
       DB_PORT: 5432
       AUTH_SERVICE_HOST: auth
       FILMS_SERVICE_HOST: films
+      SEARCH_SERVICE_HOST: search
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,6 +50,24 @@ services:
       dockerfile: ./build/films.Dockerfile
     ports:
       - 5460:5460
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ddd-network
+
+  search:
+    build:
+      context: .
+      dockerfile: ./build/search.Dockerfile
+    ports:
+      - 5462:5462
     volumes:
       - ./static/:/opt/static/
     environment:
