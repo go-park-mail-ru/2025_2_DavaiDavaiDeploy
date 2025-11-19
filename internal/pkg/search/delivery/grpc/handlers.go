@@ -68,7 +68,7 @@ func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.Sea
 	for i := range mainPageActors {
 		mainPageActors[i].Sanitize()
 		actorsResult = append(actorsResult, &gen.MainPageActor{
-			ID:          mainPageFilms[i].ID.String(),
+			ID:          mainPageActors[i].ID.String(),
 			RussianName: mainPageActors[i].RussianName,
 			Photo:       mainPageActors[i].Photo,
 		})
