@@ -17,7 +17,7 @@ type FilmUsecase interface {
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
 	SiteMap(ctx context.Context) (models.Urlset, error)
 	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
-	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) ([]models.FavFilm, error)
 	GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error)
 	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
 }

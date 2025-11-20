@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS user_table (
     password_hash bytea NOT NULL,
     avatar text DEFAULT 'avatars/default.png',
     has_2fa boolean DEFAULT false, 
-    secret_code text,
+    secret_code text DEFAULT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT user_table_login_check CHECK (((length(login) >= 6) AND (length(login) <= 20))),

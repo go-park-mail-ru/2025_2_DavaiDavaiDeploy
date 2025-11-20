@@ -57,7 +57,7 @@ type FilmsClient interface {
 	GetFilmsByActor(ctx context.Context, in *GetFilmsByActorRequest, opts ...grpc.CallOption) (*GetFilmsByActorResponse, error)
 	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
 	SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
-	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
+	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 	GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 }
 
@@ -219,9 +219,9 @@ func (c *filmsClient) SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ..
 	return out, nil
 }
 
-func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error) {
+func (c *filmsClient) RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(EmptyResponse)
+	out := new(GetFavFilmsResponse)
 	err := c.cc.Invoke(ctx, Films_RemoveFilm_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -258,7 +258,7 @@ type FilmsServer interface {
 	GetFilmsByActor(context.Context, *GetFilmsByActorRequest) (*GetFilmsByActorResponse, error)
 	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
 	SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error)
-	RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error)
+	RemoveFilm(context.Context, *RemoveFilmRequest) (*GetFavFilmsResponse, error)
 	GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
@@ -315,7 +315,7 @@ func (UnimplementedFilmsServer) ValidateUser(context.Context, *ValidateUserReque
 func (UnimplementedFilmsServer) SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveFilm not implemented")
 }
-func (UnimplementedFilmsServer) RemoveFilm(context.Context, *RemoveFilmRequest) (*EmptyResponse, error) {
+func (UnimplementedFilmsServer) RemoveFilm(context.Context, *RemoveFilmRequest) (*GetFavFilmsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveFilm not implemented")
 }
 func (UnimplementedFilmsServer) GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error) {

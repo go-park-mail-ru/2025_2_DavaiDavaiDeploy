@@ -7,4 +7,5 @@ var (
 	ErrorConflict            = errors.New("user already exists")
 	ErrorUnauthorized        = errors.New("user is unauthorized")
 	ErrorInternalServerError = errors.New("internal server error")
+	ErrorPreconditionFailed  = errors.New("precondition failed")
 )

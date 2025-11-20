@@ -389,7 +389,7 @@ type SignInRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Login         string                 `protobuf:"bytes,1,opt,name=Login,proto3" json:"Login,omitempty"`
 	Password      string                 `protobuf:"bytes,2,opt,name=Password,proto3" json:"Password,omitempty"`
-	TwoFactorCode string                 `protobuf:"bytes,3,opt,name=TwoFactorCode,proto3" json:"TwoFactorCode,omitempty"`
+	TwoFactorCode *string                `protobuf:"bytes,3,opt,name=TwoFactorCode,proto3,oneof" json:"TwoFactorCode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -439,8 +439,8 @@ func (x *SignInRequest) GetPassword() string {
 }
 
 func (x *SignInRequest) GetTwoFactorCode() string {
-	if x != nil {
-		return x.TwoFactorCode
+	if x != nil && x.TwoFactorCode != nil {
+		return *x.TwoFactorCode
 	}
 	return ""
 }
@@ -843,11 +843,12 @@ const file_auth_proto_rawDesc = "" +
 	"\x06Has2fa\x18\x05 \x01(\bR\x06Has2fa\"A\n" +
 	"\rSignupRequest\x12\x14\n" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
-	"\bPassword\x18\x02 \x01(\tR\bPassword\"g\n" +
+	"\bPassword\x18\x02 \x01(\tR\bPassword\"~\n" +
 	"\rSignInRequest\x12\x14\n" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
-	"\bPassword\x18\x02 \x01(\tR\bPassword\x12$\n" +
-	"\rTwoFactorCode\x18\x03 \x01(\tR\rTwoFactorCode\"p\n" +
+	"\bPassword\x18\x02 \x01(\tR\bPassword\x12)\n" +
+	"\rTwoFactorCode\x18\x03 \x01(\tH\x00R\rTwoFactorCode\x88\x01\x01B\x10\n" +
+	"\x0e_TwoFactorCode\"p\n" +
 	"\fAuthResponse\x12&\n" +
 	"\x04User\x18\x01 \x01(\v2\x12.auth.UserResponseR\x04User\x12\x1a\n" +
 	"\bJWTToken\x18\x02 \x01(\tR\bJWTToken\x12\x1c\n" +
@@ -949,6 +950,7 @@ func file_auth_proto_init() {
 	if File_auth_proto != nil {
 		return
 	}
+	file_auth_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

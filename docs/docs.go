@@ -601,7 +601,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request"
@@ -754,6 +760,65 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search films and actors",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search string",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of films",
+                        "name": "films_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "films_offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of actors",
+                        "name": "actors_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "actors_offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SearchResponse"
+                        }
                     },
                     "500": {
                         "description": "Internal Server Error"
@@ -1301,6 +1366,25 @@ const docTemplate = `{
                 }
             }
         },
+        "models.MainPageActor": {
+            "type": "object",
+            "required": [
+                "id",
+                "photo",
+                "russian_name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "russian_name": {
+                    "type": "string"
+                }
+            }
+        },
         "models.MainPageFilm": {
             "type": "object",
             "required": [
@@ -1377,17 +1461,38 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MainPageActor"
+                    }
+                },
+                "films": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MainPageFilm"
+                    }
+                }
+            }
+        },
         "models.SignInInput": {
             "type": "object",
             "required": [
                 "login",
-                "password"
+                "password",
+                "qr_code"
             ],
             "properties": {
                 "login": {
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "qr_code": {
                     "type": "string"
                 }
             }
@@ -1411,6 +1516,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "avatar",
+                "has_2fa",
                 "id",
                 "login",
                 "version"
@@ -1421,6 +1527,9 @@ const docTemplate = `{
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "has_2fa": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"

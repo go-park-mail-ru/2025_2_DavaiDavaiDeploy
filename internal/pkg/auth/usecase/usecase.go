@@ -14,6 +14,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/dgryski/dgoogauth"
+
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
 	"github.com/skip2/go-qrcode"
@@ -116,6 +118,26 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	return user, token, nil
 }
 
+func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	// Создаем конфигурацию OTP
+	otpConfig := &dgoogauth.OTPConfig{
+		Secret:      base32.StdEncoding.EncodeToString([]byte(secretCode)),
+		WindowSize:  30, //тут должно быть маленькое число
+		HotpCounter: 0,
+	}
+	// Проверяем код
+	isValid, err := otpConfig.Authenticate(secretCode)
+	if err != nil || !isValid {
+		logger.Error("OTP authentication error: " + err.Error())
+		return auth.ErrorBadRequest
+	}
+
+	logger.Info("OTP code verified successfully", slog.String("login", login))
+	return nil
+}
+
 func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
@@ -124,8 +146,36 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", err
 	}
 
+	secretCode := uc.authRepo.GetUserSecretCode(ctx, neededUser.ID)
+	if secretCode == "" {
+		if !CheckPass(neededUser.PasswordHash, req.Password) {
+			logger.Error("wrong password")
+			return models.User{}, "", auth.ErrorBadRequest
+		}
+
+		token, err := uc.GenerateToken(neededUser.ID, req.Login)
+		if err != nil {
+			logger.Error("cannot generate token")
+			return models.User{}, "", auth.ErrorInternalServerError
+		}
+
+		return neededUser, token, nil
+	}
+	emptyCode := ""
+
+	if req.Code == &emptyCode {
+		logger.Warn("no code given")
+		return models.User{}, "", auth.ErrorPreconditionFailed
+	}
+
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
 		logger.Error("wrong password")
+		return models.User{}, "", auth.ErrorBadRequest
+	}
+
+	err = uc.VerifyOTPCode(ctx, neededUser.Login, secretCode)
+	if err != nil {
+		logger.Error("OTP authentication error: " + err.Error())
 		return models.User{}, "", auth.ErrorBadRequest
 	}
 

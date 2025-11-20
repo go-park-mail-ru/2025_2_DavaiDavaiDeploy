@@ -6,15 +6,15 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type HTTPMetrics struct {
+type GrpcMetrics struct {
 	HitsTotal *prometheus.CounterVec
 	name      string
 	Times     *prometheus.HistogramVec
 	Errors    *prometheus.CounterVec
 }
 
-func NewHTTPMetrics(name string) (*HTTPMetrics, error) {
-	var metr HTTPMetrics
+func NewGrpcMetrics(name string) (*GrpcMetrics, error) {
+	var metr GrpcMetrics
 	metr.HitsTotal = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "hits_total",
@@ -40,19 +40,19 @@ func NewHTTPMetrics(name string) (*HTTPMetrics, error) {
 		prometheus.HistogramOpts{
 			Name: "reqtime",
 		},
-		[]string{"status", "path"},
+		[]string{"status", "path", "service"},
 	)
 	if err := prometheus.Register(metr.Times); err != nil {
 		return nil, err
 	}
 	return &metr, nil
 }
-func (m *HTTPMetrics) IncreaseHits(path string) {
+func (m *GrpcMetrics) IncreaseHits(path string) {
 	m.HitsTotal.WithLabelValues(path, m.name).Inc()
 }
-func (m *HTTPMetrics) IncreaseErrors(path string) {
+func (m *GrpcMetrics) IncreaseErrors(path string) {
 	m.Errors.WithLabelValues(path, m.name).Inc()
 }
-func (metr *HTTPMetrics) ObserveResponseTime(status int, path string, observeTime float64) {
-	metr.Times.WithLabelValues(strconv.Itoa(status), path).Observe(observeTime)
+func (metr *GrpcMetrics) ObserveResponseTime(status int, path string, observeTime float64) {
+	metr.Times.WithLabelValues(strconv.Itoa(status), path, metr.name).Observe(observeTime)
 }

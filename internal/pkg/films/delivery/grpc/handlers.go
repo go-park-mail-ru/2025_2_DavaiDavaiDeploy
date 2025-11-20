@@ -320,7 +320,7 @@ func (g GrpcFilmsHandler) SaveFilm(ctx context.Context, in *gen.SaveFilmRequest)
 	}
 	return &gen.EmptyResponse{}, nil
 }
-func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequest) (*gen.EmptyResponse, error) {
+func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequest) (*gen.GetFavFilmsResponse, error) {
 	filmID, err := uuid.FromString(in.FilmId)
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid film ID")
@@ -329,7 +329,7 @@ func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequ
 	if err != nil {
 		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID")
 	}
-	err = g.uc.RemoveFilm(ctx, userID, filmID)
+	favFilms, err := g.uc.RemoveFilm(ctx, userID, filmID)
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorBadRequest):
@@ -338,7 +338,25 @@ func (g GrpcFilmsHandler) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequ
 			return nil, status.Errorf(codes.Internal, "failed to remove film")
 		}
 	}
-	return &gen.EmptyResponse{}, nil
+
+	var result []*gen.FavFilm
+	for i := range favFilms {
+		favFilms[i].Sanitize()
+		result = append(result, &gen.FavFilm{
+			Id:               favFilms[i].ID.String(),
+			Title:            favFilms[i].Title,
+			Genre:            favFilms[i].Genre,
+			Year:             int32(favFilms[i].Year),
+			Duration:         int32(favFilms[i].Duration),
+			Image:            favFilms[i].Image,
+			ShortDescription: favFilms[i].ShortDescription,
+			Rating:           favFilms[i].Rating,
+		})
+	}
+
+	return &gen.GetFavFilmsResponse{
+		Films: result,
+	}, nil
 }
 
 func (g GrpcFilmsHandler) SendFeedback(ctx context.Context, in *gen.SendFeedbackRequest) (*gen.SendFeedbackResponse, error) {

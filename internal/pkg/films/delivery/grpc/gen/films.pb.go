@@ -2989,7 +2989,7 @@ const file_films_proto_rawDesc = "" +
 	"\x10ShortDescription\x18\x05 \x01(\tR\x10ShortDescription\x12 \n" +
 	"\vReleaseDate\x18\x06 \x01(\tR\vReleaseDate\x12\x18\n" +
 	"\aIsLiked\x18\a \x01(\bR\aIsLikedB\x10\n" +
-	"\x0e_OriginalTitle2\xbb\t\n" +
+	"\x0e_OriginalTitle2\xc1\t\n" +
 	"\x05Films\x12B\n" +
 	"\fGetPromoFilm\x12\x13.films.EmptyRequest\x1a\x1b.films.GetPromoFilmResponse\"\x00\x12=\n" +
 	"\bGetFilms\x12\x16.films.GetFilmsRequest\x1a\x17.films.GetFilmsResponse\"\x00\x12^\n" +
@@ -3005,9 +3005,9 @@ const file_films_proto_rawDesc = "" +
 	"\bGetActor\x12\x16.films.GetActorRequest\x1a\x17.films.GetActorResponse\"\x00\x12R\n" +
 	"\x0fGetFilmsByActor\x12\x1d.films.GetFilmsByActorRequest\x1a\x1e.films.GetFilmsByActorResponse\"\x00\x12I\n" +
 	"\fValidateUser\x12\x1a.films.ValidateUserRequest\x1a\x1b.films.ValidateUserResponse\"\x00\x12:\n" +
-	"\bSaveFilm\x12\x16.films.SaveFilmRequest\x1a\x14.films.EmptyResponse\"\x00\x12>\n" +
+	"\bSaveFilm\x12\x16.films.SaveFilmRequest\x1a\x14.films.EmptyResponse\"\x00\x12D\n" +
 	"\n" +
-	"RemoveFilm\x12\x18.films.RemoveFilmRequest\x1a\x14.films.EmptyResponse\"\x00\x12F\n" +
+	"RemoveFilm\x12\x18.films.RemoveFilmRequest\x1a\x1a.films.GetFavFilmsResponse\"\x00\x12F\n" +
 	"\vGetFavFilms\x12\x19.films.GetFavFilmsRequest\x1a\x1a.films.GetFavFilmsResponse\"\x00B-Z+./internal/pkg/films/delivery/grpc/gen/;genb\x06proto3"
 
 var (
@@ -3124,7 +3124,7 @@ var file_films_proto_depIdxs = []int32{
 	30, // 51: films.Films.GetFilmsByActor:output_type -> films.GetFilmsByActorResponse
 	42, // 52: films.Films.ValidateUser:output_type -> films.ValidateUserResponse
 	5,  // 53: films.Films.SaveFilm:output_type -> films.EmptyResponse
-	5,  // 54: films.Films.RemoveFilm:output_type -> films.EmptyResponse
+	1,  // 54: films.Films.RemoveFilm:output_type -> films.GetFavFilmsResponse
 	1,  // 55: films.Films.GetFavFilms:output_type -> films.GetFavFilmsResponse
 	39, // [39:56] is the sub-list for method output_type
 	22, // [22:39] is the sub-list for method input_type

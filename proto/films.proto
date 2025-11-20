@@ -21,7 +21,7 @@ service Films {
   rpc ValidateUser(ValidateUserRequest) returns (ValidateUserResponse) {}
 
   rpc SaveFilm(SaveFilmRequest) returns (EmptyResponse) {}
-  rpc RemoveFilm(RemoveFilmRequest) returns (EmptyResponse) {}
+  rpc RemoveFilm(RemoveFilmRequest) returns (GetFavFilmsResponse) {}
   rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {};
 }
 

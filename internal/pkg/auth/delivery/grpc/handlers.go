@@ -64,6 +64,7 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 	req := models.SignInInput{
 		Login:    in.Login,
 		Password: in.Password,
+		Code:     in.TwoFactorCode,
 	}
 	req.Sanitize()
 
