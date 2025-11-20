@@ -29,4 +29,5 @@ type AuthRepo interface {
 	Enable2FA(ctx context.Context, id uuid.UUID, secret string) (models.EnableTwoFactorResponse, error)
 	Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
+	GetUserSecretCode(ctx context.Context, userID uuid.UUID) string
 }

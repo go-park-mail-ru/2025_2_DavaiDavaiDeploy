@@ -124,6 +124,27 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", err
 	}
 
+	secretCode := uc.authRepo.GetUserSecretCode(ctx, neededUser.ID)
+	if secretCode == "" {
+		if !CheckPass(neededUser.PasswordHash, req.Password) {
+			logger.Error("wrong password")
+			return models.User{}, "", auth.ErrorBadRequest
+		}
+
+		token, err := uc.GenerateToken(neededUser.ID, req.Login)
+		if err != nil {
+			logger.Error("cannot generate token")
+			return models.User{}, "", auth.ErrorInternalServerError
+		}
+
+		return neededUser, token, nil
+	}
+
+	if req.Code == "" {
+		logger.Warn("no code given")
+		return models.User{}, "", auth.ErrorPreconditionFailed
+	}
+
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
 		logger.Error("wrong password")
 		return models.User{}, "", auth.ErrorBadRequest
@@ -136,6 +157,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 	}
 
 	return neededUser, token, nil
+
 }
 
 func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {

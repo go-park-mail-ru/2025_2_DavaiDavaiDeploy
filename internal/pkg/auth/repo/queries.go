@@ -28,3 +28,6 @@ var GetUserByIDQuery string
 
 //go:embed sql/checkUserTwoFactorQuery.sql
 var CheckUserTwoFactorQuery string
+
+//go:embed sql/checkUserSecretCodeQuery.sql
+var CheckUserSecretCodeQuery string

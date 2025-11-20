@@ -202,3 +202,23 @@ func (r *AuthRepository) CheckUserTwoFactor(ctx context.Context, userID uuid.UUI
 	logger.Info("successfully checked 2FA status")
 	return has2FA, nil
 }
+
+func (r *AuthRepository) CheckUserSecretCode(ctx context.Context, userID uuid.UUID) string {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var secretCode string
+	err := r.db.QueryRow(
+		ctx,
+		CheckUserSecretCodeQuery,
+		userID,
+	).Scan(&secretCode)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user not exists")
+			return ""
+		}
+		logger.Error("failed to check 2FA status: " + err.Error())
+		return ""
+	}
+	logger.Info("successfully checked 2FA status")
+	return secretCode
+}
