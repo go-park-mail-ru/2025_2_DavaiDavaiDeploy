@@ -20,11 +20,14 @@ import (
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
+	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
 	searchHandlers "kinopoisk/internal/pkg/search/delivery/http"
 	userHandlers "kinopoisk/internal/pkg/users/delivery/http"
 	"os"
+
+	metricsmw "kinopoisk/internal/pkg/middleware/metrics"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 
@@ -154,6 +157,11 @@ func main() {
 	searchHandler := searchHandlers.NewSearchHandler(searchClient)
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	Metrics, err := metrics.NewHTTPMetrics("main")
+	if err != nil {
+		ddLogger.Error("can't create metrics")
+	}
+	MetricsMiddleware := metricsmw.CreateHTTPMetricsMiddleware(Metrics, ddLogger)
 
 	mainRouter := mux.NewRouter()
 	mainRouter.PathPrefix("/swagger/").Handler(httpSwagger.WrapHandler)
@@ -166,6 +174,7 @@ func main() {
 
 	apiRouter.Use(cors.CorsMiddleware)
 	apiRouter.Use(logger.LoggerMiddleware(ddLogger))
+	apiRouter.Use(MetricsMiddleware)
 
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
@@ -223,6 +232,8 @@ func main() {
 	actorRouter := apiRouter.PathPrefix("/actors").Subrouter()
 	actorRouter.HandleFunc("/{id}", actorHandler.GetActor).Methods(http.MethodGet)
 	actorRouter.HandleFunc("/{id}/films", actorHandler.GetFilmsByActor).Methods(http.MethodGet)
+
+	apiRouter.PathPrefix("/metrics").Handler(promhttp.Handler())
 
 	filmSrv := http.Server{
 		Handler: mainRouter,

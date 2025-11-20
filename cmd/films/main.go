@@ -23,7 +23,9 @@ import (
 	filmUsecase "kinopoisk/internal/pkg/films/usecase"
 	genreRepo "kinopoisk/internal/pkg/genres/repo"
 	genreUsecase "kinopoisk/internal/pkg/genres/usecase"
+	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/logger"
+	mw "kinopoisk/internal/pkg/middleware/metrics"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -71,6 +73,8 @@ func main() {
 	defer dbpool.Close()
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	grpcMetrics, _ := metrics.NewGrpcMetrics("films")
+	grpcMiddleware := mw.NewGrpcMw(grpcMetrics)
 
 	filmRepo := filmRepo.NewFilmRepository(dbpool)
 	filmUsecase := filmUsecase.NewFilmUsecase(filmRepo)
@@ -80,7 +84,7 @@ func main() {
 	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
 	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase)
 
-	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger), grpcMiddleware.UnaryServerInterceptor()))
 	gen.RegisterFilmsServer(gRPCServer, filmHandler)
 
 	r := mux.NewRouter().PathPrefix("").Subrouter()

@@ -24,4 +24,9 @@ scrape_configs:
   - job_name: "auth"
     metrics_path: /metrics
     static_configs:
-      - targets: [ 'auth:5460' ]  
+      - targets: [ 'auth:5460' ] 
+
+  - job_name: "search"
+    metrics_path: /metrics
+    static_configs:
+      - targets: [ 'search:5462' ]   

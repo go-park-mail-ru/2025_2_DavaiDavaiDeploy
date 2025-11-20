@@ -16,7 +16,9 @@ import (
 	"os/signal"
 	"syscall"
 
+	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/logger"
+	mw "kinopoisk/internal/pkg/middleware/metrics"
 	searchHandlers "kinopoisk/internal/pkg/search/delivery/grpc"
 	"kinopoisk/internal/pkg/search/delivery/grpc/gen"
 	searchRepo "kinopoisk/internal/pkg/search/repo"
@@ -68,12 +70,14 @@ func main() {
 	defer dbpool.Close()
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	grpcMetrics, _ := metrics.NewGrpcMetrics("search")
+	grpcMiddleware := mw.NewGrpcMw(grpcMetrics)
 
 	searchRepo := searchRepo.NewSearchRepository(dbpool)
 	searchUsecase := searchUsecase.NewSearchUsecase(searchRepo)
 	searchHandler := searchHandlers.NewGrpcSearchHandler(searchUsecase)
 
-	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger), grpcMiddleware.UnaryServerInterceptor()))
 	gen.RegisterSearchServer(gRPCServer, searchHandler)
 
 	r := mux.NewRouter().PathPrefix("").Subrouter()
