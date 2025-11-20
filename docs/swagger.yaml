@@ -744,6 +744,10 @@ paths:
       responses:
         "200":
           description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.FavFilm'
+            type: array
         "400":
           description: Bad Request
         "401":

@@ -228,8 +228,20 @@ func (uc *FilmUsecase) SaveFilm(ctx context.Context, userID uuid.UUID, filmID uu
 	return uc.filmRepo.SaveFilm(ctx, userID, filmID)
 }
 
-func (uc *FilmUsecase) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
-	return uc.filmRepo.RemoveFilm(ctx, userID, filmID)
+func (uc *FilmUsecase) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) ([]models.FavFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var favFilms []models.FavFilm
+
+	err := uc.filmRepo.RemoveFilm(ctx, userID, filmID)
+
+	if err == nil {
+		favFilms, err = uc.filmRepo.GetUsersFavFilms(ctx, userID)
+		if err != nil {
+			logger.Error("bad request")
+			return []models.FavFilm{}, films.ErrorBadRequest
+		}
+	}
+	return favFilms, nil
 }
 
 func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {

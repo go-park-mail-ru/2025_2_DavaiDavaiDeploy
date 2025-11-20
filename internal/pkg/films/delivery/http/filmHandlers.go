@@ -445,7 +445,7 @@ func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
 // @Tags films
 // @Produce json
 // @Param id path string true "Film ID"
-// @Success 200
+// @Success 200 {array} models.FavFilm
 // @Failure 400
 // @Failure 401
 // @Failure 404
@@ -468,20 +468,39 @@ func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
+	favFilms, err := c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
 	if err != nil {
 		st, _ := status.FromError(err)
+
 		switch st.Code() {
 		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
 		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
 
+	response := []models.FavFilm{}
+	for i := range favFilms.Films {
+		var film models.FavFilm
+		film.ID = uuid.FromStringOrNil(favFilms.Films[i].Id)
+		film.Title = favFilms.Films[i].Title
+		film.Image = favFilms.Films[i].Image
+		film.Rating = favFilms.Films[i].Rating
+		film.Genre = favFilms.Films[i].Genre
+		film.Year = int(favFilms.Films[i].Year)
+		film.Duration = int(favFilms.Films[i].Duration)
+		film.ShortDescription = favFilms.Films[i].ShortDescription
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 

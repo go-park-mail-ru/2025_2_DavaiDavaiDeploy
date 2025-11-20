@@ -601,7 +601,13 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK"
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request"
