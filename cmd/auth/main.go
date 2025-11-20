@@ -26,7 +26,9 @@ import (
 	authHandler "kinopoisk/internal/pkg/auth/delivery/grpc"
 	authRepo "kinopoisk/internal/pkg/auth/repo"
 	authUsecase "kinopoisk/internal/pkg/auth/usecase"
+	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/logger"
+	mw "kinopoisk/internal/pkg/middleware/metrics"
 	userRepo "kinopoisk/internal/pkg/users/repo/pg"
 	storageRepo "kinopoisk/internal/pkg/users/repo/s3"
 	userUsecase "kinopoisk/internal/pkg/users/usecase"
@@ -133,8 +135,11 @@ func main() {
 	// инициализация gRPC хендлера
 	authHandler := authHandler.NewGrpcAuthHandler(authUsecase, userUsecase)
 
+	grpcMetrics, _ := metrics.NewGrpcMetrics("auth")
+	grpcMiddleware := mw.NewGrpcMw(grpcMetrics)
+
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger)))
+	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger), grpcMiddleware.UnaryServerInterceptor()))
 	gen.RegisterAuthServer(gRPCServer, authHandler)
 
 	r := mux.NewRouter().PathPrefix("").Subrouter()

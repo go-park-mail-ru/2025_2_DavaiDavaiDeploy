@@ -203,7 +203,7 @@ func (r *AuthRepository) CheckUserTwoFactor(ctx context.Context, userID uuid.UUI
 	return has2FA, nil
 }
 
-func (r *AuthRepository) CheckUserSecretCode(ctx context.Context, userID uuid.UUID) string {
+func (r *AuthRepository) GetUserSecretCode(ctx context.Context, userID uuid.UUID) string {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var secretCode string
 	err := r.db.QueryRow(
