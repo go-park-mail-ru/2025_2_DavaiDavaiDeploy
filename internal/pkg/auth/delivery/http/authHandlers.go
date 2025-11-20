@@ -149,9 +149,16 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Sanitize()
 
-	user, err := a.client.SignInUser(r.Context(), &gen.SignInRequest{
+	grpcReq := &gen.SignInRequest{
 		Login:    req.Login,
-		Password: req.Password})
+		Password: req.Password,
+	}
+
+	if req.Code != nil {
+		grpcReq.TwoFactorCode = req.Code
+	}
+
+	user, err := a.client.SignInUser(r.Context(), grpcReq)
 
 	if err != nil {
 		st, _ := status.FromError(err)
