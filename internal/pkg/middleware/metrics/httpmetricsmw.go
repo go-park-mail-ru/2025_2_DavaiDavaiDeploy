@@ -29,7 +29,6 @@ func CreateHTTPMetricsMiddleware(metr *metrics.HTTPMetrics, logger *slog.Logger)
 			start := time.Now()
 			rw := NewResponseWriter(w)
 			next.ServeHTTP(rw, r)
-			status := http.StatusOK
 			route := mux.CurrentRoute(r)
 			path, _ := route.GetPathTemplate()
 			statusCode := rw.statusCode
@@ -37,7 +36,7 @@ func CreateHTTPMetricsMiddleware(metr *metrics.HTTPMetrics, logger *slog.Logger)
 				metr.IncreaseErrors(path)
 			}
 			metr.IncreaseHits(path)
-			metr.ObserveResponseTime(status, path, time.Since(start).Seconds())
+			metr.ObserveResponseTime(statusCode, path, time.Since(start).Seconds())
 		})
 	}
 }
