@@ -10,8 +10,6 @@ import (
 	"net/http"
 
 	uuid "github.com/satori/go.uuid"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type SearchHandler struct {
@@ -22,6 +20,18 @@ func NewSearchHandler(client gen.SearchClient) *SearchHandler {
 	return &SearchHandler{client: client}
 }
 
+// GetFilmsAndActorsFromSearch godoc
+// @Summary Search films and actors
+// @Tags search
+// @Produce json
+// @Param q query string true "Search string"
+// @Param        films_count   query     int  false  "Number of films" default(10)
+// @Param        films_offset  query     int  false  "Offset" default(0)
+// @Param        actors_count   query     int  false  "Number of actors" default(10)
+// @Param        actors_offset  query     int  false  "Offset" default(0)
+// @Success 200 {object} models.SearchResponse
+// @Failure 500
+// @Router /search [get]
 func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
@@ -44,16 +54,8 @@ func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *ht
 	})
 
 	if err != nil {
-		st, _ := status.FromError(err)
-
-		switch st.Code() {
-		case codes.NotFound:
-			log.LogHandlerError(logger, err, http.StatusNotFound)
-			helpers.WriteError(w, http.StatusNotFound)
-		default:
-			log.LogHandlerError(logger, err, http.StatusInternalServerError)
-			helpers.WriteError(w, http.StatusInternalServerError)
-		}
+		log.LogHandlerError(logger, err, http.StatusInternalServerError)
+		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
 
