@@ -118,7 +118,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	return user, token, nil
 }
 
-func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode string) error {
+func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode string, userCode string) error {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	// Создаем конфигурацию OTP
@@ -128,7 +128,7 @@ func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode stri
 		HotpCounter: 0,
 	}
 	// Проверяем код
-	isValid, err := otpConfig.Authenticate(secretCode)
+	isValid, err := otpConfig.Authenticate(userCode)
 	if err != nil || !isValid {
 		logger.Error("OTP authentication error: " + err.Error())
 		return auth.ErrorBadRequest
@@ -173,7 +173,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", auth.ErrorBadRequest
 	}
 
-	err = uc.VerifyOTPCode(ctx, neededUser.Login, secretCode)
+	err = uc.VerifyOTPCode(ctx, neededUser.Login, secretCode, *req.Code)
 	if err != nil {
 		logger.Error("OTP authentication error: " + err.Error())
 		return models.User{}, "", auth.ErrorBadRequest
