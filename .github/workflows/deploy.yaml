@@ -43,6 +43,7 @@ jobs:
       - name: Restart service 
         uses: appleboy/ssh-action@master
         with:
+          timeout: 25m
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
