@@ -161,11 +161,10 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 
 		return neededUser, token, nil
 	}
-	emptyCode := ""
 
-	if req.Code == &emptyCode {
-		logger.Warn("no code given")
-		return models.User{}, "", auth.ErrorPreconditionFailed
+	if req.Code == nil || *req.Code == "" {
+    	logger.Warn("no code given")
+    	return models.User{}, "", auth.ErrorPreconditionFailed
 	}
 
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
