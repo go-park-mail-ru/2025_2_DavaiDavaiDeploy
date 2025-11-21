@@ -123,7 +123,7 @@ func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode stri
 
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      secretCode,
-		WindowSize:  30,
+		WindowSize:  5,
 		HotpCounter: 0,
 	}
 	isValid, err := otpConfig.Authenticate(userCode)

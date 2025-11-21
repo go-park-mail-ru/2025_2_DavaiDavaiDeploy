@@ -73,6 +73,8 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 		switch err {
 		case auth.ErrorBadRequest:
 			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		case auth.ErrorPreconditionFailed:
+			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
 		default:
 			return nil, status.Errorf(codes.Internal, "%v", err)
 		}

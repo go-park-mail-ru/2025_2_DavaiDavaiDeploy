@@ -90,7 +90,7 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - ./build/sql/:/docker-entrypoint-initdb.d/
       - postgres_data:/var/lib/postgresql/data
@@ -124,7 +124,7 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - "8090:9090"
     networks:
       - ddd-network
 
