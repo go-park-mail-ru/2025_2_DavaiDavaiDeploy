@@ -5,7 +5,7 @@ import "html"
 type SignInInput struct {
 	Login    string  `json:"login" binding:"required"`
 	Password string  `json:"password" binding:"required"`
-	Code     *string `json:"qr_code,omitempty" `
+	Code     *string `json:"user_code,omitempty" `
 }
 
 func (sii *SignInInput) Sanitize() {

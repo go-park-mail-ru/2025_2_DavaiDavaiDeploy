@@ -121,13 +121,11 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode string, userCode string) error {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	// Создаем конфигурацию OTP
 	otpConfig := &dgoogauth.OTPConfig{
 		Secret:      secretCode,
-		WindowSize:  30, //тут должно быть маленькое число
+		WindowSize:  30,
 		HotpCounter: 0,
 	}
-	// Проверяем код
 	isValid, err := otpConfig.Authenticate(userCode)
 	if err != nil || !isValid {
 		logger.Error("OTP authentication error:" + userCode)
