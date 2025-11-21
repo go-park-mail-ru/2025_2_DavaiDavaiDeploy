@@ -165,6 +165,8 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
+		case codes.FailedPrecondition:
+			helpers.WriteError(w, http.StatusPreconditionFailed)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
