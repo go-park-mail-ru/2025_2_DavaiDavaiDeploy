@@ -123,14 +123,15 @@ func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode stri
 
 	// Создаем конфигурацию OTP
 	otpConfig := &dgoogauth.OTPConfig{
-		Secret:      base32.StdEncoding.EncodeToString([]byte(secretCode)),
+		Secret:      secretCode,
 		WindowSize:  30, //тут должно быть маленькое число
 		HotpCounter: 0,
 	}
 	// Проверяем код
 	isValid, err := otpConfig.Authenticate(userCode)
 	if err != nil || !isValid {
-		logger.Error("OTP authentication error:")
+		logger.Error("OTP authentication error:" + userCode)
+		logger.Error("OTP authentication error:" + secretCode)
 		return auth.ErrorBadRequest
 	}
 
@@ -163,8 +164,8 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 	}
 
 	if req.Code == nil || *req.Code == "" {
-    	logger.Warn("no code given")
-    	return models.User{}, "", auth.ErrorPreconditionFailed
+		logger.Warn("no code given")
+		return models.User{}, "", auth.ErrorPreconditionFailed
 	}
 
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
