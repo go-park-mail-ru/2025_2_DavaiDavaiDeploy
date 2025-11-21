@@ -60,6 +60,13 @@ func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *ht
 	}
 
 	response := models.SearchResponse{}
+	if len(result.Films) == 0 {
+		response.Films = []models.MainPageFilm{}
+	}
+	if len(result.Actors) == 0 {
+		response.Actors = []models.MainPageActor{}
+	}
+
 	for i := range result.Films {
 		var film models.MainPageFilm
 		film.ID = uuid.FromStringOrNil(result.Films[i].ID)
