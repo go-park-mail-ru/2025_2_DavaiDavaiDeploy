@@ -74,13 +74,7 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 }
 
 func (uc *FilmUsecase) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	favFilms, err := uc.filmRepo.GetUsersFavFilms(ctx, id)
-	if err != nil {
-		logger.Error("bad request")
-		return []models.FavFilm{}, films.ErrorBadRequest
-	}
+	favFilms, _ := uc.filmRepo.GetUsersFavFilms(ctx, id)
 	return favFilms, nil
 }
 
