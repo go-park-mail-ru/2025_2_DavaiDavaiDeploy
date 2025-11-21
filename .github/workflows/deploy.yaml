@@ -36,6 +36,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           timeout: 30m
+          command_timeout: 30m
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
@@ -44,6 +45,7 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           timeout: 30m
+          command_timeout: 30m
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
