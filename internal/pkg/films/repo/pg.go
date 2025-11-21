@@ -415,7 +415,7 @@ func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]
 	rows, err := r.db.Query(ctx, GetUsersFavFilmsQuery, id)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
-		return []models.FavFilm{}, films.ErrorInternalServerError
+		return []models.FavFilm{}, nil
 	}
 	defer rows.Close()
 
