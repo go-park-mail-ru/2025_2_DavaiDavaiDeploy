@@ -196,6 +196,7 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 		Version: int(user.User.Version),
 		Login:   user.User.Login,
 		Avatar:  user.User.Avatar,
+		Has2FA:  user.User.Has2Fa,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
