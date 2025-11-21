@@ -185,6 +185,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", auth.ErrorInternalServerError
 	}
 
+	neededUser.Has2FA = true
 	return neededUser, token, nil
 }
 

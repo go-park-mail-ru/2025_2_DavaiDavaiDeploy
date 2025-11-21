@@ -84,6 +84,7 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 		Version: int32(user.Version),
 		Login:   user.Login,
 		Avatar:  user.Avatar,
+		Has2Fa:  user.Has2FA,
 	}
 
 	csrfToken := uuid.NewV4().String()
