@@ -21,8 +21,7 @@ jobs:
 
   deploy:
     name: Deploy MyApp
-    timeout-minutes: 15
-    timeout: 3 hours 30 minutes
+    timeout-minutes: 30
     needs: linters-act 
     runs-on: ubuntu-latest
     steps:
@@ -36,7 +35,7 @@ jobs:
       - name: Build containers 
         uses: appleboy/ssh-action@master
         with:
-          timeout: 25m
+          timeout: 30m
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
@@ -44,7 +43,7 @@ jobs:
       - name: Restart service 
         uses: appleboy/ssh-action@master
         with:
-          timeout: 25m
+          timeout: 30m
           host: ${{ secrets.HOST }}
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
