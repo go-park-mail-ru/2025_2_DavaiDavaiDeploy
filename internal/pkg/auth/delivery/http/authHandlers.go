@@ -312,12 +312,7 @@ func (a *AuthHandler) Enable2FA(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := models.EnableTwoFactorResponse{
-		Has2FA: result.Has2Fa,
-		QrCode: result.QrCode,
-	}
-
-	helpers.WriteJSON(w, response)
+	_, _ = w.Write(result.QrCode)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
