@@ -129,7 +129,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken)
-	voiceRequest.Header.Set("Content-Type", "audio/webm")
+	voiceRequest.Header.Set("Content-Type", "audio/wav")
 
 	client := &http.Client{}
 	voiceResponse, err := client.Do(voiceRequest)
