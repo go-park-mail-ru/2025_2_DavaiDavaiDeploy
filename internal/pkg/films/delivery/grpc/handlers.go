@@ -23,8 +23,8 @@ type GrpcFilmsHandler struct {
 	gen.UnimplementedFilmsServer
 }
 
-func NewGrpcFilmHandler(uc films.FilmUsecase, guc genres.GenreUsecase, auc actors.ActorUsecase) *GrpcFilmsHandler {
-	return &GrpcFilmsHandler{uc: uc, guc: guc, auc: auc}
+func NewGrpcFilmHandler(uc films.FilmUsecase, guc genres.GenreUsecase, auc actors.ActorUsecase, cmuc compilations.CompilationsUsecase) *GrpcFilmsHandler {
+	return &GrpcFilmsHandler{uc: uc, guc: guc, auc: auc, cmuc: cmuc}
 }
 
 func (g GrpcFilmsHandler) GetPromoFilm(ctx context.Context, in *gen.EmptyRequest) (*gen.GetPromoFilmResponse, error) {

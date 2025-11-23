@@ -17,6 +17,8 @@ import (
 
 	actorRepo "kinopoisk/internal/pkg/actors/repo"
 	actorUsecase "kinopoisk/internal/pkg/actors/usecase"
+	compilationRepo "kinopoisk/internal/pkg/compilations/repo"
+	compilationUsecase "kinopoisk/internal/pkg/compilations/usecase"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/grpc"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	filmRepo "kinopoisk/internal/pkg/films/repo"
@@ -82,7 +84,9 @@ func main() {
 	genreUsecase := genreUsecase.NewGenreUsecase(genreRepo)
 	actorRepo := actorRepo.NewActorRepository(dbpool)
 	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
-	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase)
+	compilationRepo := compilationRepo.NewCompilationRepository(dbpool)
+	compilationUsecase := compilationUsecase.NewCompilationUsecase(compilationRepo)
+	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase, compilationUsecase)
 
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger), grpcMiddleware.UnaryServerInterceptor()))
 	gen.RegisterFilmsServer(gRPCServer, filmHandler)
