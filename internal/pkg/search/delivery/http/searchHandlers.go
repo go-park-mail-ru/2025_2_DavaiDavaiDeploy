@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/helpers"
@@ -149,13 +150,18 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	voiceResponseData, err := io.ReadAll(voiceResponse.Body)
-	if err != nil || voiceResponse.StatusCode != http.StatusOK {
-		log.LogHandlerError(logger, errors.New("failed to get voice data"), http.StatusBadRequest)
+	if err != nil {
 		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
 	defer voiceResponse.Body.Close()
+
+	if voiceResponse.StatusCode != http.StatusOK {
+		log.LogHandlerError(logger, fmt.Errorf("failed to get voice data, status: %d", voiceResponse.StatusCode), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
 
 	var voiceResult models.VoiceResult
 
