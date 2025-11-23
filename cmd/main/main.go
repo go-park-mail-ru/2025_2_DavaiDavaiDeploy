@@ -181,7 +181,7 @@ func main() {
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	apiRouter.HandleFunc("/search", searchHandler.GetFilmsAndActorsFromSearch).Methods(http.MethodGet)
-	apiRouter.HandleFunc("/voice-search", searchHandler.VoiceSearch).Methods(http.MethodGet)
+	apiRouter.HandleFunc("/voice-search", searchHandler.VoiceSearch).Methods(http.MethodPost, http.MethodOptions)
 	apiRouter.HandleFunc("/sitemap.xml", filmHandler.SiteMap).Methods(http.MethodGet)
 
 	// Auth routes
