@@ -15,6 +15,10 @@ service Films {
   rpc GetGenre(GetGenreRequest) returns (GetGenreResponse) {}
   rpc GetGenres(GetGenresRequest) returns (GetGenresResponse) {}
   rpc GetFilmsByGenre(GetFilmsByGenreRequest) returns (GetFilmsByGenreResponse) {}
+
+  rpc GetCompilation(GetCompilationRequest) returns (GetCompilationResponse) {}
+  rpc GetCompilations(GetCompilationsRequest) returns (GetCompilationsResponse) {}
+  rpc GetFilmsByCompilation(GetFilmsByCompilationRequest) returns (GetFilmsByCompilationResponse) {}
   
   rpc GetActor(GetActorRequest) returns (GetActorResponse) {}
   rpc GetFilmsByActor(GetFilmsByActorRequest) returns (GetFilmsByActorResponse) {}
@@ -23,6 +27,38 @@ service Films {
   rpc SaveFilm(SaveFilmRequest) returns (EmptyResponse) {}
   rpc RemoveFilm(RemoveFilmRequest) returns (GetFavFilmsResponse) {}
   rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {};
+}
+
+message GetCompilationRequest {
+  string compilation_id = 1;
+}
+
+message GetCompilationResponse {
+  Compilation compilation = 1;
+}
+
+message GetCompilationsRequest {
+  Pager pager = 1;
+}
+
+message GetCompilationsResponse {
+  repeated Compilation compilations = 1;
+}
+
+message GetFilmsByCompilationRequest {
+  string compilation_id = 1;
+  Pager pager = 2;
+}
+
+message GetFilmsByCompilationResponse {
+  repeated FavFilm films = 1;
+}
+
+message Compilation {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string icon = 4;
 }
 
 message GetFavFilmsRequest {

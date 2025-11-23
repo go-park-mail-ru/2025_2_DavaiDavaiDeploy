@@ -19,23 +19,26 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Films_GetPromoFilm_FullMethodName        = "/films.Films/GetPromoFilm"
-	Films_GetFilms_FullMethodName            = "/films.Films/GetFilms"
-	Films_GetFilmsForCalendar_FullMethodName = "/films.Films/GetFilmsForCalendar"
-	Films_GetFilm_FullMethodName             = "/films.Films/GetFilm"
-	Films_GetFilmFeedbacks_FullMethodName    = "/films.Films/GetFilmFeedbacks"
-	Films_SendFeedback_FullMethodName        = "/films.Films/SendFeedback"
-	Films_SetRating_FullMethodName           = "/films.Films/SetRating"
-	Films_SiteMap_FullMethodName             = "/films.Films/SiteMap"
-	Films_GetGenre_FullMethodName            = "/films.Films/GetGenre"
-	Films_GetGenres_FullMethodName           = "/films.Films/GetGenres"
-	Films_GetFilmsByGenre_FullMethodName     = "/films.Films/GetFilmsByGenre"
-	Films_GetActor_FullMethodName            = "/films.Films/GetActor"
-	Films_GetFilmsByActor_FullMethodName     = "/films.Films/GetFilmsByActor"
-	Films_ValidateUser_FullMethodName        = "/films.Films/ValidateUser"
-	Films_SaveFilm_FullMethodName            = "/films.Films/SaveFilm"
-	Films_RemoveFilm_FullMethodName          = "/films.Films/RemoveFilm"
-	Films_GetFavFilms_FullMethodName         = "/films.Films/GetFavFilms"
+	Films_GetPromoFilm_FullMethodName          = "/films.Films/GetPromoFilm"
+	Films_GetFilms_FullMethodName              = "/films.Films/GetFilms"
+	Films_GetFilmsForCalendar_FullMethodName   = "/films.Films/GetFilmsForCalendar"
+	Films_GetFilm_FullMethodName               = "/films.Films/GetFilm"
+	Films_GetFilmFeedbacks_FullMethodName      = "/films.Films/GetFilmFeedbacks"
+	Films_SendFeedback_FullMethodName          = "/films.Films/SendFeedback"
+	Films_SetRating_FullMethodName             = "/films.Films/SetRating"
+	Films_SiteMap_FullMethodName               = "/films.Films/SiteMap"
+	Films_GetGenre_FullMethodName              = "/films.Films/GetGenre"
+	Films_GetGenres_FullMethodName             = "/films.Films/GetGenres"
+	Films_GetFilmsByGenre_FullMethodName       = "/films.Films/GetFilmsByGenre"
+	Films_GetCompilation_FullMethodName        = "/films.Films/GetCompilation"
+	Films_GetCompilations_FullMethodName       = "/films.Films/GetCompilations"
+	Films_GetFilmsByCompilation_FullMethodName = "/films.Films/GetFilmsByCompilation"
+	Films_GetActor_FullMethodName              = "/films.Films/GetActor"
+	Films_GetFilmsByActor_FullMethodName       = "/films.Films/GetFilmsByActor"
+	Films_ValidateUser_FullMethodName          = "/films.Films/ValidateUser"
+	Films_SaveFilm_FullMethodName              = "/films.Films/SaveFilm"
+	Films_RemoveFilm_FullMethodName            = "/films.Films/RemoveFilm"
+	Films_GetFavFilms_FullMethodName           = "/films.Films/GetFavFilms"
 )
 
 // FilmsClient is the client API for Films service.
@@ -53,6 +56,9 @@ type FilmsClient interface {
 	GetGenre(ctx context.Context, in *GetGenreRequest, opts ...grpc.CallOption) (*GetGenreResponse, error)
 	GetGenres(ctx context.Context, in *GetGenresRequest, opts ...grpc.CallOption) (*GetGenresResponse, error)
 	GetFilmsByGenre(ctx context.Context, in *GetFilmsByGenreRequest, opts ...grpc.CallOption) (*GetFilmsByGenreResponse, error)
+	GetCompilation(ctx context.Context, in *GetCompilationRequest, opts ...grpc.CallOption) (*GetCompilationResponse, error)
+	GetCompilations(ctx context.Context, in *GetCompilationsRequest, opts ...grpc.CallOption) (*GetCompilationsResponse, error)
+	GetFilmsByCompilation(ctx context.Context, in *GetFilmsByCompilationRequest, opts ...grpc.CallOption) (*GetFilmsByCompilationResponse, error)
 	GetActor(ctx context.Context, in *GetActorRequest, opts ...grpc.CallOption) (*GetActorResponse, error)
 	GetFilmsByActor(ctx context.Context, in *GetFilmsByActorRequest, opts ...grpc.CallOption) (*GetFilmsByActorResponse, error)
 	ValidateUser(ctx context.Context, in *ValidateUserRequest, opts ...grpc.CallOption) (*ValidateUserResponse, error)
@@ -179,6 +185,36 @@ func (c *filmsClient) GetFilmsByGenre(ctx context.Context, in *GetFilmsByGenreRe
 	return out, nil
 }
 
+func (c *filmsClient) GetCompilation(ctx context.Context, in *GetCompilationRequest, opts ...grpc.CallOption) (*GetCompilationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCompilationResponse)
+	err := c.cc.Invoke(ctx, Films_GetCompilation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filmsClient) GetCompilations(ctx context.Context, in *GetCompilationsRequest, opts ...grpc.CallOption) (*GetCompilationsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCompilationsResponse)
+	err := c.cc.Invoke(ctx, Films_GetCompilations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *filmsClient) GetFilmsByCompilation(ctx context.Context, in *GetFilmsByCompilationRequest, opts ...grpc.CallOption) (*GetFilmsByCompilationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFilmsByCompilationResponse)
+	err := c.cc.Invoke(ctx, Films_GetFilmsByCompilation_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *filmsClient) GetActor(ctx context.Context, in *GetActorRequest, opts ...grpc.CallOption) (*GetActorResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetActorResponse)
@@ -254,6 +290,9 @@ type FilmsServer interface {
 	GetGenre(context.Context, *GetGenreRequest) (*GetGenreResponse, error)
 	GetGenres(context.Context, *GetGenresRequest) (*GetGenresResponse, error)
 	GetFilmsByGenre(context.Context, *GetFilmsByGenreRequest) (*GetFilmsByGenreResponse, error)
+	GetCompilation(context.Context, *GetCompilationRequest) (*GetCompilationResponse, error)
+	GetCompilations(context.Context, *GetCompilationsRequest) (*GetCompilationsResponse, error)
+	GetFilmsByCompilation(context.Context, *GetFilmsByCompilationRequest) (*GetFilmsByCompilationResponse, error)
 	GetActor(context.Context, *GetActorRequest) (*GetActorResponse, error)
 	GetFilmsByActor(context.Context, *GetFilmsByActorRequest) (*GetFilmsByActorResponse, error)
 	ValidateUser(context.Context, *ValidateUserRequest) (*ValidateUserResponse, error)
@@ -302,6 +341,15 @@ func (UnimplementedFilmsServer) GetGenres(context.Context, *GetGenresRequest) (*
 }
 func (UnimplementedFilmsServer) GetFilmsByGenre(context.Context, *GetFilmsByGenreRequest) (*GetFilmsByGenreResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFilmsByGenre not implemented")
+}
+func (UnimplementedFilmsServer) GetCompilation(context.Context, *GetCompilationRequest) (*GetCompilationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCompilation not implemented")
+}
+func (UnimplementedFilmsServer) GetCompilations(context.Context, *GetCompilationsRequest) (*GetCompilationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCompilations not implemented")
+}
+func (UnimplementedFilmsServer) GetFilmsByCompilation(context.Context, *GetFilmsByCompilationRequest) (*GetFilmsByCompilationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFilmsByCompilation not implemented")
 }
 func (UnimplementedFilmsServer) GetActor(context.Context, *GetActorRequest) (*GetActorResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetActor not implemented")
@@ -540,6 +588,60 @@ func _Films_GetFilmsByGenre_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_GetCompilation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompilationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetCompilation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetCompilation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetCompilation(ctx, req.(*GetCompilationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Films_GetCompilations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCompilationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetCompilations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetCompilations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetCompilations(ctx, req.(*GetCompilationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Films_GetFilmsByCompilation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFilmsByCompilationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetFilmsByCompilation(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetFilmsByCompilation_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetFilmsByCompilation(ctx, req.(*GetFilmsByCompilationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Films_GetActor_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetActorRequest)
 	if err := dec(in); err != nil {
@@ -698,6 +800,18 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFilmsByGenre",
 			Handler:    _Films_GetFilmsByGenre_Handler,
+		},
+		{
+			MethodName: "GetCompilation",
+			Handler:    _Films_GetCompilation_Handler,
+		},
+		{
+			MethodName: "GetCompilations",
+			Handler:    _Films_GetCompilations_Handler,
+		},
+		{
+			MethodName: "GetFilmsByCompilation",
+			Handler:    _Films_GetFilmsByCompilation_Handler,
 		},
 		{
 			MethodName: "GetActor",
