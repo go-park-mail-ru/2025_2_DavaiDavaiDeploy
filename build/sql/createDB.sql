@@ -229,20 +229,33 @@ CREATE TRIGGER set_fav_films_timestamps
 
 
 CREATE TEXT SEARCH CONFIGURATION ru (COPY = russian);
+CREATE TEXT SEARCH CONFIGURATION en (COPY = english);
+
+CREATE TEXT SEARCH DICTIONARY russian_ispell (
+    TEMPLATE = ispell,
+    DictFile = russian,
+    AffFile = russian,
+    StopWords = russian
+);
 
 ALTER TEXT SEARCH CONFIGURATION ru
 ALTER MAPPING FOR hword, hword_part, word
 WITH russian_stem;
 
+ALTER TEXT SEARCH CONFIGURATION en
+ALTER MAPPING FOR hword, hword_part, word
+WITH english_stem;
+
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE OR REPLACE FUNCTION make_film_tsvector(title TEXT, description TEXT, short_description TEXT)
+CREATE OR REPLACE FUNCTION make_film_tsvector(title TEXT, description TEXT, short_description TEXT, original_title TEXT)
 RETURNS tsvector AS
 $$
 BEGIN
     RETURN (
         setweight(to_tsvector('ru', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('en', coalesce(original_title, '')), 'A') ||
         setweight(to_tsvector('ru', coalesce(description, '')), 'B') ||
 		setweight(to_tsvector('ru', coalesce(short_description, '')), 'C')
     );
@@ -255,18 +268,18 @@ $$
 BEGIN
     RETURN (
         setweight(to_tsvector('ru', coalesce(russian_name, '')), 'A') ||
-        setweight(to_tsvector('ru', coalesce(original_name, '')), 'B')
+        setweight(to_tsvector('en', coalesce(original_name, '')), 'B')
     );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 
-UPDATE film SET tsvector_column = make_film_tsvector(title, description, short_description);
+UPDATE film SET tsvector_column = make_film_tsvector(title, description, short_description, original_title);
 UPDATE actor SET tsvector_column = make_actor_tsvector(russian_name, original_name);
 
 CREATE OR REPLACE FUNCTION update_film_tsvector() RETURNS trigger AS $$ 
 BEGIN
-    NEW.tsvector_column := make_film_tsvector(NEW.title, NEW.description, NEW.short_description);
+    NEW.tsvector_column := make_film_tsvector(NEW.title, NEW.description, NEW.short_description, NEW.original_title);
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
@@ -289,6 +302,7 @@ FOR EACH ROW EXECUTE FUNCTION update_actor_tsvector();
 
 CREATE INDEX IF NOT EXISTS idx_film_tsv ON film USING GIN (tsvector_column);
 CREATE INDEX IF NOT EXISTS idx_actor_tsv ON actor USING GIN (tsvector_column);
+
 
 CREATE TABLE IF NOT EXISTS compilation (
     id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
