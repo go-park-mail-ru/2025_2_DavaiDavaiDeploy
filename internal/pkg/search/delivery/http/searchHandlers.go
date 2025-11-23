@@ -151,6 +151,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceResponseData, err := io.ReadAll(voiceResponse.Body)
 	if err != nil || voiceResponse.StatusCode != http.StatusOK {
 		log.LogHandlerError(logger, errors.New("failed to get voice data"), http.StatusBadRequest)
+		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
