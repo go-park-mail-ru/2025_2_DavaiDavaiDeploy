@@ -124,6 +124,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceRequest, err := http.NewRequest("POST", s.voiceVKURL, bytes.NewReader(voiceData))
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
+		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
