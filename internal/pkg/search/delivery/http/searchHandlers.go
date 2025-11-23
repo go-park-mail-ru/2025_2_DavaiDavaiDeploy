@@ -136,6 +136,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceResponse, err := client.Do(voiceRequest)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to send request to VK"), http.StatusBadRequest)
+		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
