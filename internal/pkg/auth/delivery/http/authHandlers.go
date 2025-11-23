@@ -290,6 +290,16 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// Enable2FA godoc
+// @Summary Check authentication status
+// @Description Verify if user is authenticated and return user data
+// @Tags auth
+// @Produce json
+// @Success 200 {array} bytes
+// @Failure 401
+// @Failure 400
+// @Failure 500
+// @Router /auth/enable2fa [post]
 func (a *AuthHandler) Enable2FA(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 

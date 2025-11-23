@@ -23,7 +23,7 @@ func NewGrpcSearchHandler(uc search.SearchUsecase) *GrpcSearchHandler {
 }
 
 func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.SearchFilmsAndActorsRequest) (*gen.SearchFilmsAndActorsResponse, error) {
-	var filmsResult []*gen.MainPageFilm
+	filmsResult := []*gen.MainPageFilm{}
 	filmsPager := models.Pager{
 		Count:  int(in.FilmsPager.Count),
 		Offset: int(in.FilmsPager.Offset),
@@ -50,7 +50,7 @@ func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.Sea
 		})
 	}
 
-	var actorsResult []*gen.MainPageActor
+	actorsResult := []*gen.MainPageActor{}
 	actorsPager := models.Pager{
 		Count:  int(in.ActorsPager.Count),
 		Offset: int(in.ActorsPager.Offset),
