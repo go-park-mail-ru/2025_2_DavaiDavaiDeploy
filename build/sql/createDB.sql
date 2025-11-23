@@ -240,7 +240,7 @@ CREATE TEXT SEARCH DICTIONARY russian_ispell (
 
 ALTER TEXT SEARCH CONFIGURATION ru
 ALTER MAPPING FOR hword, hword_part, word
-WITH russian_stem;
+WITH russian_ispell, russian_stem;
 
 ALTER TEXT SEARCH CONFIGURATION en
 ALTER MAPPING FOR hword, hword_part, word
