@@ -18,6 +18,7 @@ import (
 
 	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
+	compilationHandlers "kinopoisk/internal/pkg/compilations/delivery/http"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
 	"kinopoisk/internal/pkg/metrics"
@@ -155,6 +156,7 @@ func main() {
 	actorHandler := actorHandlers.NewActorHandler(filmClient)
 	filmHandler := filmHandlers.NewFilmHandler(filmClient)
 	searchHandler := searchHandlers.NewSearchHandler(searchClient)
+	compilationHandler := compilationHandlers.NewCompilationHandler(filmClient)
 
 	ddLogger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	Metrics, err := metrics.NewHTTPMetrics("main")
@@ -227,6 +229,11 @@ func main() {
 	genreRouter.HandleFunc("/", genreHandler.GetGenres).Methods(http.MethodGet)
 	genreRouter.HandleFunc("/{id}", genreHandler.GetGenre).Methods(http.MethodGet)
 	genreRouter.HandleFunc("/{id}/films", genreHandler.GetFilmsByGenre).Methods(http.MethodGet)
+
+	compilationRouter := apiRouter.PathPrefix("/compilations").Subrouter()
+	compilationRouter.HandleFunc("/", compilationHandler.GetCompilations).Methods(http.MethodGet)
+	compilationRouter.HandleFunc("/{id}", compilationHandler.GetCompilation).Methods(http.MethodGet)
+	compilationRouter.HandleFunc("/{id}/films", compilationHandler.GetFilmsByCompilation).Methods(http.MethodGet)
 
 	// Actor routes
 	actorRouter := apiRouter.PathPrefix("/actors").Subrouter()

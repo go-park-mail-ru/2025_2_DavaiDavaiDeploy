@@ -5,6 +5,7 @@ import (
 	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/actors"
+	"kinopoisk/internal/pkg/compilations"
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/genres"
@@ -15,9 +16,10 @@ import (
 )
 
 type GrpcFilmsHandler struct {
-	uc  films.FilmUsecase
-	guc genres.GenreUsecase
-	auc actors.ActorUsecase
+	uc   films.FilmUsecase
+	guc  genres.GenreUsecase
+	auc  actors.ActorUsecase
+	cmuc compilations.CompilationsUsecase
 	gen.UnimplementedFilmsServer
 }
 
@@ -475,6 +477,7 @@ func (g GrpcFilmsHandler) SiteMap(ctx context.Context, in *gen.EmptyRequest) (*g
 		},
 	}, nil
 }
+
 func (g GrpcFilmsHandler) GetGenre(ctx context.Context, in *gen.GetGenreRequest) (*gen.GetGenreResponse, error) {
 	genreID, err := uuid.FromString(in.GenreId)
 	if err != nil {
@@ -572,6 +575,7 @@ func (g GrpcFilmsHandler) GetFilmsByGenre(ctx context.Context, in *gen.GetFilmsB
 		Films: result,
 	}, nil
 }
+
 func (g GrpcFilmsHandler) GetActor(ctx context.Context, in *gen.GetActorRequest) (*gen.GetActorResponse, error) {
 	actorID, err := uuid.FromString(in.ActorId)
 	if err != nil {
@@ -659,5 +663,95 @@ func (g GrpcFilmsHandler) ValidateUser(ctx context.Context, in *gen.ValidateUser
 		Version: int32(user.Version),
 		Login:   user.Login,
 		Avatar:  user.Avatar,
+	}, nil
+}
+
+func (g GrpcFilmsHandler) GetCompilation(ctx context.Context, in *gen.GetCompilationRequest) (*gen.GetCompilationResponse, error) {
+	compilation, err := g.cmuc.GetCompilation(ctx, uuid.FromStringOrNil(in.CompilationId))
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "compilation not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to get compilation")
+		}
+	}
+	compilation.Sanitize()
+
+	return &gen.GetCompilationResponse{
+		Compilation: &gen.Compilation{
+			Id:          compilation.ID.String(),
+			Name:        compilation.Title,
+			Description: compilation.Description,
+			Icon:        compilation.Icon,
+		},
+	}, nil
+}
+
+func (g GrpcFilmsHandler) GetCompilations(ctx context.Context, in *gen.GetCompilationsRequest) (*gen.GetCompilationsResponse, error) {
+	pager := models.Pager{
+		Count:  int(in.Pager.Count),
+		Offset: int(in.Pager.Offset),
+	}
+
+	compilations, err := g.cmuc.GetCompilations(ctx, pager)
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "compilations not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to get compilations")
+		}
+	}
+
+	var result []*gen.Compilation
+	for i := range compilations {
+		compilations[i].Sanitize()
+		result = append(result, &gen.Compilation{
+			Id:          compilations[i].ID.String(),
+			Name:        compilations[i].Title,
+			Description: compilations[i].Description,
+			Icon:        compilations[i].Icon,
+		})
+	}
+
+	return &gen.GetCompilationsResponse{
+		Compilations: result,
+	}, nil
+}
+
+func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.GetFilmsByCompilationRequest) (*gen.GetFilmsByCompilationResponse, error) {
+	pager := models.Pager{
+		Count:  int(in.Pager.Count),
+		Offset: int(in.Pager.Offset),
+	}
+
+	films, err := g.cmuc.GetFilmsByCompilation(ctx, uuid.FromStringOrNil(in.CompilationId), pager)
+	if err != nil {
+		switch {
+		case errors.Is(err, genres.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "films not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to get films by compilation")
+		}
+	}
+
+	var result []*gen.FavFilm
+	for i := range films {
+		films[i].Sanitize()
+		result = append(result, &gen.FavFilm{
+			Id:               films[i].ID.String(),
+			Image:            films[i].Image,
+			Title:            films[i].Title,
+			Rating:           films[i].Rating,
+			Year:             int32(films[i].Year),
+			Genre:            films[i].Genre,
+			ShortDescription: films[i].ShortDescription,
+			Duration:         int32(films[i].Duration),
+		})
+	}
+
+	return &gen.GetFilmsByCompilationResponse{
+		Films: result,
 	}, nil
 }

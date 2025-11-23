@@ -289,3 +289,28 @@ FOR EACH ROW EXECUTE FUNCTION update_actor_tsvector();
 
 CREATE INDEX IF NOT EXISTS idx_film_tsv ON film USING GIN (tsvector_column);
 CREATE INDEX IF NOT EXISTS idx_actor_tsv ON actor USING GIN (tsvector_column);
+
+CREATE TABLE IF NOT EXISTS compilation (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    title text NOT NULL,
+    description text,
+    icon text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT compilation_description_check CHECK (((description IS NULL) OR ((length(description) > 0) AND (length(description) <= 500)))),
+    CONSTRAINT compilation_icon_check CHECK (((icon IS NULL) OR ((length(icon) > 0) AND (length(icon) <= 100)))),
+    CONSTRAINT compilation_title_check CHECK (((length(title) > 0) AND (length(title) <= 40)))
+);
+
+CREATE TABLE IF NOT EXISTS film_in_compilation (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    film_id uuid NOT NULL REFERENCES film(id) ON DELETE CASCADE,
+    compilation_id uuid NOT NULL REFERENCES compilation(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT film_in_compilation_unique UNIQUE (film_id, compilation_id)
+);
+
+CREATE TRIGGER set_film_in_compilation_timestamps 
+    BEFORE INSERT OR UPDATE ON film_in_compilation
+    FOR EACH ROW EXECUTE FUNCTION set_timestamps();
