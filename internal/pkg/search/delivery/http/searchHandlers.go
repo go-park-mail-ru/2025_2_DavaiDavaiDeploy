@@ -1,13 +1,14 @@
 package http
 
 import (
-	"html"
+	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/search/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -36,7 +37,12 @@ func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *ht
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 
 	searchString := helpers.GetStringParameter(r, "q", "")
-	searchString = html.EscapeString(searchString)
+	unescapedString, err := url.QueryUnescape(searchString)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to unescape search string"), http.StatusBadRequest)
+	} else {
+		searchString = unescapedString
+	}
 
 	filmsPager := models.Pager{
 		Count:  helpers.GetParameter(r, "films_count", 10),
