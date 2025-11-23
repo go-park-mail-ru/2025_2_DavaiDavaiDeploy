@@ -6,7 +6,7 @@ FROM actor a
 WHERE (a.tsvector_column @@ plainto_tsquery('ru', $1)
    OR a.tsvector_column @@ plainto_tsquery('en', $1))
    AND (ts_rank(a.tsvector_column, plainto_tsquery('ru', $1)) >= 0.3
-   OR ts_rank(a.tsvector_column, plainto_tsquery('en', $1))) >= 0.3
+   OR ts_rank(a.tsvector_column, plainto_tsquery('en', $1)) >= 0.3)
 ORDER BY 
     GREATEST(
         ts_rank(a.tsvector_column, plainto_tsquery('ru', $1)),

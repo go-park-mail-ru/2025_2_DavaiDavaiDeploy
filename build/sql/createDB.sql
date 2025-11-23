@@ -238,13 +238,20 @@ CREATE TEXT SEARCH DICTIONARY russian_ispell (
     StopWords = russian
 );
 
+CREATE TEXT SEARCH DICTIONARY english_ispell (
+    TEMPLATE = ispell,
+    DictFile = english,
+    AffFile = english,
+    StopWords = english
+);
+
 ALTER TEXT SEARCH CONFIGURATION ru
 ALTER MAPPING FOR hword, hword_part, word
-WITH russian_stem;
+WITH russian_ispell, russian_stem;
 
 ALTER TEXT SEARCH CONFIGURATION en
 ALTER MAPPING FOR hword, hword_part, word
-WITH english_stem;
+WITH english_ispell, english_stem;
 
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
