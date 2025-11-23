@@ -275,7 +275,7 @@ $$
 BEGIN
     RETURN (
         setweight(to_tsvector('ru', coalesce(russian_name, '')), 'A') ||
-        setweight(to_tsvector('en', coalesce(original_name, '')), 'B')
+        setweight(to_tsvector('en', coalesce(original_name, '')), 'A')
     );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
@@ -309,6 +309,13 @@ FOR EACH ROW EXECUTE FUNCTION update_actor_tsvector();
 
 CREATE INDEX IF NOT EXISTS idx_film_tsv ON film USING GIN (tsvector_column);
 CREATE INDEX IF NOT EXISTS idx_actor_tsv ON actor USING GIN (tsvector_column);
+
+CREATE INDEX IF NOT EXISTS idx_actor_russian_name_trgm ON actor USING GIN (russian_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_actor_original_name_trgm ON actor USING GIN (original_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_title_trgm ON film USING GIN (title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_original_title_trgm ON film USING GIN (original_title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_description_trgm ON film USING GIN (description gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_short_description_trgm ON film USING GIN (short_description gin_trgm_ops);
 
 
 CREATE TABLE IF NOT EXISTS compilation (
