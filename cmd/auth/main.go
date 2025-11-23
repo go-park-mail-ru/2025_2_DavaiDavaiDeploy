@@ -89,7 +89,7 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 	customHTTPClient := &http.Client{
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				InsecureSkipVerify: true, // Пропускаем проверку SSL
+				InsecureSkipVerify: true,
 			},
 		},
 	}

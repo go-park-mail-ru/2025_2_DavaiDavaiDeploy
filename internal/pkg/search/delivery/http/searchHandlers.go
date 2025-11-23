@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
@@ -132,7 +133,13 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken)
 	voiceRequest.Header.Set("Content-Type", "audio/wav")
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
 	voiceResponse, err := client.Do(voiceRequest)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to send request to VK"), http.StatusBadRequest)
