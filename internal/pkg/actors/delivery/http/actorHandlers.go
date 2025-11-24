@@ -24,6 +24,10 @@ func NewActorHandler(client gen.FilmsClient) *ActorHandler {
 	return &ActorHandler{client: client}
 }
 
+const (
+	TimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
+)
+
 // GetActor godoc
 // @Summary      Get actor by ID
 // @Tags         actors
@@ -51,8 +55,6 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -75,7 +77,7 @@ func (a *ActorHandler) GetActor(w http.ResponseWriter, r *http.Request) {
 		response.OriginalName = actor.Actor.OriginalName
 	}
 
-	if birthDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", actor.Actor.BirthDate); err == nil {
+	if birthDate, err := time.Parse(TimeLayout, actor.Actor.BirthDate); err == nil {
 		response.BirthDate = birthDate
 	}
 
@@ -118,8 +120,6 @@ func (a *ActorHandler) GetFilmsByActor(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}

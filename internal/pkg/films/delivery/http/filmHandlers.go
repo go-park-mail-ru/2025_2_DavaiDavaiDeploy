@@ -21,7 +21,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-var (
+const (
+	TimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
 	CookieName = "DDFilmsJWT"
 )
 
@@ -210,9 +211,6 @@ func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request
 		case codes.NotFound:
 			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			log.LogHandlerError(logger, err, http.StatusBadRequest)
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
@@ -235,7 +233,7 @@ func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request
 
 		film.ShortDescription = filmsForCalendar.Films[i].ShortDescription
 
-		releaseDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", filmsForCalendar.Films[i].ReleaseDate)
+		releaseDate, err := time.Parse(TimeLayout, filmsForCalendar.Films[i].ReleaseDate)
 		if err != nil {
 			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
@@ -283,9 +281,6 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		case codes.NotFound:
 			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			log.LogHandlerError(logger, err, http.StatusBadRequest)
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
@@ -309,11 +304,11 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 			mappedActor.OriginalName = actor.OriginalName
 		}
 
-		if birthDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", actor.BirthDate); err == nil {
+		if birthDate, err := time.Parse(TimeLayout, actor.BirthDate); err == nil {
 			mappedActor.BirthDate = birthDate
 		}
 		if actor.DeathDate != nil {
-			if deathDate, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", *actor.DeathDate); err == nil {
+			if deathDate, err := time.Parse(TimeLayout, *actor.DeathDate); err == nil {
 				mappedActor.DeathDate = &deathDate
 			}
 		}
@@ -428,8 +423,6 @@ func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -476,9 +469,6 @@ func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
 		case codes.NotFound:
 			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			log.LogHandlerError(logger, err, http.StatusBadRequest)
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
@@ -541,8 +531,6 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -562,10 +550,10 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 			NewFilmRating: feedbacks.Feedbacks[i].NewFilmRating,
 		}
 
-		if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedbacks.Feedbacks[i].CreatedAt); err == nil {
+		if createdAt, err := time.Parse(TimeLayout, feedbacks.Feedbacks[i].CreatedAt); err == nil {
 			feedback.CreatedAt = createdAt
 		}
-		if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedbacks.Feedbacks[i].UpdatedAt); err == nil {
+		if updatedAt, err := time.Parse(TimeLayout, feedbacks.Feedbacks[i].UpdatedAt); err == nil {
 			feedback.UpdatedAt = updatedAt
 		}
 
@@ -657,10 +645,10 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 		NewFilmRating: feedback.Feedback.NewFilmRating,
 	}
 
-	if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedback.Feedback.CreatedAt); err == nil {
+	if createdAt, err := time.Parse(TimeLayout, feedback.Feedback.CreatedAt); err == nil {
 		response.CreatedAt = createdAt
 	}
-	if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", feedback.Feedback.UpdatedAt); err == nil {
+	if updatedAt, err := time.Parse(TimeLayout, feedback.Feedback.UpdatedAt); err == nil {
 		response.UpdatedAt = updatedAt
 	}
 
@@ -745,10 +733,10 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		NewFilmRating: rating.Feedback.NewFilmRating,
 	}
 
-	if createdAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", rating.Feedback.CreatedAt); err == nil {
+	if createdAt, err := time.Parse(TimeLayout, rating.Feedback.CreatedAt); err == nil {
 		response.CreatedAt = createdAt
 	}
-	if updatedAt, err := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", rating.Feedback.UpdatedAt); err == nil {
+	if updatedAt, err := time.Parse(TimeLayout, rating.Feedback.UpdatedAt); err == nil {
 		response.UpdatedAt = updatedAt
 	}
 

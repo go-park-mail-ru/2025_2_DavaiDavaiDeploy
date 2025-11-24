@@ -33,7 +33,6 @@ func HashPass(plainPassword string) []byte {
 }
 
 func CheckPass(passHash []byte, plainPassword string) bool {
-	//salt := passHash[:8] - раньше было так
 	salt := make([]byte, 8)
 	copy(salt, passHash[:8])
 	userHash := argon2.IDKey([]byte(plainPassword), salt, 1, 64*1024, 4, 32)
@@ -74,7 +73,7 @@ func (uc *AuthUsecase) ParseToken(token string) (*jwt.Token, error) {
 func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	msg, dataIsValid := auth.Validaton(req.Login, req.Password)
+	msg, dataIsValid := auth.Validation(req.Login, req.Password)
 	if !dataIsValid {
 		logger.Error(msg)
 		return models.User{}, "", auth.ErrorBadRequest
@@ -128,8 +127,7 @@ func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode stri
 	}
 	isValid, err := otpConfig.Authenticate(userCode)
 	if err != nil || !isValid {
-		logger.Error("OTP authentication error:" + userCode)
-		logger.Error("OTP authentication error:" + secretCode)
+		logger.Error("OTP authentication error")
 		return auth.ErrorBadRequest
 	}
 
@@ -200,7 +198,7 @@ func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 	secret := make([]byte, 20)
 	_, err := rand.Read(secret)
 	if err != nil {
-		return []byte{}, "", err
+		return []byte{}, "", auth.ErrorInternalServerError
 	}
 
 	secretBase32 := base32.StdEncoding.EncodeToString(secret)
@@ -214,7 +212,7 @@ func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 
 	qrCode, err := qrcode.Encode(otpURL, qrcode.Medium, 256)
 	if err != nil {
-		return []byte{}, "", err
+		return []byte{}, "", auth.ErrorInternalServerError
 	}
 
 	return qrCode, secretBase32, nil
@@ -222,7 +220,7 @@ func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 
 func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	if has2FA == true {
+	if has2FA {
 		logger.Error("user already enabled the 2fa")
 		return models.EnableTwoFactorResponse{}, auth.ErrorBadRequest
 	}
@@ -251,7 +249,7 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 
 func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	if has2FA == false {
+	if !has2FA {
 		logger.Error("user already disabled the 2fa")
 		return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
 	}

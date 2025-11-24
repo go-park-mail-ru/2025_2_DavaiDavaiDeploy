@@ -136,6 +136,7 @@ func (u *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
+		return
 	}
 
 	response := models.User{

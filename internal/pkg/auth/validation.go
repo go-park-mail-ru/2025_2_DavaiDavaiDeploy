@@ -6,7 +6,7 @@ const (
 	ValidChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?`~"
 )
 
-func Validaton(login, password string) (string, bool) {
+func Validation(login, password string) (string, bool) {
 	if len(login) < 6 || len(login) > 15 {
 		return "Invalid login length", false
 	}

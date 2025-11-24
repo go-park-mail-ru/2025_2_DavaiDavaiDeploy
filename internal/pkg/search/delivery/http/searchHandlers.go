@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -128,12 +129,11 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceRequest, err := http.NewRequest("POST", s.voiceVKURL, bytes.NewReader(voiceData))
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
-		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
 
-	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken)
+	voiceRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.voiceToken))
 	voiceRequest.Header.Set("Content-Type", "audio/wav")
 
 	client := &http.Client{
@@ -142,6 +142,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 				InsecureSkipVerify: true,
 			},
 		},
+		Timeout: 30 * time.Second,
 	}
 	voiceResponse, err := client.Do(voiceRequest)
 	if err != nil {
@@ -166,7 +167,6 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var voiceResult models.VoiceResult
-
 	err = json.Unmarshal(voiceResponseData, &voiceResult)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to parse response"), http.StatusBadRequest)
@@ -175,8 +175,8 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(voiceResult.Result.Texts) == 0 {
-		log.LogHandlerError(logger, errors.New("no text given"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest)
+		log.LogHandlerInfo(logger, "no text given", http.StatusOK)
+		helpers.WriteJSON(w, models.SearchResponse{})
 		return
 	}
 
@@ -191,8 +191,8 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if textResult == "" {
-		log.LogHandlerError(logger, errors.New("no text given"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest)
+		log.LogHandlerInfo(logger, "no text given", http.StatusOK)
+		helpers.WriteJSON(w, models.SearchResponse{})
 		return
 	}
 
@@ -203,6 +203,13 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	actorsPager := models.Pager{
 		Count:  helpers.GetParameter(r, "actors_count", 10),
 		Offset: helpers.GetParameter(r, "actors_offset", 0),
+	}
+
+	unescapedText, err := url.QueryUnescape(textResult)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to unescape search string"), http.StatusBadRequest)
+	} else {
+		textResult = unescapedText
 	}
 
 	result, err := s.client.SearchFilmsAndActors(r.Context(), &gen.SearchFilmsAndActorsRequest{

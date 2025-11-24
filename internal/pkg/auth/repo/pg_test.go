@@ -234,7 +234,7 @@ func TestCheckUserLogin(t *testing.T) {
 			login: login,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
 				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
-					AddRow(userID, 1, login, []byte("hash"), avatar, createdAt, updatedAt). // Убрать & перед avatar
+					AddRow(userID, 1, login, []byte("hash"), avatar, createdAt, updatedAt).
 					ToPgxRows()
 				rows.Next()
 				mockPool.EXPECT().
@@ -285,6 +285,7 @@ func TestGetUserByLogin(t *testing.T) {
 	userID := uuid.NewV4()
 	login := "testuser"
 	avatar := "/static/default.jpg"
+	has2FA := false
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
@@ -294,6 +295,7 @@ func TestGetUserByLogin(t *testing.T) {
 		Login:        login,
 		PasswordHash: []byte("hash"),
 		Avatar:       avatar,
+		Has2FA:       has2FA,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 	}
@@ -309,8 +311,8 @@ func TestGetUserByLogin(t *testing.T) {
 			name:  "Success",
 			login: login,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
-					AddRow(userID, 1, login, []byte("hash"), avatar, createdAt, updatedAt).
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "has_2fa", "created_at", "updated_at"}).
+					AddRow(userID, 1, login, []byte("hash"), avatar, has2FA, createdAt, updatedAt).
 					ToPgxRows()
 				rows.Next()
 				mockPool.EXPECT().
@@ -352,7 +354,321 @@ func TestGetUserByLogin(t *testing.T) {
 				assert.Equal(t, tt.wantUser.Login, user.Login)
 				assert.Equal(t, tt.wantUser.Version, user.Version)
 				assert.Equal(t, tt.wantUser.Avatar, user.Avatar)
+				assert.Equal(t, tt.wantUser.Has2FA, user.Has2FA)
 			}
+		})
+	}
+}
+
+func TestEnable2FA(t *testing.T) {
+	userID := uuid.NewV4()
+	secret := "QWERTYASDFGZ"
+
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		secret     string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantResult models.EnableTwoFactorResponse
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			userID: userID,
+			secret: secret,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"has_2fa"}).
+					AddRow(true).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), Enable2FaQuery, userID, secret).
+					Return(rows)
+			},
+			wantResult: models.EnableTwoFactorResponse{Has2FA: true},
+			wantErr:    false,
+		},
+		{
+			name:   "Error_UserNotFound",
+			userID: userID,
+			secret: secret,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), Enable2FaQuery, userID, secret).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantResult: models.EnableTwoFactorResponse{},
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			result, err := repo.Enable2FA(testContext(), tt.userID, tt.secret)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantResult.Has2FA, result.Has2FA)
+			}
+		})
+	}
+}
+
+func TestDisable2FA(t *testing.T) {
+	userID := uuid.NewV4()
+
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantResult models.DisableTwoFactorResponse
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"has_2fa"}).
+					AddRow(false).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), Disable2FaQuery, userID).
+					Return(rows)
+			},
+			wantResult: models.DisableTwoFactorResponse{Has2FA: false},
+			wantErr:    false,
+		},
+		{
+			name:   "Error_UserNotFound",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), Disable2FaQuery, userID).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantResult: models.DisableTwoFactorResponse{},
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			result, err := repo.Disable2FA(testContext(), tt.userID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantResult.Has2FA, result.Has2FA)
+			}
+		})
+	}
+}
+
+func TestGetUserByID(t *testing.T) {
+	userID := uuid.NewV4()
+	avatar := "/static/default.jpg"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+
+	expectedUser := models.User{
+		ID:           userID,
+		Version:      1,
+		Login:        "testuser",
+		PasswordHash: []byte("hash"),
+		Avatar:       avatar,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+	}
+
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantUser   models.User
+		wantErr    bool
+	}{
+		{
+			name:   "Success",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
+					AddRow(userID, 1, "testuser", []byte("hash"), avatar, createdAt, updatedAt).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetUserByIDQuery, userID).
+					Return(rows)
+			},
+			wantUser: expectedUser,
+			wantErr:  false,
+		},
+		{
+			name:   "Error_UserNotFound",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), GetUserByIDQuery, userID).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantUser: models.User{},
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			user, err := repo.GetUserByID(testContext(), tt.userID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantUser.ID, user.ID)
+				assert.Equal(t, tt.wantUser.Login, user.Login)
+				assert.Equal(t, tt.wantUser.Version, user.Version)
+				assert.Equal(t, tt.wantUser.Avatar, user.Avatar)
+			}
+		})
+	}
+}
+
+func TestCheckUserTwoFactor(t *testing.T) {
+	userID := uuid.NewV4()
+
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantHas2FA bool
+		wantErr    bool
+	}{
+		{
+			name:   "Success_2FAEnabled",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"has_2fa"}).
+					AddRow(true).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserTwoFactorQuery, userID).
+					Return(rows)
+			},
+			wantHas2FA: true,
+			wantErr:    false,
+		},
+		{
+			name:   "Success_2FADisabled",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"has_2fa"}).
+					AddRow(false).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserTwoFactorQuery, userID).
+					Return(rows)
+			},
+			wantHas2FA: false,
+			wantErr:    false,
+		},
+		{
+			name:   "Error_UserNotFound",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserTwoFactorQuery, userID).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantHas2FA: false,
+			wantErr:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			has2FA, err := repo.CheckUserTwoFactor(testContext(), tt.userID)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantHas2FA, has2FA)
+			}
+		})
+	}
+}
+
+func TestGetUserSecretCode(t *testing.T) {
+	userID := uuid.NewV4()
+	secretCode := "QWERTYASDFGZ"
+
+	tests := []struct {
+		name       string
+		userID     uuid.UUID
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantSecret string
+	}{
+		{
+			name:   "Success",
+			userID: userID,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"secret_code"}).
+					AddRow(secretCode).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckUserSecretCodeQuery, userID).
+					Return(rows)
+			},
+			wantSecret: secretCode,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			secret := repo.GetUserSecretCode(testContext(), tt.userID)
+
+			assert.Equal(t, tt.wantSecret, secret)
 		})
 	}
 }
