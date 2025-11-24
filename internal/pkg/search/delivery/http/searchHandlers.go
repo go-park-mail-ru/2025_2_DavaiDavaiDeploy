@@ -102,6 +102,8 @@ func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *ht
 		response.Actors = append(response.Actors, actor)
 	}
 
+	response.SearchString = searchString
+
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
@@ -241,6 +243,8 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 		actor.Photo = result.Actors[i].Photo
 		response.Actors = append(response.Actors, actor)
 	}
+
+	response.SearchString = textResult
 
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)

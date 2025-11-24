@@ -78,6 +78,7 @@ message FavFilm {
   string image = 6;
   string short_description = 7;
   double rating = 8;
+  optional bool is_liked = 9;
 }
 
 message SaveFilmRequest {

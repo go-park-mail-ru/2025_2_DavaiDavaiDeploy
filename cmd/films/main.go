@@ -85,7 +85,7 @@ func main() {
 	actorRepo := actorRepo.NewActorRepository(dbpool)
 	actorUsecase := actorUsecase.NewActorUsecase(actorRepo)
 	compilationRepo := compilationRepo.NewCompilationRepository(dbpool)
-	compilationUsecase := compilationUsecase.NewCompilationUsecase(compilationRepo)
+	compilationUsecase := compilationUsecase.NewCompilationUsecase(compilationRepo, filmRepo)
 	filmHandler := filmHandlers.NewGrpcFilmHandler(filmUsecase, genreUsecase, actorUsecase, compilationUsecase)
 
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(logger.LoggerInterceptor(ddLogger), grpcMiddleware.UnaryServerInterceptor()))
