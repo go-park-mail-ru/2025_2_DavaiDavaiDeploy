@@ -10,8 +10,8 @@ import (
 	reflect "reflect"
 
 	jwt "github.com/golang-jwt/jwt"
-	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/satori/go.uuid"
+	gomock "go.uber.org/mock/gomock"
 )
 
 // MockAuthUsecase is a mock of AuthUsecase interface.
