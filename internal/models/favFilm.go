@@ -15,7 +15,7 @@ type FavFilm struct {
 	Image            string    `json:"image" binding:"required"`
 	ShortDescription string    `json:"short_description" binding:"required"`
 	Rating           float64   `json:"rating" binding:"required"`
-	IsLiked          bool      `json:"is_liked,omitempty"`
+	IsLiked          bool      `json:"is_liked"`
 }
 
 func (pf *FavFilm) Sanitize() {

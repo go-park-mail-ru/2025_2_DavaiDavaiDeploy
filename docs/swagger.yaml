@@ -118,6 +118,8 @@ definitions:
         type: string
       image:
         type: string
+      is_liked:
+        type: boolean
       rating:
         type: number
       short_description:
@@ -395,6 +397,8 @@ definitions:
         items:
           $ref: '#/definitions/models.MainPageFilm'
         type: array
+      search_string:
+        type: string
     type: object
   models.SignInInput:
     properties:
