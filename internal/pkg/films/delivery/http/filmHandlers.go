@@ -83,7 +83,7 @@ func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 // @Failure 401
 // @Failure 404
 // @Failure 500
-// @Router /films/favorites [get]
+// @Router /users/saved [get]
 func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)

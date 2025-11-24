@@ -23,6 +23,17 @@ func NewCompilationHandler(client gen.FilmsClient) *CompilationHandler {
 	return &CompilationHandler{client: client}
 }
 
+// @Summary Получить подборку по ID
+// @Description Возвращает информацию о конкретной подборке по её идентификатору
+// @Tags compilations
+// @Accept json
+// @Produce json
+// @Param id path string true "UUID подборки"
+// @Success 200 {object} models.Compilation "Успешный ответ с данными подборки"
+// @Failure 400 {object} object "Неверный формат UUID"
+// @Failure 404 {object} object "Подборка не найдена"
+// @Failure 500 {object} object "Внутренняя ошибка сервера"
+// @Router /compilations/{id} [get]
 func (g *CompilationHandler) GetCompilation(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
@@ -58,6 +69,17 @@ func (g *CompilationHandler) GetCompilation(w http.ResponseWriter, r *http.Reque
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// @Summary Получить список подборок
+// @Description Возвращает список всех подборок с пагинацией
+// @Tags compilations
+// @Accept json
+// @Produce json
+// @Param count query int false "Количество элементов (по умолчанию 10)"
+// @Param offset query int false "Смещение (по умолчанию 0)"
+// @Success 200 {array} models.Compilation "Успешный ответ со списком подборок"
+// @Failure 404 {object} object "Подборки не найдены"
+// @Failure 500 {object} object "Внутренняя ошибка сервера"
+// @Router /compilations/ [get]
 func (g *CompilationHandler) GetCompilations(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
@@ -91,6 +113,19 @@ func (g *CompilationHandler) GetCompilations(w http.ResponseWriter, r *http.Requ
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// @Summary Получить фильмы из подборки
+// @Description Возвращает список фильмов, входящих в конкретную подборку, с пагинацией
+// @Tags compilations
+// @Accept json
+// @Produce json
+// @Param id path string true "UUID подборки"
+// @Param count query int false "Количество элементов (по умолчанию 10)"
+// @Param offset query int false "Смещение (по умолчанию 0)"
+// @Success 200 {array} models.FavFilm "Успешный ответ со списком фильмов"
+// @Failure 400 {object} object "Неверный формат UUID"
+// @Failure 404 {object} object "Подборка или фильмы не найдены"
+// @Failure 500 {object} object "Внутренняя ошибка сервера"
+// @Router /compilations/{id}/films [get]
 func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
