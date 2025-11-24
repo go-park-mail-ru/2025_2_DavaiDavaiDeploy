@@ -166,6 +166,7 @@ func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *htt
 			Genre:            films.Films[i].Genre,
 			ShortDescription: films.Films[i].ShortDescription,
 			Duration:         int(films.Films[i].Duration),
+			IsLiked:          *films.Films[i].IsLiked,
 		}
 		response = append(response, film)
 	}

@@ -748,6 +748,7 @@ func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.Get
 			Genre:            films[i].Genre,
 			ShortDescription: films[i].ShortDescription,
 			Duration:         int32(films[i].Duration),
+			IsLiked:          &films[i].IsLiked,
 		})
 	}
 
