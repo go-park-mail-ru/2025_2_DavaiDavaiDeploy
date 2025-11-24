@@ -232,6 +232,7 @@ func main() {
 	genreRouter.HandleFunc("/{id}/films", genreHandler.GetFilmsByGenre).Methods(http.MethodGet)
 
 	compilationRouter := apiRouter.PathPrefix("/compilations").Subrouter()
+	compilationRouter.Use(filmHandler.Middleware)
 	compilationRouter.HandleFunc("/", compilationHandler.GetCompilations).Methods(http.MethodGet)
 	compilationRouter.HandleFunc("/{id}", compilationHandler.GetCompilation).Methods(http.MethodGet)
 	compilationRouter.HandleFunc("/{id}/films", compilationHandler.GetFilmsByCompilation).Methods(http.MethodGet)

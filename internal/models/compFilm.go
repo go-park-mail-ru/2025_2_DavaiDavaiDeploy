@@ -6,7 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type FavFilm struct {
+type CompFilm struct {
 	ID               uuid.UUID `json:"id" binding:"required"`
 	Title            string    `json:"title" binding:"required"`
 	Genre            string    `json:"genre" binding:"required"`
@@ -15,9 +15,10 @@ type FavFilm struct {
 	Image            string    `json:"image" binding:"required"`
 	ShortDescription string    `json:"short_description" binding:"required"`
 	Rating           float64   `json:"rating" binding:"required"`
+	IsLiked          bool      `json:"is_liked" binding:"required"`
 }
 
-func (pf *FavFilm) Sanitize() {
+func (pf *CompFilm) Sanitize() {
 	pf.Title = html.EscapeString(pf.Title)
 	pf.Genre = html.EscapeString(pf.Genre)
 	pf.Image = html.EscapeString(pf.Image)

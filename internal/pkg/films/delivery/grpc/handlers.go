@@ -726,7 +726,7 @@ func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.Get
 		Offset: int(in.Pager.Offset),
 	}
 
-	films, err := g.cmuc.GetFilmsByCompilation(ctx, uuid.FromStringOrNil(in.CompilationId), pager)
+	films, err := g.cmuc.GetFilmsByCompilation(ctx, uuid.FromStringOrNil(in.CompilationId), uuid.FromStringOrNil(in.UserId), pager)
 	if err != nil {
 		switch {
 		case errors.Is(err, genres.ErrorNotFound):
@@ -736,10 +736,10 @@ func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.Get
 		}
 	}
 
-	var result []*gen.FavFilm
+	var result []*gen.CompFilm
 	for i := range films {
 		films[i].Sanitize()
-		result = append(result, &gen.FavFilm{
+		result = append(result, &gen.CompFilm{
 			Id:               films[i].ID.String(),
 			Image:            films[i].Image,
 			Title:            films[i].Title,
