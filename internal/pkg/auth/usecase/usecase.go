@@ -249,7 +249,7 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 
 func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	if has2FA {
+	if !has2FA {
 		logger.Error("user already disabled the 2fa")
 		return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
 	}
