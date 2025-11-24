@@ -243,7 +243,6 @@ func TestGetActor(t *testing.T) {
 				assert.Equal(t, tt.expectedActor.Age, decoded.Age)
 				assert.Equal(t, tt.expectedActor.FilmsNumber, decoded.FilmsNumber)
 
-				// Check OriginalName
 				if tt.expectedActor.OriginalName == nil {
 					assert.Nil(t, decoded.OriginalName)
 				} else {
@@ -437,8 +436,8 @@ func TestGetFilmsByActor(t *testing.T) {
 					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
 						ActorId: actorIDStr,
 						Pager: &gen.Pager{
-							Count:  10, // Default value
-							Offset: 0,  // Default value
+							Count:  10,
+							Offset: 0,
 						},
 					}).
 					Return(&gen.GetFilmsByActorResponse{Films: grpcFilms}, nil)
