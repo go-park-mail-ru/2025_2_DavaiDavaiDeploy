@@ -51,8 +51,6 @@ func (g *CompilationHandler) GetCompilation(w http.ResponseWriter, r *http.Reque
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
@@ -150,8 +148,6 @@ func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *htt
 		switch st.Code() {
 		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case codes.InvalidArgument:
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}

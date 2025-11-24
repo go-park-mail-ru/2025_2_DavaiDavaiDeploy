@@ -55,7 +55,7 @@ func (g GrpcFilmsHandler) GetFavFilms(ctx context.Context, in *gen.GetFavFilmsRe
 	if err != nil {
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
-			return nil, status.Errorf(codes.InvalidArgument, "bad request")
+			return nil, status.Errorf(codes.NotFound, "films not found")
 		default:
 			return nil, status.Errorf(codes.Internal, "internal server error")
 		}
@@ -92,8 +92,6 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
 			return nil, status.Errorf(codes.NotFound, "films not found")
-		case errors.Is(err, films.ErrorBadRequest):
-			return nil, status.Errorf(codes.InvalidArgument, "bad request")
 		default:
 			return nil, status.Errorf(codes.Internal, "internal server error")
 		}
@@ -133,8 +131,6 @@ func (g GrpcFilmsHandler) GetFilmsForCalendar(ctx context.Context, in *gen.GetFi
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
 			return nil, status.Errorf(codes.NotFound, "films not found")
-		case errors.Is(err, films.ErrorBadRequest):
-			return nil, status.Errorf(codes.Internal, "bad request")
 		default:
 			return nil, status.Errorf(codes.Internal, "internal server error")
 		}
@@ -182,8 +178,6 @@ func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (
 		switch {
 		case errors.Is(err, films.ErrorNotFound):
 			return nil, status.Errorf(codes.NotFound, "films not found")
-		case errors.Is(err, films.ErrorBadRequest):
-			return nil, status.Errorf(codes.Internal, "bad request")
 		default:
 			return nil, status.Errorf(codes.Internal, "internal server error")
 		}
@@ -654,7 +648,12 @@ func (g GrpcFilmsHandler) ValidateUser(ctx context.Context, in *gen.ValidateUser
 
 	user, err := g.uc.ValidateAndGetUser(ctx, token)
 	if err != nil {
-		return nil, status.Errorf(codes.Unauthenticated, "user not found")
+		switch {
+		case errors.Is(err, films.ErrorUnauthorized):
+			return nil, status.Errorf(codes.NotFound, "user not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to get user")
+		}
 	}
 
 	user.Sanitize()

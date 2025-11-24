@@ -131,7 +131,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken) //fmt.Sprintf
+	voiceRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.voiceToken))
 	voiceRequest.Header.Set("Content-Type", "audio/wav")
 
 	client := &http.Client{
@@ -173,7 +173,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(voiceResult.Result.Texts) == 0 {
-		log.LogHandlerError(logger, errors.New("no text given"), http.StatusBadRequest)
+		log.LogHandlerInfo(logger, "no text given", http.StatusOK)
 		helpers.WriteJSON(w, models.SearchResponse{})
 		return
 	}
@@ -189,8 +189,8 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if textResult == "" {
-		log.LogHandlerError(logger, errors.New("no text given"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest)
+		log.LogHandlerInfo(logger, "no text given", http.StatusOK)
+		helpers.WriteJSON(w, models.SearchResponse{})
 		return
 	}
 
@@ -201,6 +201,13 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	actorsPager := models.Pager{
 		Count:  helpers.GetParameter(r, "actors_count", 10),
 		Offset: helpers.GetParameter(r, "actors_offset", 0),
+	}
+
+	unescapedText, err := url.QueryUnescape(textResult)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("failed to unescape search string"), http.StatusBadRequest)
+	} else {
+		textResult = unescapedText
 	}
 
 	result, err := s.client.SearchFilmsAndActors(r.Context(), &gen.SearchFilmsAndActorsRequest{
