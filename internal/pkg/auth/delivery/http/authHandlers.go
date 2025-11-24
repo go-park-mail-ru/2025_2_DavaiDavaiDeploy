@@ -295,7 +295,7 @@ func (a *AuthHandler) CheckAuth(w http.ResponseWriter, r *http.Request) {
 // @Description Verify if user is authenticated and return user data
 // @Tags auth
 // @Produce json
-// @Success 200 {array} bytes
+// @Success 200 {array} byte
 // @Failure 401
 // @Failure 400
 // @Failure 500
