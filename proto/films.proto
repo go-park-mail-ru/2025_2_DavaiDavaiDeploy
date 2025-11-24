@@ -48,10 +48,11 @@ message GetCompilationsResponse {
 message GetFilmsByCompilationRequest {
   string compilation_id = 1;
   Pager pager = 2;
+  string user_id = 3;
 }
 
 message GetFilmsByCompilationResponse {
-  repeated FavFilm films = 1;
+  repeated CompFilm films = 1;
 }
 
 message Compilation {
@@ -70,6 +71,17 @@ message GetFavFilmsResponse {
 }
 
 message FavFilm {
+  string id = 1;
+  string title = 2;
+  string genre = 3;
+  int32 year = 4;
+  int32 duration = 5;
+  string image = 6;
+  string short_description = 7;
+  double rating = 8;
+}
+
+message CompFilm {
   string id = 1;
   string title = 2;
   string genre = 3;

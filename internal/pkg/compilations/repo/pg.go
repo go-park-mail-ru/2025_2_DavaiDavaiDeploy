@@ -78,7 +78,7 @@ func (g *CompilationRepository) GetCompilationsWithPagination(ctx context.Contex
 	return compilations, nil
 }
 
-func (g *CompilationRepository) GetFilmsByCompilation(ctx context.Context, compilationID uuid.UUID, limit, offset int) ([]models.FavFilm, error) {
+func (g *CompilationRepository) GetFilmsByCompilation(ctx context.Context, compilationID uuid.UUID, limit, offset int) ([]models.CompFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	rows, err := g.db.Query(ctx, GetFilmsByCompilationQuery, compilationID, limit, offset)
@@ -92,9 +92,9 @@ func (g *CompilationRepository) GetFilmsByCompilation(ctx context.Context, compi
 	}
 	defer rows.Close()
 
-	var films []models.FavFilm
+	var films []models.CompFilm
 	for rows.Next() {
-		var film models.FavFilm
+		var film models.CompFilm
 		if err := rows.Scan(
 			&film.ID,
 			&film.Title,

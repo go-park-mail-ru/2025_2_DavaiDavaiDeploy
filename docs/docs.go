@@ -408,7 +408,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.FavFilm"
+                                "$ref": "#/definitions/models.CompFilm"
                             }
                         }
                     },
@@ -1275,6 +1275,49 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CompFilm": {
+            "type": "object",
+            "required": [
+                "duration",
+                "genre",
+                "id",
+                "image",
+                "is_liked",
+                "rating",
+                "short_description",
+                "title",
+                "year"
+            ],
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_liked": {
+                    "type": "boolean"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Compilation": {
             "type": "object",
             "required": [
@@ -1328,9 +1371,6 @@ const docTemplate = `{
                 },
                 "image": {
                     "type": "string"
-                },
-                "is_liked": {
-                    "type": "boolean"
                 },
                 "rating": {
                     "type": "number"

@@ -42,21 +42,21 @@ func (uc *CompilationsUsecase) GetCompilations(ctx context.Context, pager models
 	return allCompilations, nil
 }
 
-func (uc *CompilationsUsecase) GetFilmsByCompilation(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FavFilm, error) {
+func (uc *CompilationsUsecase) GetFilmsByCompilation(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.CompFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	films, err := uc.compilationRepo.GetFilmsByCompilation(ctx, id, pager.Count, pager.Offset)
 	if err != nil {
-		return []models.FavFilm{}, err
+		return []models.CompFilm{}, err
 	}
 
 	if len(films) == 0 {
 		logger.Info("compilation has no films")
-		return []models.FavFilm{}, compilations.ErrorNotFound
+		return []models.CompFilm{}, compilations.ErrorNotFound
 	}
 
 	for i := range films {
-		_, err = uc.filmRepo.CheckUserLikeExists(ctx, id, films[i].ID)
 		films[i].IsLiked = false
+		_, err = uc.filmRepo.CheckUserLikeExists(ctx, userID, films[i].ID)
 		if err == nil {
 			films[i].IsLiked = true
 		}

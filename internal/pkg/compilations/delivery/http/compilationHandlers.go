@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
@@ -121,13 +122,14 @@ func (g *CompilationHandler) GetCompilations(w http.ResponseWriter, r *http.Requ
 // @Param id path string true "UUID подборки"
 // @Param count query int false "Количество элементов (по умолчанию 10)"
 // @Param offset query int false "Смещение (по умолчанию 0)"
-// @Success 200 {array} models.FavFilm "Успешный ответ со списком фильмов"
+// @Success 200 {array} models.CompFilm "Успешный ответ со списком фильмов"
 // @Failure 400 {object} object "Неверный формат UUID"
 // @Failure 404 {object} object "Подборка или фильмы не найдены"
 // @Failure 500 {object} object "Внутренняя ошибка сервера"
 // @Router /compilations/{id}/films [get]
 func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -141,6 +143,7 @@ func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *htt
 	films, err := g.client.GetFilmsByCompilation(r.Context(), &gen.GetFilmsByCompilationRequest{
 		CompilationId: id.String(),
 		Pager:         &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		UserId:        user.ID.String(),
 	})
 	if err != nil {
 		st, _ := status.FromError(err)
@@ -155,9 +158,9 @@ func (g *CompilationHandler) GetFilmsByCompilation(w http.ResponseWriter, r *htt
 		return
 	}
 
-	response := []models.FavFilm{}
+	response := []models.CompFilm{}
 	for i := range films.Films {
-		film := models.FavFilm{
+		film := models.CompFilm{
 			ID:               uuid.FromStringOrNil(films.Films[i].Id),
 			Image:            films.Films[i].Image,
 			Title:            films.Films[i].Title,
