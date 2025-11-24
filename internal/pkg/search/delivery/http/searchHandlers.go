@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -126,12 +127,11 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	voiceRequest, err := http.NewRequest("POST", s.voiceVKURL, bytes.NewReader(voiceData))
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
-		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
 
-	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken)
+	voiceRequest.Header.Set("Authorization", "Bearer "+s.voiceToken) //fmt.Sprintf
 	voiceRequest.Header.Set("Content-Type", "audio/wav")
 
 	client := &http.Client{
@@ -140,6 +140,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 				InsecureSkipVerify: true,
 			},
 		},
+		Timeout: 30 * time.Second,
 	}
 	voiceResponse, err := client.Do(voiceRequest)
 	if err != nil {
@@ -164,7 +165,6 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var voiceResult models.VoiceResult
-
 	err = json.Unmarshal(voiceResponseData, &voiceResult)
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("failed to parse response"), http.StatusBadRequest)
@@ -174,7 +174,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 
 	if len(voiceResult.Result.Texts) == 0 {
 		log.LogHandlerError(logger, errors.New("no text given"), http.StatusBadRequest)
-		helpers.WriteError(w, http.StatusBadRequest)
+		helpers.WriteJSON(w, models.SearchResponse{})
 		return
 	}
 

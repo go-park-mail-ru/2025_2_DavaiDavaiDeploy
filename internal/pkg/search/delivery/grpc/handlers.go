@@ -2,10 +2,7 @@ package grpc
 
 import (
 	"context"
-	"errors"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/actors"
-	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/search"
 	"kinopoisk/internal/pkg/search/delivery/grpc/gen"
 
@@ -30,12 +27,7 @@ func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.Sea
 	}
 	mainPageFilms, err := g.uc.GetFilmsFromSearch(ctx, in.SearchString, filmsPager)
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
-			return nil, status.Errorf(codes.NotFound, "films not found")
-		default:
-			return nil, status.Errorf(codes.Internal, "internal server error")
-		}
+		return nil, status.Errorf(codes.Internal, "internal server error")
 	}
 
 	for i := range mainPageFilms {
@@ -57,12 +49,7 @@ func (g GrpcSearchHandler) SearchFilmsAndActors(ctx context.Context, in *gen.Sea
 	}
 	mainPageActors, err := g.uc.GetActorsFromSearch(ctx, in.SearchString, actorsPager)
 	if err != nil {
-		switch {
-		case errors.Is(err, actors.ErrorNotFound):
-			return nil, status.Errorf(codes.NotFound, "films not found")
-		default:
-			return nil, status.Errorf(codes.Internal, "internal server error")
-		}
+		return nil, status.Errorf(codes.Internal, "internal server error")
 	}
 
 	for i := range mainPageActors {
