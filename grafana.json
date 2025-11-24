@@ -46,7 +46,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -144,10 +144,10 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
-          "editorMode": "code",
+          "editorMode": "builder",
           "expr": "rate(errors_total{service=~\"$service\"}[$interval])",
           "legendFormat": "__auto",
           "range": true,
@@ -160,7 +160,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -218,7 +218,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "builder",
@@ -234,7 +234,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -292,7 +292,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -308,7 +308,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -386,7 +386,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -402,7 +402,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -480,7 +480,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -496,7 +496,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "ff4whcn697pxce"
+        "uid": "af53masjimnswd"
       },
       "fieldConfig": {
         "defaults": {
@@ -574,7 +574,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -669,7 +669,7 @@
         "text": {},
         "valueMode": "color"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -787,7 +787,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -871,7 +871,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -945,7 +945,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1029,7 +1029,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1112,7 +1112,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1188,7 +1188,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1268,7 +1268,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1348,7 +1348,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1432,7 +1432,7 @@
         "textMode": "auto",
         "wideLayout": true
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1619,7 +1619,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1835,7 +1835,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -1979,7 +1979,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -2085,7 +2085,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -2349,7 +2349,7 @@
           "sort": "desc"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -2824,7 +2824,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -3008,7 +3008,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -3129,7 +3129,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -3250,7 +3250,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -3369,7 +3369,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.2.1",
+      "pluginVersion": "12.3.0",
       "targets": [
         {
           "editorMode": "code",
@@ -16162,7 +16162,7 @@
       {
         "current": {
           "text": "prometheus",
-          "value": "ff4whcn697pxce"
+          "value": "af53masjimnswd"
         },
         "includeAll": false,
         "label": "Datasource",
@@ -16346,12 +16346,12 @@
     ]
   },
   "time": {
-    "from": "now-15m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Node Exporter Full",
+  "title": "DavaDavaiDeployGrafana",
   "uid": "rYdddlPWk",
-  "version": 51
+  "version": 10
 }
