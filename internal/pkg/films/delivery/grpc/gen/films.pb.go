@@ -459,7 +459,7 @@ type FavFilm struct {
 	Image            string                 `protobuf:"bytes,6,opt,name=image,proto3" json:"image,omitempty"`
 	ShortDescription string                 `protobuf:"bytes,7,opt,name=short_description,json=shortDescription,proto3" json:"short_description,omitempty"`
 	Rating           float64                `protobuf:"fixed64,8,opt,name=rating,proto3" json:"rating,omitempty"`
-	IsLiked          *bool                  `protobuf:"varint,9,opt,name=is_liked,json=isLiked,proto3,oneof" json:"is_liked,omitempty"`
+	IsLiked          bool                   `protobuf:"varint,9,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -551,8 +551,8 @@ func (x *FavFilm) GetRating() float64 {
 }
 
 func (x *FavFilm) GetIsLiked() bool {
-	if x != nil && x.IsLiked != nil {
-		return *x.IsLiked
+	if x != nil {
+		return x.IsLiked
 	}
 	return false
 }
@@ -3139,7 +3139,7 @@ const file_films_proto_rawDesc = "" +
 	"\x12GetFavFilmsRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\";\n" +
 	"\x13GetFavFilmsResponse\x12$\n" +
-	"\x05films\x18\x01 \x03(\v2\x0e.films.FavFilmR\x05films\"\xfd\x01\n" +
+	"\x05films\x18\x01 \x03(\v2\x0e.films.FavFilmR\x05films\"\xeb\x01\n" +
 	"\aFavFilm\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x14\n" +
@@ -3148,9 +3148,8 @@ const file_films_proto_rawDesc = "" +
 	"\bduration\x18\x05 \x01(\x05R\bduration\x12\x14\n" +
 	"\x05image\x18\x06 \x01(\tR\x05image\x12+\n" +
 	"\x11short_description\x18\a \x01(\tR\x10shortDescription\x12\x16\n" +
-	"\x06rating\x18\b \x01(\x01R\x06rating\x12\x1e\n" +
-	"\bis_liked\x18\t \x01(\bH\x00R\aisLiked\x88\x01\x01B\v\n" +
-	"\t_is_liked\"C\n" +
+	"\x06rating\x18\b \x01(\x01R\x06rating\x12\x19\n" +
+	"\bis_liked\x18\t \x01(\bR\aisLiked\"C\n" +
 	"\x0fSaveFilmRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x17\n" +
 	"\afilm_id\x18\x02 \x01(\tR\x06filmId\"E\n" +
@@ -3527,7 +3526,6 @@ func file_films_proto_init() {
 	if File_films_proto != nil {
 		return
 	}
-	file_films_proto_msgTypes[9].OneofWrappers = []any{}
 	file_films_proto_msgTypes[20].OneofWrappers = []any{}
 	file_films_proto_msgTypes[40].OneofWrappers = []any{}
 	file_films_proto_msgTypes[46].OneofWrappers = []any{}

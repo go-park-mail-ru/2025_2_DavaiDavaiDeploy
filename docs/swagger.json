@@ -1323,6 +1323,9 @@
                 "image": {
                     "type": "string"
                 },
+                "is_liked": {
+                    "type": "boolean"
+                },
                 "rating": {
                     "type": "number"
                 },
@@ -1698,6 +1701,9 @@
                     "items": {
                         "$ref": "#/definitions/models.MainPageFilm"
                     }
+                },
+                "search_string": {
+                    "type": "string"
                 }
             }
         },

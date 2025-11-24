@@ -1329,6 +1329,9 @@ const docTemplate = `{
                 "image": {
                     "type": "string"
                 },
+                "is_liked": {
+                    "type": "boolean"
+                },
                 "rating": {
                     "type": "number"
                 },
@@ -1704,6 +1707,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/models.MainPageFilm"
                     }
+                },
+                "search_string": {
+                    "type": "string"
                 }
             }
         },
