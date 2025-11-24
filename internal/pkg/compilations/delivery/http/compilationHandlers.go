@@ -23,6 +23,7 @@ func NewCompilationHandler(client gen.FilmsClient) *CompilationHandler {
 	return &CompilationHandler{client: client}
 }
 
+// GetCompilation godoc
 // @Summary Получить подборку по ID
 // @Description Возвращает информацию о конкретной подборке по её идентификатору
 // @Tags compilations
@@ -69,6 +70,7 @@ func (g *CompilationHandler) GetCompilation(w http.ResponseWriter, r *http.Reque
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// GetCompilations godoc
 // @Summary Получить список подборок
 // @Description Возвращает список всех подборок с пагинацией
 // @Tags compilations
@@ -113,6 +115,7 @@ func (g *CompilationHandler) GetCompilations(w http.ResponseWriter, r *http.Requ
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
+// GetFilmsByCompilation godoc
 // @Summary Получить фильмы из подборки
 // @Description Возвращает список фильмов, входящих в конкретную подборку, с пагинацией
 // @Tags compilations

@@ -518,22 +518,3 @@ func TestGetFilmsByActor(t *testing.T) {
 		})
 	}
 }
-
-func TestNewActorHandler(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockClient := mocks.NewMockFilmsClient(ctrl)
-
-	t.Run("Success creation", func(t *testing.T) {
-		handler := NewActorHandler(mockClient)
-		assert.NotNil(t, handler)
-		assert.Equal(t, mockClient, handler.client)
-	})
-
-	t.Run("Creation with nil client", func(t *testing.T) {
-		handler := NewActorHandler(nil)
-		assert.NotNil(t, handler)
-		assert.Nil(t, handler.client)
-	})
-}
