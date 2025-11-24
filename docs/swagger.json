@@ -112,6 +112,39 @@
                 }
             }
         },
+        "/auth/enable2fa": {
+            "post": {
+                "description": "Verify if user is authenticated and return user data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Check authentication status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "format": "int32"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/auth/logout": {
             "post": {
                 "description": "Clear authentication cookie and log out user",
@@ -227,6 +260,173 @@
                 }
             }
         },
+        "/compilations/": {
+            "get": {
+                "description": "Возвращает список всех подборок с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить список подборок",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов (по умолчанию 10)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (по умолчанию 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со списком подборок",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Compilation"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Подборки не найдены",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/compilations/{id}": {
+            "get": {
+                "description": "Возвращает информацию о конкретной подборке по её идентификатору",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить подборку по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подборки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ с данными подборки",
+                        "schema": {
+                            "$ref": "#/definitions/models.Compilation"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат UUID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Подборка не найдена",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/compilations/{id}/films": {
+            "get": {
+                "description": "Возвращает список фильмов, входящих в конкретную подборку, с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить фильмы из подборки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подборки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов (по умолчанию 10)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (по умолчанию 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со списком фильмов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат UUID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Подборка или фильмы не найдены",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/films": {
             "get": {
                 "produces": [
@@ -312,38 +512,6 @@
                     },
                     "400": {
                         "description": "Bad Request"
-                    },
-                    "404": {
-                        "description": "Not Found"
-                    },
-                    "500": {
-                        "description": "Internal Server Error"
-                    }
-                }
-            }
-        },
-        "/films/favorites": {
-            "get": {
-                "description": "Get all films saved by the current user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "films"
-                ],
-                "summary": "Get user's favorite films",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/models.FavFilm"
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized"
                     },
                     "404": {
                         "description": "Not Found"
@@ -905,6 +1073,38 @@
                 }
             }
         },
+        "/users/saved": {
+            "get": {
+                "description": "Get all films saved by the current user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Get user's favorite films",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "produces": [
@@ -1065,6 +1265,35 @@
                     "type": "string"
                 },
                 "old_password": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.Compilation": {
+            "type": "object",
+            "required": [
+                "description",
+                "icon",
+                "id",
+                "title"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
                     "type": "string"
                 }
             }
@@ -1476,8 +1705,7 @@
             "type": "object",
             "required": [
                 "login",
-                "password",
-                "qr_code"
+                "password"
             ],
             "properties": {
                 "login": {
@@ -1486,7 +1714,7 @@
                 "password": {
                     "type": "string"
                 },
-                "qr_code": {
+                "user_code": {
                     "type": "string"
                 }
             }
