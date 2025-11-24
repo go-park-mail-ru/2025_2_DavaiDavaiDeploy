@@ -222,7 +222,7 @@ func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 
 func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	if has2FA == true {
+	if has2FA {
 		logger.Error("user already enabled the 2fa")
 		return models.EnableTwoFactorResponse{}, auth.ErrorBadRequest
 	}
@@ -251,7 +251,7 @@ func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA b
 
 func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	if has2FA == false {
+	if has2FA {
 		logger.Error("user already disabled the 2fa")
 		return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
 	}
