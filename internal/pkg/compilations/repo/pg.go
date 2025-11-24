@@ -3,10 +3,12 @@ package repo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/compilations"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"strconv"
 
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/jackc/pgx/v4"
@@ -106,6 +108,8 @@ func (g *CompilationRepository) GetFilmsByCompilation(ctx context.Context, compi
 			logger.Error("failed to scan film: " + err.Error())
 			continue
 		}
+		rating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", film.Rating), 64)
+		film.Rating = rating
 		films = append(films, film)
 	}
 
