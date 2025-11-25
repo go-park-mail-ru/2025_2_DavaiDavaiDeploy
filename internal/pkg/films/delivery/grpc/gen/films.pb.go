@@ -1205,6 +1205,7 @@ type GetFilmResponse struct {
 	UserRating       *int32                 `protobuf:"varint,24,opt,name=user_rating,json=userRating,proto3,oneof" json:"user_rating,omitempty"`
 	GenreId          string                 `protobuf:"bytes,25,opt,name=genre_id,json=genreId,proto3" json:"genre_id,omitempty"`
 	IsLiked          bool                   `protobuf:"varint,26,opt,name=is_liked,json=isLiked,proto3" json:"is_liked,omitempty"`
+	IsOut            bool                   `protobuf:"varint,27,opt,name=is_out,json=isOut,proto3" json:"is_out,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -1417,6 +1418,13 @@ func (x *GetFilmResponse) GetGenreId() string {
 func (x *GetFilmResponse) GetIsLiked() bool {
 	if x != nil {
 		return x.IsLiked
+	}
+	return false
+}
+
+func (x *GetFilmResponse) GetIsOut() bool {
+	if x != nil {
+		return x.IsOut
 	}
 	return false
 }
@@ -3296,7 +3304,7 @@ const file_films_proto_rawDesc = "" +
 	"\x05films\x18\x01 \x03(\v2\x15.films.FilmInCalendarR\x05films\"B\n" +
 	"\x0eGetFilmRequest\x12\x17\n" +
 	"\afilm_id\x18\x01 \x01(\tR\x06filmId\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"\x82\a\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\x99\a\n" +
 	"\x0fGetFilmResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12*\n" +
@@ -3327,7 +3335,8 @@ const file_films_proto_rawDesc = "" +
 	"\vuser_rating\x18\x18 \x01(\x05H\x06R\n" +
 	"userRating\x88\x01\x01\x12\x19\n" +
 	"\bgenre_id\x18\x19 \x01(\tR\agenreId\x12\x19\n" +
-	"\bis_liked\x18\x1a \x01(\bR\aisLikedB\x11\n" +
+	"\bis_liked\x18\x1a \x01(\bR\aisLiked\x12\x15\n" +
+	"\x06is_out\x18\x1b \x01(\bR\x05isOutB\x11\n" +
 	"\x0f_original_titleB\x0e\n" +
 	"\f_trailer_urlB\t\n" +
 	"\a_sloganB\t\n" +

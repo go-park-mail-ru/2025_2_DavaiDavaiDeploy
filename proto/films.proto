@@ -167,6 +167,7 @@ message GetFilmResponse {
   optional int32 user_rating = 24;
   string genre_id = 25;
   bool is_liked = 26;
+  bool is_out = 27;
 }
 
 message GetFilmFeedbacksRequest {

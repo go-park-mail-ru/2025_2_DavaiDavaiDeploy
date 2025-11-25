@@ -33,6 +33,7 @@ type FilmPage struct {
 	UserRating       *int      `json:"user_rating,omitempty"`
 	GenreID          uuid.UUID `json:"genre_id" binding:"required"`
 	IsLiked          bool      `json:"is_liked" binding:"required"`
+	IsOut            bool      `json:"is_out" binding:"required"`
 }
 
 func (fp *FilmPage) Sanitize() {
