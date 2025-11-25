@@ -172,7 +172,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 	err = uc.VerifyOTPCode(ctx, neededUser.Login, secretCode, *req.Code)
 	if err != nil {
 		logger.Error("OTP authentication error: " + err.Error())
-		return models.User{}, "", auth.ErrorBadRequest
+		return models.User{}, "", auth.ErrorUnauthorized
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, req.Login)
