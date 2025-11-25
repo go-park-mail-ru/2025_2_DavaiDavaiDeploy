@@ -67,18 +67,18 @@ func (mr *MockCompilationsUsecaseMockRecorder) GetCompilations(ctx, pager interf
 }
 
 // GetFilmsByCompilation mocks base method.
-func (m *MockCompilationsUsecase) GetFilmsByCompilation(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FavFilm, error) {
+func (m *MockCompilationsUsecase) GetFilmsByCompilation(ctx context.Context, id, userID uuid.UUID, pager models.Pager) ([]models.CompFilm, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFilmsByCompilation", ctx, id, pager)
-	ret0, _ := ret[0].([]models.FavFilm)
+	ret := m.ctrl.Call(m, "GetFilmsByCompilation", ctx, id, userID, pager)
+	ret0, _ := ret[0].([]models.CompFilm)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFilmsByCompilation indicates an expected call of GetFilmsByCompilation.
-func (mr *MockCompilationsUsecaseMockRecorder) GetFilmsByCompilation(ctx, id, pager interface{}) *gomock.Call {
+func (mr *MockCompilationsUsecaseMockRecorder) GetFilmsByCompilation(ctx, id, userID, pager interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilmsByCompilation", reflect.TypeOf((*MockCompilationsUsecase)(nil).GetFilmsByCompilation), ctx, id, pager)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFilmsByCompilation", reflect.TypeOf((*MockCompilationsUsecase)(nil).GetFilmsByCompilation), ctx, id, userID, pager)
 }
 
 // MockCompilationsRepo is a mock of CompilationsRepo interface.
@@ -135,10 +135,10 @@ func (mr *MockCompilationsRepoMockRecorder) GetCompilationsWithPagination(ctx, l
 }
 
 // GetFilmsByCompilation mocks base method.
-func (m *MockCompilationsRepo) GetFilmsByCompilation(ctx context.Context, compilationID uuid.UUID, limit, offset int) ([]models.FavFilm, error) {
+func (m *MockCompilationsRepo) GetFilmsByCompilation(ctx context.Context, compilationID uuid.UUID, limit, offset int) ([]models.CompFilm, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFilmsByCompilation", ctx, compilationID, limit, offset)
-	ret0, _ := ret[0].([]models.FavFilm)
+	ret0, _ := ret[0].([]models.CompFilm)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

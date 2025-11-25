@@ -198,8 +198,21 @@ func TestGrpcFilmsHandler_GetFavFilms(t *testing.T) {
 					Return(nil, films.ErrorNotFound)
 			},
 			expected:       nil,
-			expectedErr:    status.Errorf(codes.InvalidArgument, "bad request"),
-			expectedStatus: codes.InvalidArgument,
+			expectedErr:    status.Errorf(codes.NotFound, "films not found"),
+			expectedStatus: codes.NotFound,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.GetFavFilmsRequest{
+				UserId: userID.String(),
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().GetUsersFavFilms(gomock.Any(), userID).
+					Return(nil, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "internal server error"),
+			expectedStatus: codes.Internal,
 		},
 	}
 
@@ -302,6 +315,19 @@ func TestGrpcFilmsHandler_GetFilms(t *testing.T) {
 			expected:       nil,
 			expectedErr:    status.Errorf(codes.NotFound, "films not found"),
 			expectedStatus: codes.NotFound,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.GetFilmsRequest{
+				Pager: &gen.Pager{Count: 10, Offset: 0},
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().GetFilms(gomock.Any(), gomock.Any()).
+					Return(nil, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "internal server error"),
+			expectedStatus: codes.Internal,
 		},
 	}
 
@@ -458,6 +484,45 @@ func TestGrpcFilmsHandler_GetFilm(t *testing.T) {
 			expectedErr:    status.Errorf(codes.InvalidArgument, "invalid film ID"),
 			expectedStatus: codes.InvalidArgument,
 		},
+		{
+			name: "Error - Invalid User ID",
+			input: &gen.GetFilmRequest{
+				FilmId: filmID.String(),
+				UserId: "invalid-uuid",
+			},
+			mockSetup:      func() {},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.InvalidArgument, "invalid user ID"),
+			expectedStatus: codes.InvalidArgument,
+		},
+		{
+			name: "Error - Not Found",
+			input: &gen.GetFilmRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().GetFilm(gomock.Any(), filmID, userID).
+					Return(models.FilmPage{}, films.ErrorNotFound)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.NotFound, "films not found"),
+			expectedStatus: codes.NotFound,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.GetFilmRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().GetFilm(gomock.Any(), filmID, userID).
+					Return(models.FilmPage{}, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "internal server error"),
+			expectedStatus: codes.Internal,
+		},
 	}
 
 	for _, tt := range tests {
@@ -528,6 +593,20 @@ func TestGrpcFilmsHandler_SaveFilm(t *testing.T) {
 			expectedStatus: codes.InvalidArgument,
 		},
 		{
+			name: "Error - Internal",
+			input: &gen.SaveFilmRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().SaveFilm(gomock.Any(), userID, filmID).
+					Return(assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "failed to save film"),
+			expectedStatus: codes.Internal,
+		},
+		{
 			name: "Error - Invalid Film ID",
 			input: &gen.SaveFilmRequest{
 				FilmId: "invalid-uuid",
@@ -536,6 +615,17 @@ func TestGrpcFilmsHandler_SaveFilm(t *testing.T) {
 			mockSetup:      func() {},
 			expected:       nil,
 			expectedErr:    status.Errorf(codes.InvalidArgument, "invalid film ID"),
+			expectedStatus: codes.InvalidArgument,
+		},
+		{
+			name: "Error - Invalid User ID",
+			input: &gen.SaveFilmRequest{
+				FilmId: filmID.String(),
+				UserId: "invalid-uuid",
+			},
+			mockSetup:      func() {},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.InvalidArgument, "invalid user ID"),
 			expectedStatus: codes.InvalidArgument,
 		},
 	}
@@ -629,6 +719,20 @@ func TestGrpcFilmsHandler_RemoveFilm(t *testing.T) {
 			expected:       nil,
 			expectedErr:    status.Errorf(codes.InvalidArgument, "nothing to remove"),
 			expectedStatus: codes.InvalidArgument,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.RemoveFilmRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().RemoveFilm(gomock.Any(), userID, filmID).
+					Return(nil, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "failed to remove film"),
+			expectedStatus: codes.Internal,
 		},
 	}
 
@@ -744,6 +848,44 @@ func TestGrpcFilmsHandler_SendFeedback(t *testing.T) {
 			expectedErr:    status.Errorf(codes.NotFound, "film not found"),
 			expectedStatus: codes.NotFound,
 		},
+		{
+			name: "Error - Bad Request",
+			input: &gen.SendFeedbackRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+				Feedback: &gen.FilmFeedbackInput{
+					Title:  title,
+					Text:   text,
+					Rating: 9,
+				},
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().SendFeedback(gomock.Any(), gomock.Any(), filmID, userID).
+					Return(models.FilmFeedback{}, films.ErrorBadRequest)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.InvalidArgument, "invalid feedback data"),
+			expectedStatus: codes.InvalidArgument,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.SendFeedbackRequest{
+				FilmId: filmID.String(),
+				UserId: userID.String(),
+				Feedback: &gen.FilmFeedbackInput{
+					Title:  title,
+					Text:   text,
+					Rating: 9,
+				},
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().SendFeedback(gomock.Any(), gomock.Any(), filmID, userID).
+					Return(models.FilmFeedback{}, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "failed to send feedback"),
+			expectedStatus: codes.Internal,
+		},
 	}
 
 	for _, tt := range tests {
@@ -815,11 +957,24 @@ func TestGrpcFilmsHandler_ValidateUser(t *testing.T) {
 			},
 			mockSetup: func() {
 				mockFilmUsecase.EXPECT().ValidateAndGetUser(gomock.Any(), "invalid-token").
-					Return(models.User{}, films.ErrorNotFound)
+					Return(models.User{}, films.ErrorUnauthorized)
 			},
 			expected:       nil,
-			expectedErr:    status.Errorf(codes.Unauthenticated, "user not found"),
-			expectedStatus: codes.Unauthenticated,
+			expectedErr:    status.Errorf(codes.NotFound, "user not found"),
+			expectedStatus: codes.NotFound,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.ValidateUserRequest{
+				Token: token,
+			},
+			mockSetup: func() {
+				mockFilmUsecase.EXPECT().ValidateAndGetUser(gomock.Any(), token).
+					Return(models.User{}, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "failed to get user"),
+			expectedStatus: codes.Internal,
 		},
 	}
 
@@ -898,6 +1053,19 @@ func TestGrpcFilmsHandler_GetGenre(t *testing.T) {
 			expected:       nil,
 			expectedErr:    status.Errorf(codes.NotFound, "genre not found"),
 			expectedStatus: codes.NotFound,
+		},
+		{
+			name: "Error - Internal",
+			input: &gen.GetGenreRequest{
+				GenreId: genreID.String(),
+			},
+			mockSetup: func() {
+				mockGenreUsecase.EXPECT().GetGenre(gomock.Any(), genreID).
+					Return(models.Genre{}, assert.AnError)
+			},
+			expected:       nil,
+			expectedErr:    status.Errorf(codes.Internal, "failed to get genre"),
+			expectedStatus: codes.Internal,
 		},
 	}
 

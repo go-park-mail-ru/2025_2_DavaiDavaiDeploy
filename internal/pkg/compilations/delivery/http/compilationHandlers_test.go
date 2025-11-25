@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/films/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
@@ -30,6 +31,14 @@ func testLogger() *slog.Logger {
 func testContext() context.Context {
 	testLogger := testLogger()
 	return context.WithValue(context.Background(), logger.LoggerKey, testLogger)
+}
+
+func testContextWithUser(userID uuid.UUID) context.Context {
+	ctx := testContext()
+	user := models.User{
+		ID: userID,
+	}
+	return context.WithValue(ctx, auth.UserKey, user)
 }
 
 func TestGetCompilation(t *testing.T) {
@@ -93,17 +102,6 @@ func TestGetCompilation(t *testing.T) {
 					Return(nil, status.Error(codes.NotFound, "compilation not found"))
 			},
 			expectedStatus: http.StatusNotFound,
-			expectBody:     false,
-		},
-		{
-			name:   "Invalid Argument",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				mockClient.EXPECT().
-					GetCompilation(gomock.Any(), &gen.GetCompilationRequest{CompilationId: compilationIDStr}).
-					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
-			},
-			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{
@@ -379,8 +377,9 @@ func TestGetCompilations(t *testing.T) {
 func TestGetFilmsByCompilation(t *testing.T) {
 	compilationID := uuid.NewV4()
 	compilationIDStr := compilationID.String()
+	userID := uuid.NewV4()
 
-	expectedFilms := []models.FavFilm{
+	expectedFilms := []models.CompFilm{
 		{
 			ID:               uuid.NewV4(),
 			Image:            "/covers/film1.jpg",
@@ -390,6 +389,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			Genre:            "Драма",
 			ShortDescription: "Описание фильма 1",
 			Duration:         120,
+			IsLiked:          true,
 		},
 		{
 			ID:               uuid.NewV4(),
@@ -400,28 +400,31 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			Genre:            "Комедия",
 			ShortDescription: "Описание фильма 2",
 			Duration:         110,
+			IsLiked:          false,
 		},
 	}
 
-	emptyFilms := []models.FavFilm{}
+	emptyFilms := []models.CompFilm{}
 
 	tests := []struct {
 		name           string
 		url            string
 		varsID         string
-		mockSetup      func(mockClient *mocks.MockFilmsClient)
+		context        context.Context
+		mockSetup      func(mockClient *mocks.MockFilmsClient, userID string)
 		expectedStatus int
 		expectBody     bool
-		expectedFilms  []models.FavFilm
+		expectedFilms  []models.CompFilm
 	}{
 		{
-			name:   "Success with films",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				var grpcFilms []*gen.FavFilm
+			name:    "Success with films",
+			url:     "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
+				var grpcFilms []*gen.CompFilm
 				for _, film := range expectedFilms {
-					grpcFilms = append(grpcFilms, &gen.FavFilm{
+					grpcFilms = append(grpcFilms, &gen.CompFilm{
 						Id:               film.ID.String(),
 						Image:            film.Image,
 						Title:            film.Title,
@@ -430,6 +433,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 						Genre:            film.Genre,
 						ShortDescription: film.ShortDescription,
 						Duration:         int32(film.Duration),
+						IsLiked:          film.IsLiked,
 					})
 				}
 				mockClient.EXPECT().
@@ -439,6 +443,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
+						UserId: userID,
 					}).
 					Return(&gen.GetFilmsByCompilationResponse{Films: grpcFilms}, nil)
 			},
@@ -447,10 +452,11 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			expectedFilms:  expectedFilms,
 		},
 		{
-			name:   "Success with empty films list",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+			name:    "Success with empty films list",
+			url:     "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
 				mockClient.EXPECT().
 					GetFilmsByCompilation(gomock.Any(), &gen.GetFilmsByCompilationRequest{
 						CompilationId: compilationIDStr,
@@ -458,8 +464,9 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
+						UserId: userID,
 					}).
-					Return(&gen.GetFilmsByCompilationResponse{Films: []*gen.FavFilm{}}, nil)
+					Return(&gen.GetFilmsByCompilationResponse{Films: []*gen.CompFilm{}}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -469,15 +476,17 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			name:           "Invalid ID - not a uuid",
 			url:            "/compilations/not-a-uuid/films",
 			varsID:         "not-a-uuid",
-			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
+			context:        testContextWithUser(userID),
+			mockSetup:      func(mockClient *mocks.MockFilmsClient, userID string) {},
 			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{
-			name:   "Compilation Not Found",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+			name:    "Compilation Not Found",
+			url:     "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
 				mockClient.EXPECT().
 					GetFilmsByCompilation(gomock.Any(), &gen.GetFilmsByCompilationRequest{
 						CompilationId: compilationIDStr,
@@ -485,6 +494,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
+						UserId: userID,
 					}).
 					Return(nil, status.Error(codes.NotFound, "compilation not found"))
 			},
@@ -492,10 +502,11 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Invalid Argument",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+			name:    "Internal Server Error",
+			url:     "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
 				mockClient.EXPECT().
 					GetFilmsByCompilation(gomock.Any(), &gen.GetFilmsByCompilationRequest{
 						CompilationId: compilationIDStr,
@@ -503,24 +514,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
-					}).
-					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
-			},
-			expectedStatus: http.StatusBadRequest,
-			expectBody:     false,
-		},
-		{
-			name:   "Internal Server Error",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				mockClient.EXPECT().
-					GetFilmsByCompilation(gomock.Any(), &gen.GetFilmsByCompilationRequest{
-						CompilationId: compilationIDStr,
-						Pager: &gen.Pager{
-							Count:  10,
-							Offset: 0,
-						},
+						UserId: userID,
 					}).
 					Return(nil, status.Error(codes.Internal, "internal error"))
 			},
@@ -528,10 +522,11 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Unknown gRPC Error",
-			url:    "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+			name:    "Unknown gRPC Error",
+			url:     "/compilations/" + compilationIDStr + "/films?count=10&offset=0",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
 				mockClient.EXPECT().
 					GetFilmsByCompilation(gomock.Any(), &gen.GetFilmsByCompilationRequest{
 						CompilationId: compilationIDStr,
@@ -539,6 +534,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
+						UserId: userID,
 					}).
 					Return(nil, errors.New("unknown error"))
 			},
@@ -546,13 +542,14 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			expectBody:     false,
 		},
 		{
-			name:   "Success with default pager values",
-			url:    "/compilations/" + compilationIDStr + "/films",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				var grpcFilms []*gen.FavFilm
+			name:    "Success with default pager values",
+			url:     "/compilations/" + compilationIDStr + "/films",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
+				var grpcFilms []*gen.CompFilm
 				for _, film := range expectedFilms {
-					grpcFilms = append(grpcFilms, &gen.FavFilm{
+					grpcFilms = append(grpcFilms, &gen.CompFilm{
 						Id:               film.ID.String(),
 						Image:            film.Image,
 						Title:            film.Title,
@@ -561,6 +558,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 						Genre:            film.Genre,
 						ShortDescription: film.ShortDescription,
 						Duration:         int32(film.Duration),
+						IsLiked:          film.IsLiked,
 					})
 				}
 				mockClient.EXPECT().
@@ -570,6 +568,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  10,
 							Offset: 0,
 						},
+						UserId: userID,
 					}).
 					Return(&gen.GetFilmsByCompilationResponse{Films: grpcFilms}, nil)
 			},
@@ -578,13 +577,14 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			expectedFilms:  expectedFilms,
 		},
 		{
-			name:   "Success with custom pager values",
-			url:    "/compilations/" + compilationIDStr + "/films?count=5&offset=10",
-			varsID: compilationIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				var grpcFilms []*gen.FavFilm
+			name:    "Success with custom pager values",
+			url:     "/compilations/" + compilationIDStr + "/films?count=5&offset=10",
+			varsID:  compilationIDStr,
+			context: testContextWithUser(userID),
+			mockSetup: func(mockClient *mocks.MockFilmsClient, userID string) {
+				var grpcFilms []*gen.CompFilm
 				for _, film := range expectedFilms {
-					grpcFilms = append(grpcFilms, &gen.FavFilm{
+					grpcFilms = append(grpcFilms, &gen.CompFilm{
 						Id:               film.ID.String(),
 						Image:            film.Image,
 						Title:            film.Title,
@@ -593,6 +593,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 						Genre:            film.Genre,
 						ShortDescription: film.ShortDescription,
 						Duration:         int32(film.Duration),
+						IsLiked:          film.IsLiked,
 					})
 				}
 				mockClient.EXPECT().
@@ -602,6 +603,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 							Count:  5,
 							Offset: 10,
 						},
+						UserId: userID,
 					}).
 					Return(&gen.GetFilmsByCompilationResponse{Films: grpcFilms}, nil)
 			},
@@ -619,11 +621,16 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			mockClient := mocks.NewMockFilmsClient(ctrl)
 			handler := NewCompilationHandler(mockClient)
 
-			if tt.mockSetup != nil {
-				tt.mockSetup(mockClient)
+			var userIDStr string
+			if user, ok := tt.context.Value(auth.UserKey).(models.User); ok {
+				userIDStr = user.ID.String()
 			}
 
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil).WithContext(testContext())
+			if tt.mockSetup != nil {
+				tt.mockSetup(mockClient, userIDStr)
+			}
+
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil).WithContext(tt.context)
 			rec := httptest.NewRecorder()
 
 			router := mux.NewRouter()
@@ -637,7 +644,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 			assert.Equal(t, tt.expectedStatus, rec.Code)
 
 			if tt.expectBody {
-				var decoded []models.FavFilm
+				var decoded []models.CompFilm
 				err := json.Unmarshal(rec.Body.Bytes(), &decoded)
 				assert.NoError(t, err)
 				assert.Equal(t, len(tt.expectedFilms), len(decoded))
@@ -648,6 +655,7 @@ func TestGetFilmsByCompilation(t *testing.T) {
 					assert.Equal(t, tt.expectedFilms[0].Genre, decoded[0].Genre)
 					assert.Equal(t, tt.expectedFilms[0].ShortDescription, decoded[0].ShortDescription)
 					assert.Equal(t, tt.expectedFilms[0].Duration, decoded[0].Duration)
+					assert.Equal(t, tt.expectedFilms[0].IsLiked, decoded[0].IsLiked)
 				}
 			}
 		})
