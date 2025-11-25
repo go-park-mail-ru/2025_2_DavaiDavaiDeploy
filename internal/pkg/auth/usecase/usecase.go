@@ -128,7 +128,7 @@ func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode stri
 	isValid, err := otpConfig.Authenticate(userCode)
 	if err != nil || !isValid {
 		logger.Error("OTP authentication error")
-		return auth.ErrorBadRequest
+		return auth.ErrorUnauthorized
 	}
 
 	logger.Info("OTP code verified successfully", slog.String("login", login))
