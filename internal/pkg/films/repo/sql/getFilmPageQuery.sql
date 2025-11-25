@@ -6,7 +6,11 @@ SELECT
     g.title as genre, 
     g.id as genre_id,  
     c.name as country,
-    COUNT(ff.id) as number_of_ratings
+    COUNT(ff.id) as number_of_ratings,
+    CASE 
+        WHEN f.release_date > CURRENT_DATE THEN false
+        ELSE true
+    END as is_out
 FROM film f
 JOIN genre g ON f.genre_id = g.id
 JOIN country c ON f.country_id = c.id

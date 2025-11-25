@@ -168,7 +168,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
 		&result.Slogan, &result.Duration, &result.Image1, &result.Image2, &result.Image3,
-		&result.Genre, &result.GenreID, &result.Country, &result.NumberOfRatings,
+		&result.Genre, &result.GenreID, &result.Country, &result.NumberOfRatings, &result.IsOut,
 	)
 
 	if err != nil {
