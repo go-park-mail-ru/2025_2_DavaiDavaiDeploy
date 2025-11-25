@@ -9,7 +9,7 @@ import (
 	gen "kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	reflect "reflect"
 
-	"go.uber.org/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	grpc "google.golang.org/grpc"
 )
 
