@@ -23,6 +23,8 @@ profile.cov
 # Go workspace file
 go.work
 go.work.sum
+*.tar.gz
+go*.linux-amd64.tar.gz
 
 # env file
 .env

@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS actor (
     zodiac_sign text,
     birth_place text,
     marital_status text,
+	tsvector_column tsvector,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT actor_birth_date_check CHECK ((birth_date <= CURRENT_DATE)),
@@ -62,8 +63,10 @@ CREATE TABLE IF NOT EXISTS film (
     image1 text,
     image2 text,
     image3 text,
+    release_date DATE,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+	tsvector_column tsvector,
     CONSTRAINT film_age_category_check CHECK (((age_category IS NULL) OR ((length(age_category) > 0) AND (length(age_category) <= 5)))),
     CONSTRAINT film_budget_check CHECK ((budget >= 0)),
     CONSTRAINT film_cover_check CHECK (((cover IS NULL) OR ((length(cover) > 0) AND (length(cover) <= 100)))),
@@ -79,8 +82,13 @@ CREATE TABLE IF NOT EXISTS film (
     CONSTRAINT film_title_check CHECK (((length(title) > 0) AND (length(title) <= 100))),
     CONSTRAINT film_trailer_url_check CHECK (((trailer_url IS NULL) OR ((length(trailer_url) > 0) AND (length(trailer_url) <= 200)))),
     CONSTRAINT film_worldwide_fees_check CHECK ((worldwide_fees >= 0)),
-    CONSTRAINT film_year_check CHECK (((year >= 1895) AND ((year)::numeric <= (EXTRACT(year FROM CURRENT_DATE) + (5)::numeric))))
+    CONSTRAINT film_year_check CHECK (((year >= 1895) AND ((year)::numeric <= (EXTRACT(year FROM CURRENT_DATE) + (5)::numeric)))),
+    CONSTRAINT film_release_date_check CHECK (
+        (release_date IS NULL) OR 
+        (release_date >= '1895-01-01'::DATE AND release_date <= (CURRENT_DATE + INTERVAL '5 years'))
+    )
 );
+
 
 CREATE TABLE IF NOT EXISTS film_feedback (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -112,6 +120,8 @@ CREATE TABLE IF NOT EXISTS user_table (
     login text NOT NULL,
     password_hash bytea NOT NULL,
     avatar text DEFAULT 'avatars/default.png',
+    has_2fa boolean DEFAULT false, 
+    secret_code text DEFAULT NULL,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT user_table_login_check CHECK (((length(login) >= 6) AND (length(login) <= 20))),
@@ -201,3 +211,134 @@ ALTER TABLE ONLY film_feedback
 
 ALTER TABLE ONLY film
     ADD CONSTRAINT film_genre_fk FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE RESTRICT;
+
+
+CREATE TABLE IF NOT EXISTS fav_films (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    user_id uuid NOT NULL REFERENCES user_table(id) ON DELETE CASCADE,
+    film_id uuid NOT NULL REFERENCES film(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fav_films_unique UNIQUE (user_id, film_id)
+);
+
+CREATE TRIGGER set_fav_films_timestamps 
+    BEFORE INSERT OR UPDATE ON fav_films
+    FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+
+
+CREATE TEXT SEARCH CONFIGURATION ru (COPY = russian);
+CREATE TEXT SEARCH CONFIGURATION en (COPY = english);
+
+CREATE TEXT SEARCH DICTIONARY russian_ispell (
+    TEMPLATE = ispell,
+    DictFile = russian,
+    AffFile = russian,
+    StopWords = russian
+);
+
+CREATE TEXT SEARCH DICTIONARY english_ispell (
+    TEMPLATE = ispell,
+    DictFile = english,
+    AffFile = english,
+    StopWords = english
+);
+
+ALTER TEXT SEARCH CONFIGURATION ru
+ALTER MAPPING FOR hword, hword_part, word
+WITH russian_ispell, russian_stem;
+
+ALTER TEXT SEARCH CONFIGURATION en
+ALTER MAPPING FOR hword, hword_part, word
+WITH english_ispell, english_stem;
+
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE OR REPLACE FUNCTION make_film_tsvector(title TEXT, description TEXT, short_description TEXT, original_title TEXT)
+RETURNS tsvector AS
+$$
+BEGIN
+    RETURN (
+        setweight(to_tsvector('ru', coalesce(title, '')), 'A') ||
+        setweight(to_tsvector('en', coalesce(original_title, '')), 'A') ||
+        setweight(to_tsvector('ru', coalesce(description, '')), 'B') ||
+		setweight(to_tsvector('ru', coalesce(short_description, '')), 'C')
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION make_actor_tsvector(russian_name TEXT, original_name TEXT)
+RETURNS tsvector AS
+$$
+BEGIN
+    RETURN (
+        setweight(to_tsvector('ru', coalesce(russian_name, '')), 'A') ||
+        setweight(to_tsvector('en', coalesce(original_name, '')), 'A')
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+UPDATE film SET tsvector_column = make_film_tsvector(title, description, short_description, original_title);
+UPDATE actor SET tsvector_column = make_actor_tsvector(russian_name, original_name);
+
+CREATE OR REPLACE FUNCTION update_film_tsvector() RETURNS trigger AS $$ 
+BEGIN
+    NEW.tsvector_column := make_film_tsvector(NEW.title, NEW.description, NEW.short_description, NEW.original_title);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_update_film_tsv ON film;
+CREATE TRIGGER trg_update_film_tsv
+BEFORE INSERT OR UPDATE ON film
+FOR EACH ROW EXECUTE FUNCTION update_film_tsvector();
+
+
+CREATE OR REPLACE FUNCTION update_actor_tsvector() RETURNS trigger AS $$ 
+BEGIN
+    NEW.tsvector_column := make_actor_tsvector(NEW.russian_name, NEW.original_name);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+DROP TRIGGER IF EXISTS trg_update_actor_tsv ON actor;
+CREATE TRIGGER trg_update_actor_tsv
+BEFORE INSERT OR UPDATE ON actor
+FOR EACH ROW EXECUTE FUNCTION update_actor_tsvector();
+
+CREATE INDEX IF NOT EXISTS idx_film_tsv ON film USING GIN (tsvector_column);
+CREATE INDEX IF NOT EXISTS idx_actor_tsv ON actor USING GIN (tsvector_column);
+
+CREATE INDEX IF NOT EXISTS idx_actor_russian_name_trgm ON actor USING GIN (russian_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_actor_original_name_trgm ON actor USING GIN (original_name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_title_trgm ON film USING GIN (title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_original_title_trgm ON film USING GIN (original_title gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_description_trgm ON film USING GIN (description gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_film_short_description_trgm ON film USING GIN (short_description gin_trgm_ops);
+
+
+CREATE TABLE IF NOT EXISTS compilation (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    title text NOT NULL,
+    description text,
+    icon text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT compilation_description_check CHECK (((description IS NULL) OR ((length(description) > 0) AND (length(description) <= 500)))),
+    CONSTRAINT compilation_icon_check CHECK (((icon IS NULL) OR ((length(icon) > 0) AND (length(icon) <= 100)))),
+    CONSTRAINT compilation_title_check CHECK (((length(title) > 0) AND (length(title) <= 40)))
+);
+
+CREATE TABLE IF NOT EXISTS film_in_compilation (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    film_id uuid NOT NULL REFERENCES film(id) ON DELETE CASCADE,
+    compilation_id uuid NOT NULL REFERENCES compilation(id) ON DELETE CASCADE,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT film_in_compilation_unique UNIQUE (film_id, compilation_id)
+);
+
+CREATE TRIGGER set_film_in_compilation_timestamps 
+    BEFORE INSERT OR UPDATE ON film_in_compilation
+    FOR EACH ROW EXECUTE FUNCTION set_timestamps();

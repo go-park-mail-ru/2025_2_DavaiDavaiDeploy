@@ -15,6 +15,7 @@ type User struct {
 	Avatar       string    `json:"avatar" binding:"required"`
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
+	Has2FA       bool      `json:"has_2fa" binding:"required"`
 }
 
 func (u *User) Sanitize() {

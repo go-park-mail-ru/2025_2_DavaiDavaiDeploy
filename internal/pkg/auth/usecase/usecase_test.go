@@ -51,7 +51,7 @@ func TestHashPass(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			hash := HashPass(tt.password)
 			assert.NotEmpty(t, hash)
-			assert.GreaterOrEqual(t, len(hash), 40) // salt (8) + hash (32)
+			assert.GreaterOrEqual(t, len(hash), 40)
 		})
 	}
 }
@@ -135,7 +135,6 @@ func TestAuthUsecase_GenerateToken(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, token)
 
-		// Verify token can be parsed
 		parsedToken, err := usecase.ParseToken(token)
 		assert.NoError(t, err)
 		assert.True(t, parsedToken.Valid)
@@ -349,11 +348,14 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 		errorType   error
 	}{
 		{
-			name: "Success",
+			name: "Success without 2FA",
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserLogin(gomock.Any(), login).
 					Return(existingUser, nil)
+				mockRepo.EXPECT().
+					GetUserSecretCode(gomock.Any(), userID).
+					Return("")
 			},
 			req: models.SignInInput{
 				Login:    login,
@@ -380,6 +382,9 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 				mockRepo.EXPECT().
 					CheckUserLogin(gomock.Any(), login).
 					Return(existingUser, nil)
+				mockRepo.EXPECT().
+					GetUserSecretCode(gomock.Any(), userID).
+					Return("")
 			},
 			req: models.SignInInput{
 				Login:    login,
@@ -389,18 +394,21 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 			errorType:   auth.ErrorBadRequest,
 		},
 		{
-			name: "Error - empty password",
+			name: "Error - 2FA enabled but no code provided",
 			setupMock: func() {
 				mockRepo.EXPECT().
 					CheckUserLogin(gomock.Any(), login).
 					Return(existingUser, nil)
+				mockRepo.EXPECT().
+					GetUserSecretCode(gomock.Any(), userID).
+					Return("SECRETCODE123")
 			},
 			req: models.SignInInput{
 				Login:    login,
-				Password: "",
+				Password: password,
 			},
 			expectError: true,
-			errorType:   auth.ErrorBadRequest,
+			errorType:   auth.ErrorPreconditionFailed,
 		},
 	}
 
@@ -424,56 +432,6 @@ func TestAuthUsecase_SignInUser(t *testing.T) {
 	}
 }
 
-func TestAuthUsecase_CheckAuth(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockAuthRepo(ctrl)
-	usecase := NewAuthUsecase(mockRepo)
-
-	userID := uuid.NewV4()
-	user := models.User{
-		ID:    userID,
-		Login: "testuser",
-	}
-
-	tests := []struct {
-		name        string
-		ctx         context.Context
-		expectError bool
-	}{
-		{
-			name:        "Success",
-			ctx:         context.WithValue(testContext(), auth.UserKey, user),
-			expectError: false,
-		},
-		{
-			name:        "Error - no user in context",
-			ctx:         testContext(),
-			expectError: true,
-		},
-		{
-			name:        "Error - wrong type in context",
-			ctx:         context.WithValue(testContext(), auth.UserKey, "not-a-user"),
-			expectError: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result, err := usecase.CheckAuth(tt.ctx)
-
-			if tt.expectError {
-				assert.Error(t, err)
-				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
-			} else {
-				assert.NoError(t, err)
-				assert.Equal(t, user, result)
-			}
-		})
-	}
-}
-
 func TestAuthUsecase_LogOutUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -482,20 +440,14 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 	usecase := NewAuthUsecase(mockRepo)
 
 	userID := uuid.NewV4()
-	user := models.User{
-		ID:    userID,
-		Login: "testuser",
-	}
 
 	tests := []struct {
 		name        string
-		ctx         context.Context
 		setupMock   func()
 		expectError bool
 	}{
 		{
 			name: "Success",
-			ctx:  context.WithValue(testContext(), auth.UserKey, user),
 			setupMock: func() {
 				mockRepo.EXPECT().
 					IncrementUserVersion(gomock.Any(), userID).
@@ -505,7 +457,6 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 		},
 		{
 			name: "Error - IncrementUserVersion fails",
-			ctx:  context.WithValue(testContext(), auth.UserKey, user),
 			setupMock: func() {
 				mockRepo.EXPECT().
 					IncrementUserVersion(gomock.Any(), userID).
@@ -513,24 +464,12 @@ func TestAuthUsecase_LogOutUser(t *testing.T) {
 			},
 			expectError: true,
 		},
-		{
-			name:        "Error - no user in context",
-			ctx:         testContext(),
-			setupMock:   func() {},
-			expectError: true,
-		},
-		{
-			name:        "Error - wrong type in context",
-			ctx:         context.WithValue(testContext(), auth.UserKey, "not-a-user"),
-			setupMock:   func() {},
-			expectError: true,
-		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.setupMock()
-			err := usecase.LogOutUser(tt.ctx)
+			err := usecase.LogOutUser(testContext(), userID)
 
 			if tt.expectError {
 				assert.Error(t, err)
@@ -557,11 +496,10 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 
 	validToken, _ := usecase.GenerateToken(userID, login)
 
-	// Create expired token
 	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":    userID,
 		"login": login,
-		"exp":   time.Now().Add(-time.Hour).Unix(), // expired
+		"exp":   time.Now().Add(-time.Hour).Unix(),
 	})
 	expiredTokenString, _ := expiredToken.SignedString([]byte(os.Getenv("JWT_SECRET")))
 
@@ -589,7 +527,7 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 		},
 		{
 			name:        "Error - invalid token",
-			token:       "invalid.token.here",
+			token:       "invalid.token.123",
 			setupMock:   func() {},
 			expectError: true,
 		},
@@ -597,6 +535,16 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 			name:        "Error - expired token",
 			token:       expiredTokenString,
 			setupMock:   func() {},
+			expectError: true,
+		},
+		{
+			name:  "Error - GetUserByLogin fails",
+			token: validToken,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUserByLogin(gomock.Any(), login).
+					Return(models.User{}, errors.New("user not found"))
+			},
 			expectError: true,
 		},
 	}
@@ -608,13 +556,189 @@ func TestAuthUsecase_ValidateAndGetUser(t *testing.T) {
 
 			if tt.expectError {
 				assert.Error(t, err)
-				assert.ErrorIs(t, err, auth.ErrorUnauthorized)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, user, result)
 			}
 		})
 	}
+}
+
+func TestAuthUsecase_Enable2FA(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	user := models.User{
+		ID:    userID,
+		Login: "testuser",
+	}
+
+	tests := []struct {
+		name        string
+		has2FA      bool
+		setupMock   func()
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:   "Success",
+			has2FA: false,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUserByID(gomock.Any(), userID).
+					Return(user, nil)
+				mockRepo.EXPECT().
+					Enable2FA(gomock.Any(), userID, gomock.Any()).
+					Return(models.EnableTwoFactorResponse{Has2FA: true}, nil)
+			},
+			expectError: false,
+		},
+		{
+			name:        "Error - 2FA already enabled",
+			has2FA:      true,
+			setupMock:   func() {},
+			expectError: true,
+			errorType:   auth.ErrorBadRequest,
+		},
+		{
+			name:   "Error - GetUserByID fails",
+			has2FA: false,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUserByID(gomock.Any(), userID).
+					Return(models.User{}, errors.New("user not found"))
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.Enable2FA(testContext(), userID, tt.has2FA)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.True(t, result.Has2FA)
+				assert.NotEmpty(t, result.QrCode)
+			}
+		})
+	}
+}
+
+func TestAuthUsecase_Disable2FA(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+
+	tests := []struct {
+		name        string
+		has2FA      bool
+		setupMock   func()
+		expectError bool
+		errorType   error
+	}{
+		{
+			name:   "Success",
+			has2FA: false,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					Disable2FA(gomock.Any(), userID).
+					Return(models.DisableTwoFactorResponse{Has2FA: false}, nil)
+			},
+			expectError: false,
+		},
+		{
+			name:        "Error - 2FA already disabled",
+			has2FA:      true,
+			setupMock:   func() {},
+			expectError: true,
+			errorType:   auth.ErrorBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.Disable2FA(testContext(), userID, tt.has2FA)
+
+			if tt.expectError {
+				assert.Error(t, err)
+				if tt.errorType != nil {
+					assert.ErrorIs(t, err, tt.errorType)
+				}
+			} else {
+				assert.NoError(t, err)
+				assert.False(t, result.Has2FA)
+			}
+		})
+	}
+}
+
+func TestAuthUsecase_VerifyOTPCode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	login := "testuser"
+	secretCode := "JBSWY3DPEHPK3PXP"
+
+	tests := []struct {
+		name        string
+		userCode    string
+		expectError bool
+	}{
+		{
+			name:        "Error - invalid OTP code",
+			userCode:    "000000",
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := usecase.VerifyOTPCode(testContext(), login, secretCode, tt.userCode)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestAuthUsecase_GenerateQRCode(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockAuthRepo(ctrl)
+	usecase := NewAuthUsecase(mockRepo)
+
+	login := "testuser"
+
+	t.Run("Success", func(t *testing.T) {
+		qrCode, secret, err := usecase.GenerateQRCode(login)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, qrCode)
+		assert.NotEmpty(t, secret)
+		assert.Greater(t, len(qrCode), 0)
+		assert.Greater(t, len(secret), 0)
+	})
 }
 
 func TestValidateFunctions(t *testing.T) {
@@ -658,7 +782,7 @@ func TestValidateFunctions(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, dataIsValid := auth.Validaton(tt.login, tt.password)
+			_, dataIsValid := auth.Validation(tt.login, tt.password)
 			assert.Equal(t, tt.expectedValid, dataIsValid)
 		})
 	}

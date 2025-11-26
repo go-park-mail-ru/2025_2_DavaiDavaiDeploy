@@ -3,6 +3,7 @@ SELECT
 FROM film f
 JOIN genre g ON f.genre_id = g.id
 LEFT JOIN film_feedback ff ON f.id = ff.film_id
+WHERE f.release_date <= CURRENT_DATE
 GROUP BY f.id, g.title
 ORDER BY f.created_at DESC
 LIMIT $1 OFFSET $2

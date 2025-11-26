@@ -4,16 +4,21 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/base32"
 	"fmt"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"net/url"
 	"os"
 	"time"
 
+	"github.com/dgryski/dgoogauth"
+
 	"github.com/golang-jwt/jwt"
 	uuid "github.com/satori/go.uuid"
+	"github.com/skip2/go-qrcode"
 	"golang.org/x/crypto/argon2"
 )
 
@@ -28,7 +33,6 @@ func HashPass(plainPassword string) []byte {
 }
 
 func CheckPass(passHash []byte, plainPassword string) bool {
-	//salt := passHash[:8] - раньше было так
 	salt := make([]byte, 8)
 	copy(salt, passHash[:8])
 	userHash := argon2.IDKey([]byte(plainPassword), salt, 1, 64*1024, 4, 32)
@@ -69,7 +73,7 @@ func (uc *AuthUsecase) ParseToken(token string) (*jwt.Token, error) {
 func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	msg, dataIsValid := auth.Validaton(req.Login, req.Password)
+	msg, dataIsValid := auth.Validation(req.Login, req.Password)
 	if !dataIsValid {
 		logger.Error(msg)
 		return models.User{}, "", auth.ErrorBadRequest
@@ -113,6 +117,24 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 	return user, token, nil
 }
 
+func (uc *AuthUsecase) VerifyOTPCode(ctx context.Context, login, secretCode string, userCode string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	otpConfig := &dgoogauth.OTPConfig{
+		Secret:      secretCode,
+		WindowSize:  5,
+		HotpCounter: 0,
+	}
+	isValid, err := otpConfig.Authenticate(userCode)
+	if err != nil || !isValid {
+		logger.Error("OTP authentication error")
+		return auth.ErrorUnauthorized
+	}
+
+	logger.Info("OTP code verified successfully", slog.String("login", login))
+	return nil
+}
+
 func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
@@ -121,9 +143,36 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", err
 	}
 
+	secretCode := uc.authRepo.GetUserSecretCode(ctx, neededUser.ID)
+	if secretCode == "" {
+		if !CheckPass(neededUser.PasswordHash, req.Password) {
+			logger.Error("wrong password")
+			return models.User{}, "", auth.ErrorBadRequest
+		}
+
+		token, err := uc.GenerateToken(neededUser.ID, req.Login)
+		if err != nil {
+			logger.Error("cannot generate token")
+			return models.User{}, "", auth.ErrorInternalServerError
+		}
+
+		return neededUser, token, nil
+	}
+
+	if req.Code == nil || *req.Code == "" {
+		logger.Warn("no code given")
+		return models.User{}, "", auth.ErrorPreconditionFailed
+	}
+
 	if !CheckPass(neededUser.PasswordHash, req.Password) {
 		logger.Error("wrong password")
 		return models.User{}, "", auth.ErrorBadRequest
+	}
+
+	err = uc.VerifyOTPCode(ctx, neededUser.Login, secretCode, *req.Code)
+	if err != nil {
+		logger.Error("OTP authentication error: " + err.Error())
+		return models.User{}, "", auth.ErrorUnauthorized
 	}
 
 	token, err := uc.GenerateToken(neededUser.ID, req.Login)
@@ -132,34 +181,79 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", auth.ErrorInternalServerError
 	}
 
+	neededUser.Has2FA = true
 	return neededUser, token, nil
 }
 
-func (uc *AuthUsecase) CheckAuth(ctx context.Context) (models.User, error) {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Info("no such user in context")
-		return models.User{}, auth.ErrorUnauthorized
-	}
-	return user, nil
-}
-
-func (uc *AuthUsecase) LogOutUser(ctx context.Context) error {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("no such user in context")
-		return auth.ErrorUnauthorized
-	}
-
-	err := uc.authRepo.IncrementUserVersion(ctx, user.ID)
+func (uc *AuthUsecase) LogOutUser(ctx context.Context, userID uuid.UUID) error {
+	err := uc.authRepo.IncrementUserVersion(ctx, userID)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
+	secret := make([]byte, 20)
+	_, err := rand.Read(secret)
+	if err != nil {
+		return []byte{}, "", auth.ErrorInternalServerError
+	}
+
+	secretBase32 := base32.StdEncoding.EncodeToString(secret)
+
+	issuer := "kinopoisk"
+	otpURL := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s",
+		url.PathEscape(issuer),
+		url.PathEscape(login),
+		secretBase32,
+		url.PathEscape(issuer))
+
+	qrCode, err := qrcode.Encode(otpURL, qrcode.Medium, 256)
+	if err != nil {
+		return []byte{}, "", auth.ErrorInternalServerError
+	}
+
+	return qrCode, secretBase32, nil
+}
+
+func (uc *AuthUsecase) Enable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.EnableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	if has2FA {
+		logger.Error("user already enabled the 2fa")
+		return models.EnableTwoFactorResponse{}, auth.ErrorBadRequest
+	}
+
+	user, err := uc.authRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		logger.Error("failed to get user by ID: " + err.Error())
+		return models.EnableTwoFactorResponse{}, err
+	}
+
+	qrCode, secret, err := uc.GenerateQRCode(user.Login)
+	if err != nil {
+		logger.Error("failed to generate QR code: " + err.Error())
+		return models.EnableTwoFactorResponse{}, auth.ErrorInternalServerError
+	}
+
+	response, err := uc.authRepo.Enable2FA(ctx, userID, secret)
+	if err != nil {
+		logger.Error("failed to enable 2FA: " + err.Error())
+		return models.EnableTwoFactorResponse{}, err
+	}
+
+	response.QrCode = qrCode
+	return response, nil
+}
+
+func (uc *AuthUsecase) Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	if !has2FA {
+		logger.Error("user already disabled the 2fa")
+		return models.DisableTwoFactorResponse{}, auth.ErrorBadRequest
+	}
+	return uc.authRepo.Disable2FA(ctx, userID)
 }
 
 func (uc *AuthUsecase) ValidateAndGetUser(ctx context.Context, token string) (models.User, error) {

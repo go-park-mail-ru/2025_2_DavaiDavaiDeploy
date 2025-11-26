@@ -2,7 +2,8 @@ package http
 
 import (
 	"errors"
-	"kinopoisk/internal/pkg/genres"
+	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -10,14 +11,16 @@ import (
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type GenreHandler struct {
-	uc genres.GenreUsecase
+	client gen.FilmsClient
 }
 
-func NewGenreHandler(uc genres.GenreUsecase) *GenreHandler {
-	return &GenreHandler{uc: uc}
+func NewGenreHandler(client gen.FilmsClient) *GenreHandler {
+	return &GenreHandler{client: client}
 }
 
 // GetGenre godoc
@@ -35,23 +38,33 @@ func (g *GenreHandler) GetGenre(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
+		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
-	neededGenre, err := g.uc.GetGenre(r.Context(), id)
+	genre, err := g.client.GetGenre(r.Context(), &gen.GetGenreRequest{GenreId: id.String()})
 	if err != nil {
-		switch {
-		case errors.Is(err, genres.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	neededGenre.Sanitize()
-	helpers.WriteJSON(w, neededGenre)
+
+	response := models.Genre{
+		ID:          uuid.FromStringOrNil(genre.Genre.Id),
+		Title:       genre.Genre.Name,
+		Description: genre.Genre.Description,
+		Icon:        genre.Genre.Icon,
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -67,20 +80,32 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	allGenres, err := g.uc.GetGenres(r.Context(), pager)
+	genres, err := g.client.GetGenres(r.Context(), &gen.GetGenresRequest{
+		Pager: &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+	})
 	if err != nil {
-		switch {
-		case errors.Is(err, genres.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	for i := range allGenres {
-		allGenres[i].Sanitize()
+
+	response := []models.Genre{}
+	for i := range genres.Genres {
+		genre := models.Genre{
+			ID:          uuid.FromStringOrNil(genres.Genres[i].Id),
+			Title:       genres.Genres[i].Name,
+			Description: genres.Genres[i].Description,
+			Icon:        genres.Genres[i].Icon,
+		}
+		response = append(response, genre)
 	}
-	helpers.WriteJSON(w, allGenres)
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -97,30 +122,45 @@ func (g *GenreHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
 func (g *GenreHandler) GetFilmsByGenre(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	vars := mux.Vars(r)
-	idStr := vars["id"]
-
-	neededGenre, err := uuid.FromString(idStr)
+	id, err := uuid.FromString(vars["id"])
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusUnauthorized)
+		log.LogHandlerError(logger, errors.New("invalid id of genre"), http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
 
 	pager := helpers.GetPagerFromRequest(r)
 
-	films, err := g.uc.GetFilmsByGenre(r.Context(), neededGenre, pager)
+	films, err := g.client.GetFilmsByGenre(r.Context(), &gen.GetFilmsByGenreRequest{
+		GenreId: id.String(),
+		Pager:   &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+	})
 	if err != nil {
-		switch {
-		case errors.Is(err, genres.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	for i := range films {
-		films[i].Sanitize()
+
+	response := []models.MainPageFilm{}
+	for i := range films.Films {
+		film := models.MainPageFilm{
+			ID:     uuid.FromStringOrNil(films.Films[i].Id),
+			Cover:  films.Films[i].Cover,
+			Title:  films.Films[i].Title,
+			Rating: films.Films[i].Rating,
+			Year:   int(films.Films[i].Year),
+			Genre:  films.Films[i].Genre,
+		}
+		response = append(response, film)
 	}
-	helpers.WriteJSON(w, films)
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

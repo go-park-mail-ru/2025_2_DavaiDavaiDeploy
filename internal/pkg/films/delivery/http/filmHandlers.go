@@ -6,26 +6,32 @@ import (
 	"errors"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
-	"kinopoisk/internal/pkg/films"
+	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"time"
+
+	"google.golang.org/grpc/codes"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
+	"google.golang.org/grpc/status"
 )
 
-var (
+const (
+	TimeLayout = "2006-01-02 15:04:05.999999999 -0700 MST"
 	CookieName = "DDFilmsJWT"
 )
 
 type FilmHandler struct {
-	uc films.FilmUsecase
+	client gen.FilmsClient
 }
 
-func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
-	return &FilmHandler{uc: uc}
+func NewFilmHandler(client gen.FilmsClient) *FilmHandler {
+	return &FilmHandler{client: client}
 }
 
 // GetPromoFilm godoc
@@ -39,19 +45,87 @@ func NewFilmHandler(uc films.FilmUsecase) *FilmHandler {
 // @Router /films/promo [get]
 func (c *FilmHandler) GetPromoFilm(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	film, err := c.uc.GetPromoFilm(r.Context())
+	film, err := c.client.GetPromoFilm(r.Context(), &gen.EmptyRequest{})
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
 		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
 
-	film.Sanitize()
-	helpers.WriteJSON(w, film)
+	response := models.PromoFilm{
+		ID:               uuid.FromStringOrNil(film.Id),
+		Image:            film.Image,
+		Title:            film.Title,
+		Rating:           film.Rating,
+		ShortDescription: film.ShortDescription,
+		Year:             int(film.Year),
+		Genre:            film.Genre,
+		Duration:         int(film.Duration),
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetUsersFavFilms godoc
+// @Summary Get user's favorite films
+// @Description Get all films saved by the current user
+// @Tags films
+// @Produce json
+// @Success 200 {array} models.FavFilm
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /users/saved [get]
+func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+	favFilms, err := c.client.GetFavFilms(r.Context(), &gen.GetFavFilmsRequest{UserId: userID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.FavFilm{}
+	for i := range favFilms.Films {
+		var film models.FavFilm
+		film.ID = uuid.FromStringOrNil(favFilms.Films[i].Id)
+		film.Title = favFilms.Films[i].Title
+		film.Image = favFilms.Films[i].Image
+		film.Rating = favFilms.Films[i].Rating
+		film.Genre = favFilms.Films[i].Genre
+		film.Year = int(favFilms.Films[i].Year)
+		film.Duration = int(favFilms.Films[i].Duration)
+		film.ShortDescription = favFilms.Films[i].ShortDescription
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -70,22 +144,107 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	pager := helpers.GetPagerFromRequest(r)
 
-	mainPageFilms, err := c.uc.GetFilms(r.Context(), pager)
+	mainPageFilms, err := c.client.GetFilms(r.Context(), &gen.GetFilmsRequest{
+		Pager: &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+	})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorBadRequest):
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	for i := range mainPageFilms {
-		mainPageFilms[i].Sanitize()
+
+	response := []models.MainPageFilm{}
+	for i := range mainPageFilms.Films {
+		var film models.MainPageFilm
+		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
+		film.Cover = mainPageFilms.Films[i].Cover
+		film.Title = mainPageFilms.Films[i].Title
+		film.Rating = mainPageFilms.Films[i].Rating
+		film.Genre = mainPageFilms.Films[i].Genre
+		film.Year = int(mainPageFilms.Films[i].Year)
+		response = append(response, film)
 	}
-	helpers.WriteJSON(w, mainPageFilms)
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetFilmsForCalendar godoc
+// @Summary Get films for calendar
+// @Description Get films with release dates for calendar view
+// @Tags films
+// @Produce json
+// @Param count query int false "Number of films" default(10)
+// @Param offset query int false "Offset" default(0)
+// @Success 200 {array} models.FilmInCalendar
+// @Failure 400
+// @Failure 404
+// @Failure 500
+// @Router /films/calendar [get]
+func (c *FilmHandler) GetFilmsForCalendar(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	pager := helpers.GetPagerFromRequest(r)
+
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
+
+	filmsForCalendar, err := c.client.GetFilmsForCalendar(r.Context(), &gen.GetFilmsForCalendarRequest{
+		Pager:  &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		UserId: user.ID.String(),
+	})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.FilmInCalendar{}
+	for i := range filmsForCalendar.Films {
+		var film models.FilmInCalendar
+
+		film.ID = uuid.FromStringOrNil(filmsForCalendar.Films[i].ID)
+		film.Cover = filmsForCalendar.Films[i].Cover
+		film.Title = filmsForCalendar.Films[i].Title
+		film.IsLiked = filmsForCalendar.Films[i].IsLiked
+
+		if filmsForCalendar.Films[i].OriginalTitle != nil {
+			film.OriginalTitle = filmsForCalendar.Films[i].OriginalTitle
+		}
+
+		film.ShortDescription = filmsForCalendar.Films[i].ShortDescription
+
+		releaseDate, err := time.Parse(TimeLayout, filmsForCalendar.Films[i].ReleaseDate)
+		if err != nil {
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+			return
+		}
+
+		film.ReleaseDate = releaseDate
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -109,20 +268,92 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	film, err := c.uc.GetFilm(r.Context(), id)
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
+
+	film, err := c.client.GetFilm(r.Context(), &gen.GetFilmRequest{
+		FilmId: id.String(),
+		UserId: user.ID.String(),
+	})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorBadRequest):
-			helpers.WriteError(w, http.StatusBadRequest)
 		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	film.Sanitize()
-	helpers.WriteJSON(w, film)
+
+	actors := make([]models.Actor, 0, len(film.Actors))
+	for _, actor := range film.Actors {
+		mappedActor := models.Actor{
+			ID:            uuid.FromStringOrNil(actor.Id),
+			Photo:         actor.Photo,
+			Height:        int(actor.Height),
+			ZodiacSign:    actor.ZodiacSign,
+			BirthPlace:    actor.BirthPlace,
+			MaritalStatus: actor.MaritalStatus,
+			RussianName:   actor.RussianName,
+		}
+
+		if actor.OriginalName != nil {
+			mappedActor.OriginalName = actor.OriginalName
+		}
+
+		if birthDate, err := time.Parse(TimeLayout, actor.BirthDate); err == nil {
+			mappedActor.BirthDate = birthDate
+		}
+		if actor.DeathDate != nil {
+			if deathDate, err := time.Parse(TimeLayout, *actor.DeathDate); err == nil {
+				mappedActor.DeathDate = &deathDate
+			}
+		}
+
+		actors = append(actors, mappedActor)
+	}
+
+	response := models.FilmPage{
+		ID:               uuid.FromStringOrNil(film.Id),
+		Title:            film.Title,
+		Cover:            film.Cover,
+		Poster:           film.Poster,
+		Genre:            film.Genre,
+		ShortDescription: film.ShortDescription,
+		Description:      film.Description,
+		AgeCategory:      film.AgeCategory,
+		Budget:           int(film.Budget),
+		WorldwideFees:    int(film.WorldwideFees),
+		TrailerURL:       film.TrailerUrl,
+		NumberOfRatings:  int(film.NumberOfRatings),
+		Year:             int(film.Year),
+		Rating:           film.Rating,
+		Country:          film.Country,
+		Slogan:           film.Slogan,
+		Duration:         int(film.Duration),
+		Image1:           film.Image1,
+		Image2:           film.Image2,
+		Image3:           film.Image3,
+		Actors:           actors,
+		IsReviewed:       film.IsReviewed,
+		IsLiked:          film.IsLiked,
+		GenreID:          uuid.FromStringOrNil(film.GenreId),
+		IsOut:            film.IsOut,
+	}
+
+	if film.UserRating != nil {
+		userRating := int(*film.UserRating)
+		response.UserRating = &userRating
+	}
+
+	if film.OriginalTitle != nil {
+		response.OriginalTitle = film.OriginalTitle
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -133,14 +364,23 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 		cookie, err := r.Cookie(CookieName)
 		if err == nil {
 			token = cookie.Value
+			logger.Info("successfully got token")
 		}
+
 		if token != "" {
-			user, err := c.uc.ValidateAndGetUser(r.Context(), token)
+			user, err := c.client.ValidateUser(r.Context(), &gen.ValidateUserRequest{Token: token})
 			if err == nil {
-				user.Sanitize()
-				ctx := context.WithValue(r.Context(), auth.UserKey, user)
+				neededUser := models.User{
+					ID:      uuid.FromStringOrNil(user.ID),
+					Version: int(user.Version),
+					Login:   user.Login,
+					Avatar:  user.Avatar,
+				}
+				ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 				next.ServeHTTP(w, r.WithContext(ctx))
 				return
+			} else {
+				log.LogHandlerError(logger, err, http.StatusUnauthorized)
 			}
 		}
 
@@ -149,11 +389,120 @@ func (c *FilmHandler) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-// GetFilmFeedbacks godoc
-// @Summary Get film reviews
+// SaveFilm godoc
+// @Summary Save film to favorites
+// @Description Add film to user's favorite list
 // @Tags films
 // @Produce json
-// @Param        id   path      string  true  "Film ID"
+// @Param id path string true "Film ID"
+// @Success 200
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /films/{id}/save [post]
+func (c *FilmHandler) SaveFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	_, err = c.client.SaveFilm(r.Context(), &gen.SaveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// RemoveFilm godoc
+// @Summary Remove film from favorites
+// @Description Remove film from user's favorite list
+// @Tags films
+// @Produce json
+// @Param id path string true "Film ID"
+// @Success 200 {array} models.FavFilm
+// @Failure 400
+// @Failure 401
+// @Failure 404
+// @Failure 500
+// @Router /films/{id}/remove [delete]
+func (c *FilmHandler) RemoveFilm(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	favFilms, err := c.client.RemoveFilm(r.Context(), &gen.RemoveFilmRequest{UserId: user.ID.String(), FilmId: filmID.String()})
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.FavFilm{}
+	for i := range favFilms.Films {
+		var film models.FavFilm
+		film.ID = uuid.FromStringOrNil(favFilms.Films[i].Id)
+		film.Title = favFilms.Films[i].Title
+		film.Image = favFilms.Films[i].Image
+		film.Rating = favFilms.Films[i].Rating
+		film.Genre = favFilms.Films[i].Genre
+		film.Year = int(favFilms.Films[i].Year)
+		film.Duration = int(favFilms.Films[i].Duration)
+		film.ShortDescription = favFilms.Films[i].ShortDescription
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+// GetFilmFeedbacks godoc
+// @Summary Get film feedbacks
+// @Description Get all feedbacks/reviews for a specific film
+// @Tags films
+// @Produce json
+// @Param id path string true "Film ID"
+// @Param count query int false "Number of feedbacks" default(10)
+// @Param offset query int false "Offset" default(0)
 // @Success 200 {array} models.FilmFeedback
 // @Failure 400
 // @Failure 404
@@ -170,22 +519,56 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pager := helpers.GetPagerFromRequest(r)
+	user, _ := r.Context().Value(auth.UserKey).(models.User)
 
-	feedbacks, err := c.uc.GetFilmFeedbacks(r.Context(), id, pager)
+	feedbacks, err := c.client.GetFilmFeedbacks(r.Context(), &gen.GetFilmFeedbacksRequest{
+		FilmId: id.String(),
+		Pager:  &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		UserId: user.ID.String(),
+	})
+
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	for i := range feedbacks {
-		feedbacks[i].Sanitize()
+
+	response := []models.FilmFeedback{}
+	for i := range feedbacks.Feedbacks {
+		feedback := models.FilmFeedback{
+			ID:            uuid.FromStringOrNil(feedbacks.Feedbacks[i].Id),
+			UserID:        uuid.FromStringOrNil(feedbacks.Feedbacks[i].UserId),
+			FilmID:        uuid.FromStringOrNil(feedbacks.Feedbacks[i].FilmId),
+			Rating:        int(feedbacks.Feedbacks[i].Rating),
+			UserLogin:     feedbacks.Feedbacks[i].UserLogin,
+			UserAvatar:    feedbacks.Feedbacks[i].UserAvatar,
+			IsMine:        feedbacks.Feedbacks[i].IsMine,
+			NewFilmRating: feedbacks.Feedbacks[i].NewFilmRating,
+		}
+
+		if createdAt, err := time.Parse(TimeLayout, feedbacks.Feedbacks[i].CreatedAt); err == nil {
+			feedback.CreatedAt = createdAt
+		}
+		if updatedAt, err := time.Parse(TimeLayout, feedbacks.Feedbacks[i].UpdatedAt); err == nil {
+			feedback.UpdatedAt = updatedAt
+		}
+
+		if feedbacks.Feedbacks[i].Title != nil {
+			feedback.Title = feedbacks.Feedbacks[i].Title
+		}
+		if feedbacks.Feedbacks[i].Text != nil {
+			feedback.Text = feedbacks.Feedbacks[i].Text
+		}
+
+		response = append(response, feedback)
 	}
 
-	helpers.WriteJSON(w, feedbacks)
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -195,6 +578,7 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
+// @Param input body models.FilmFeedbackInput true "Feedback data"
 // @Success 200 {object} models.FilmFeedback
 // @Failure 400
 // @Failure 401
@@ -203,6 +587,14 @@ func (c *FilmHandler) GetFilmFeedbacks(w http.ResponseWriter, r *http.Request) {
 // @Router /films/{id}/feedbacks [post]
 func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -220,21 +612,55 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 	}
 	req.Sanitize()
 
-	feedback, err := c.uc.SendFeedback(r.Context(), req, filmID)
+	feedback, err := c.client.SendFeedback(r.Context(), &gen.SendFeedbackRequest{
+		FilmId: filmID.String(),
+		UserId: user.ID.String(),
+		Feedback: &gen.FilmFeedbackInput{
+			Title:  req.Title,
+			Text:   req.Text,
+			Rating: int32(req.Rating),
+		},
+	})
 
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorBadRequest):
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	feedback.Sanitize()
-	helpers.WriteJSON(w, feedback)
+
+	response := models.FilmFeedback{
+		ID:            uuid.FromStringOrNil(feedback.Feedback.Id),
+		UserID:        uuid.FromStringOrNil(feedback.Feedback.UserId),
+		FilmID:        uuid.FromStringOrNil(feedback.Feedback.FilmId),
+		Rating:        int(feedback.Feedback.Rating),
+		UserLogin:     feedback.Feedback.UserLogin,
+		UserAvatar:    feedback.Feedback.UserAvatar,
+		IsMine:        feedback.Feedback.IsMine,
+		NewFilmRating: feedback.Feedback.NewFilmRating,
+	}
+
+	if createdAt, err := time.Parse(TimeLayout, feedback.Feedback.CreatedAt); err == nil {
+		response.CreatedAt = createdAt
+	}
+	if updatedAt, err := time.Parse(TimeLayout, feedback.Feedback.UpdatedAt); err == nil {
+		response.UpdatedAt = updatedAt
+	}
+
+	if feedback.Feedback.Title != nil {
+		response.Title = feedback.Feedback.Title
+	}
+	if feedback.Feedback.Text != nil {
+		response.Text = feedback.Feedback.Text
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
@@ -244,7 +670,7 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Accept json
 // @Produce json
 // @Param        id   path      string  true  "Film ID"
-// @Param input body models.FilmFeedbackInput true "Rating data (rating 1-10 is required)"
+// @Param input body gen.FilmRatingInput true "Rating data (rating 1-10 is required)"
 // @Success 200 {object} models.FilmFeedback
 // @Failure 400
 // @Failure 401
@@ -253,6 +679,14 @@ func (c *FilmHandler) SendFeedback(w http.ResponseWriter, r *http.Request) {
 // @Router /films/{id}/rating [post]
 func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
 	vars := mux.Vars(r)
 	filmID, err := uuid.FromString(vars["id"])
 	if err != nil {
@@ -268,37 +702,77 @@ func (c *FilmHandler) SetRating(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
-	req.Sanitize()
 
-	rating, err := c.uc.SetRating(r.Context(), req, filmID)
+	rating, err := c.client.SetRating(r.Context(), &gen.SetRatingRequest{
+		FilmId: filmID.String(),
+		UserId: user.ID.String(),
+		RatingInput: &gen.FilmRatingInput{
+			Rating: int32(req.Rating),
+		},
+	})
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorBadRequest):
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	rating.Sanitize()
-	helpers.WriteJSON(w, rating)
+
+	response := models.FilmFeedback{
+		ID:            uuid.FromStringOrNil(rating.Feedback.Id),
+		UserID:        uuid.FromStringOrNil(rating.Feedback.UserId),
+		FilmID:        uuid.FromStringOrNil(rating.Feedback.FilmId),
+		Rating:        int(rating.Feedback.Rating),
+		UserLogin:     rating.Feedback.UserLogin,
+		UserAvatar:    rating.Feedback.UserAvatar,
+		IsMine:        rating.Feedback.IsMine,
+		NewFilmRating: rating.Feedback.NewFilmRating,
+	}
+
+	if createdAt, err := time.Parse(TimeLayout, rating.Feedback.CreatedAt); err == nil {
+		response.CreatedAt = createdAt
+	}
+	if updatedAt, err := time.Parse(TimeLayout, rating.Feedback.UpdatedAt); err == nil {
+		response.UpdatedAt = updatedAt
+	}
+
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
 func (c *FilmHandler) SiteMap(w http.ResponseWriter, r *http.Request) {
-	urlSet, err := c.uc.SiteMap(r.Context())
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	urlSet, err := c.client.SiteMap(r.Context(), &gen.EmptyRequest{})
 	if err != nil {
-		switch {
-		case errors.Is(err, films.ErrorNotFound):
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.NotFound:
 			helpers.WriteError(w, http.StatusNotFound)
-		case errors.Is(err, films.ErrorBadRequest):
+		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
 		default:
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
 	}
-	helpers.WriteXML(w, urlSet)
+
+	response := models.Urlset{
+		Xmlns: urlSet.Urlset.Xmlns,
+		URL:   make([]models.URLItem, 0, len(urlSet.Urlset.Url)),
+	}
+
+	for _, urlItem := range urlSet.Urlset.Url {
+		response.URL = append(response.URL, models.URLItem{
+			Loc:      urlItem.Loc,
+			Priority: urlItem.Priority,
+		})
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }

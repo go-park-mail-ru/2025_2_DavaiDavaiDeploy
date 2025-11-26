@@ -19,6 +19,14 @@ func GetParameter(r *http.Request, s string, defaultValue int) int {
 	return result
 }
 
+func GetStringParameter(r *http.Request, s string, defaultValue string) string {
+	strValue := r.URL.Query().Get(s)
+	if strValue == "" {
+		return defaultValue
+	}
+	return strValue
+}
+
 func GetPagerFromRequest(r *http.Request) models.Pager {
 	count := GetParameter(r, "count", 10)
 	offset := GetParameter(r, "offset", 0)

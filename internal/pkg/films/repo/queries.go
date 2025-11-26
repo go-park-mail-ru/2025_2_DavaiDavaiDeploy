@@ -40,3 +40,18 @@ var SetRatingQuery string
 
 //go:embed sql/getUserByLoginQuery.sql
 var GetUserByLoginQuery string
+
+//go:embed sql/insertIntoSavedQuery.sql
+var InsertIntoSavedQuery string
+
+//go:embed sql/deleteFromSavedQuery.sql
+var DeleteFromSavedQuery string
+
+//go:embed sql/checkUserLikeExistsQuery.sql
+var CheckUserLikeExistsQuery string
+
+//go:embed sql/getFilmsWithDateOfReleaseQuery.sql
+var GetFilmsWithDateOfReleaseQuery string
+
+//go:embed sql/getUsersFavFilmsQuery.sql
+var GetUsersFavFilmsQuery string

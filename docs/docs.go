@@ -118,6 +118,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/enable2fa": {
+            "post": {
+                "description": "Verify if user is authenticated and return user data",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Check authentication status",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer",
+                                "format": "int32"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/auth/logout": {
             "post": {
                 "description": "Clear authentication cookie and log out user",
@@ -233,6 +266,173 @@ const docTemplate = `{
                 }
             }
         },
+        "/compilations/": {
+            "get": {
+                "description": "Возвращает список всех подборок с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить список подборок",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов (по умолчанию 10)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (по умолчанию 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со списком подборок",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Compilation"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Подборки не найдены",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/compilations/{id}": {
+            "get": {
+                "description": "Возвращает информацию о конкретной подборке по её идентификатору",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить подборку по ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подборки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ с данными подборки",
+                        "schema": {
+                            "$ref": "#/definitions/models.Compilation"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат UUID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Подборка не найдена",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
+        "/compilations/{id}/films": {
+            "get": {
+                "description": "Возвращает список фильмов, входящих в конкретную подборку, с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "compilations"
+                ],
+                "summary": "Получить фильмы из подборки",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "UUID подборки",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Количество элементов (по умолчанию 10)",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Смещение (по умолчанию 0)",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ со списком фильмов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.CompFilm"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверный формат UUID",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "404": {
+                        "description": "Подборка или фильмы не найдены",
+                        "schema": {
+                            "type": "object"
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                }
+            }
+        },
         "/films": {
             "get": {
                 "produces": [
@@ -265,6 +465,54 @@ const docTemplate = `{
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/models.MainPageFilm"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/films/calendar": {
+            "get": {
+                "description": "Get films with release dates for calendar view",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Get films for calendar",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of films",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FilmInCalendar"
                             }
                         }
                     },
@@ -345,13 +593,14 @@ const docTemplate = `{
         },
         "/films/{id}/feedbacks": {
             "get": {
+                "description": "Get all feedbacks/reviews for a specific film",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "films"
                 ],
-                "summary": "Get film reviews",
+                "summary": "Get film feedbacks",
                 "parameters": [
                     {
                         "type": "string",
@@ -359,6 +608,20 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of feedbacks",
+                        "name": "count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "offset",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -400,6 +663,15 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Feedback data",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.FilmFeedbackInput"
+                        }
                     }
                 ],
                 "responses": {
@@ -450,7 +722,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.FilmFeedbackInput"
+                            "$ref": "#/definitions/gen.FilmRatingInput"
                         }
                     }
                 ],
@@ -460,6 +732,88 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/models.FilmFeedback"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/films/{id}/remove": {
+            "delete": {
+                "description": "Remove film from user's favorite list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Remove film from favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/films/{id}/save": {
+            "post": {
+                "description": "Add film to user's favorite list",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Save film to favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Film ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request"
@@ -581,6 +935,65 @@ const docTemplate = `{
                 }
             }
         },
+        "/search": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "search"
+                ],
+                "summary": "Search films and actors",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search string",
+                        "name": "q",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of films",
+                        "name": "films_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "films_offset",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Number of actors",
+                        "name": "actors_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Offset",
+                        "name": "actors_offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.SearchResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/users/avatar": {
             "put": {
                 "consumes": [
@@ -666,6 +1079,38 @@ const docTemplate = `{
                 }
             }
         },
+        "/users/saved": {
+            "get": {
+                "description": "Get all films saved by the current user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "Get user's favorite films",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.FavFilm"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
         "/users/{id}": {
             "get": {
                 "produces": [
@@ -705,6 +1150,14 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "gen.FilmRatingInput": {
+            "type": "object",
+            "properties": {
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.Actor": {
             "type": "object",
             "required": [
@@ -822,6 +1275,117 @@ const docTemplate = `{
                 }
             }
         },
+        "models.CompFilm": {
+            "type": "object",
+            "required": [
+                "duration",
+                "genre",
+                "id",
+                "image",
+                "is_liked",
+                "rating",
+                "short_description",
+                "title",
+                "year"
+            ],
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "is_liked": {
+                    "type": "boolean"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Compilation": {
+            "type": "object",
+            "required": [
+                "description",
+                "icon",
+                "id",
+                "title"
+            ],
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.FavFilm": {
+            "type": "object",
+            "required": [
+                "duration",
+                "genre",
+                "id",
+                "image",
+                "rating",
+                "short_description",
+                "title",
+                "year"
+            ],
+            "properties": {
+                "duration": {
+                    "type": "integer"
+                },
+                "genre": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
+        },
         "models.FilmFeedback": {
             "type": "object",
             "required": [
@@ -829,6 +1393,7 @@ const docTemplate = `{
                 "film_id",
                 "id",
                 "is_mine",
+                "new_film_rating",
                 "rating",
                 "text",
                 "title",
@@ -849,6 +1414,9 @@ const docTemplate = `{
                 },
                 "is_mine": {
                     "type": "boolean"
+                },
+                "new_film_rating": {
+                    "type": "number"
                 },
                 "rating": {
                     "type": "integer",
@@ -900,6 +1468,39 @@ const docTemplate = `{
                 }
             }
         },
+        "models.FilmInCalendar": {
+            "type": "object",
+            "required": [
+                "cover",
+                "id",
+                "is_liked",
+                "release_date",
+                "title"
+            ],
+            "properties": {
+                "cover": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "is_liked": {
+                    "type": "boolean"
+                },
+                "original_title": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "short_description": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "models.FilmPage": {
             "type": "object",
             "required": [
@@ -911,7 +1512,9 @@ const docTemplate = `{
                 "description",
                 "duration",
                 "genre",
+                "genre_id",
                 "id",
+                "is_liked",
                 "is_reviewed",
                 "number_of_ratings",
                 "poster",
@@ -950,6 +1553,9 @@ const docTemplate = `{
                 "genre": {
                     "type": "string"
                 },
+                "genre_id": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -961,6 +1567,9 @@ const docTemplate = `{
                 },
                 "image3": {
                     "type": "string"
+                },
+                "is_liked": {
+                    "type": "boolean"
                 },
                 "is_reviewed": {
                     "type": "boolean"
@@ -1025,6 +1634,25 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.MainPageActor": {
+            "type": "object",
+            "required": [
+                "id",
+                "photo",
+                "russian_name"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "photo": {
+                    "type": "string"
+                },
+                "russian_name": {
                     "type": "string"
                 }
             }
@@ -1105,6 +1733,26 @@ const docTemplate = `{
                 }
             }
         },
+        "models.SearchResponse": {
+            "type": "object",
+            "properties": {
+                "actors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MainPageActor"
+                    }
+                },
+                "films": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.MainPageFilm"
+                    }
+                },
+                "search_string": {
+                    "type": "string"
+                }
+            }
+        },
         "models.SignInInput": {
             "type": "object",
             "required": [
@@ -1116,6 +1764,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "user_code": {
                     "type": "string"
                 }
             }
@@ -1139,6 +1790,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "avatar",
+                "has_2fa",
                 "id",
                 "login",
                 "version"
@@ -1149,6 +1801,9 @@ const docTemplate = `{
                 },
                 "created_at": {
                     "type": "string"
+                },
+                "has_2fa": {
+                    "type": "boolean"
                 },
                 "id": {
                     "type": "string"

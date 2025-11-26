@@ -13,6 +13,67 @@ services:
       DB_HOST: postgres
       DB_NAME: kinopoisk
       DB_PORT: 5432
+      AUTH_SERVICE_HOST: auth
+      FILMS_SERVICE_HOST: films
+      SEARCH_SERVICE_HOST: search
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth:
+        condition: service_started
+      films:
+        condition: service_started
+    networks:
+      - ddd-network
+
+  auth:
+    build:
+      context: .
+      dockerfile: ./build/auth.Dockerfile
+    ports:
+      - 5459:5459
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ddd-network
+    
+  films:
+    build:
+      context: .
+      dockerfile: ./build/films.Dockerfile
+    ports:
+      - 5460:5460
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ddd-network
+
+  search:
+    build:
+      context: .
+      dockerfile: ./build/search.Dockerfile
+    ports:
+      - 5462:5462
+    volumes:
+      - ./static/:/opt/static/
+    environment:
+      DB_HOST: postgres
+      DB_NAME: kinopoisk
+      DB_PORT: 5432
     depends_on:
       postgres:
         condition: service_healthy
@@ -20,7 +81,9 @@ services:
       - ddd-network
 
   postgres:
-    image: postgres:17.0
+    build:
+      context: .
+      dockerfile: ./build/pg.Dockerfile
     env_file:
       - .env
     container_name: postgres
@@ -29,9 +92,10 @@ services:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASS}
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
     volumes:
       - ./build/sql/:/docker-entrypoint-initdb.d/
+      - ./build/sql/dictionary:/usr/share/postgresql/16/tsearch_data
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
@@ -56,19 +120,50 @@ services:
     networks:
       - ddd-network
 
-  telegram-notifier:
-    image: lorcas/docker-telegram-notifier:latest
+  prometheus:
+    image: prom/prometheus:latest
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    environment:
-      TELEGRAM_NOTIFIER_BOT_TOKEN: ${TELEGRAM_TOKEN}
-      TELEGRAM_NOTIFIER_CHAT_ID: ${TELEGRAM_CHAT_ID}
-      TELEGRAM_NOTIFIER_TOPIC_ID: ${TELEGRAM_TOPIC_ID}
-    labels:
-      telegram-notifier.monitor: false
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "8090:9090"
+    networks:
+      - ddd-network
+
+  node_exporter:
+    depends_on:
+      - prometheus
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.ignored-mount-points
+      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+    hostname: node_exporter
+    ports:
+      - "9100:9100"
+    networks:
+       - ddd-network
+
+  grafana:
+    image: grafana/grafana-enterprise
+    volumes:
+      - graphana_data:/var/lib/grafana/
+    ports:
+      - "8099:3000"
+    networks:
+      - ddd-network
+
 
 volumes:
   postgres_data:
+  graphana_data:
 
 networks:
   ddd-network:

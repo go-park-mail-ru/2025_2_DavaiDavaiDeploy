@@ -12,14 +12,16 @@ import (
 	"time"
 
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/actors"
-	"kinopoisk/internal/pkg/actors/mocks"
+	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
+	"kinopoisk/internal/pkg/films/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	gomock "go.uber.org/mock/gomock"
+	"go.uber.org/mock/gomock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func testLogger() *slog.Logger {
@@ -36,6 +38,7 @@ func TestGetActor(t *testing.T) {
 	actorIDStr := actorID.String()
 	originalName := "Leonardo DiCaprio"
 	birthDate := time.Date(1974, 11, 11, 0, 0, 0, 0, time.UTC)
+	birthDateStr := birthDate.String()
 
 	expectedActor := models.ActorPage{
 		ID:            actorID,
@@ -54,7 +57,7 @@ func TestGetActor(t *testing.T) {
 	tests := []struct {
 		name           string
 		varsID         string
-		mockSetup      func(mockUsecase *mocks.MockActorUsecase)
+		mockSetup      func(mockClient *mocks.MockFilmsClient)
 		expectedStatus int
 		expectBody     bool
 		expectedActor  models.ActorPage
@@ -62,10 +65,24 @@ func TestGetActor(t *testing.T) {
 		{
 			name:   "Success",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(expectedActor, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(&gen.GetActorResponse{
+						Actor: &gen.ActorPage{
+							Id:            actorIDStr,
+							RussianName:   "Леонардо ДиКаприо",
+							OriginalName:  &originalName,
+							Photo:         "/photos/leo.jpg",
+							Height:        183,
+							BirthDate:     birthDateStr,
+							Age:           49,
+							ZodiacSign:    "Скорпион",
+							BirthPlace:    "Лос-Анджелес, США",
+							MaritalStatus: "Не женат",
+							FilmsNumber:   45,
+						},
+					}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -74,46 +91,57 @@ func TestGetActor(t *testing.T) {
 		{
 			name:           "Invalid ID - empty string",
 			varsID:         "",
-			mockSetup:      func(mockUsecase *mocks.MockActorUsecase) {},
+			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
 			expectedStatus: http.StatusNotFound,
 			expectBody:     false,
 		},
 		{
 			name:           "Invalid ID - not a uuid",
 			varsID:         "not-a-uuid",
-			mockSetup:      func(mockUsecase *mocks.MockActorUsecase) {},
+			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
 			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{
 			name:   "Actor Not Found",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, actors.ErrorNotFound)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(nil, status.Error(codes.NotFound, "actor not found"))
 			},
 			expectedStatus: http.StatusNotFound,
 			expectBody:     false,
 		},
 		{
+			name:   "Invalid Argument",
+			varsID: actorIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectBody:     false,
+		},
+		{
 			name:   "Internal Server Error",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, actors.ErrorInternalServerError)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(nil, status.Error(codes.Internal, "internal error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 		{
-			name:   "Unknown Error",
+			name:   "Unknown gRPC Error",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, errors.New("unknown error"))
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(nil, errors.New("unknown error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
@@ -121,30 +149,62 @@ func TestGetActor(t *testing.T) {
 		{
 			name:   "Success with nil original name",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				actorWithNilName := expectedActor
-				actorWithNilName.OriginalName = nil
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(actorWithNilName, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(&gen.GetActorResponse{
+						Actor: &gen.ActorPage{
+							Id:            actorIDStr,
+							RussianName:   "Леонардо ДиКаприо",
+							OriginalName:  nil,
+							Photo:         "/photos/leo.jpg",
+							Height:        183,
+							BirthDate:     birthDateStr,
+							Age:           49,
+							ZodiacSign:    "Скорпион",
+							BirthPlace:    "Лос-Анджелес, США",
+							MaritalStatus: "Не женат",
+							FilmsNumber:   45,
+						},
+					}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
-			expectedActor:  expectedActor,
+			expectedActor: func() models.ActorPage {
+				actor := expectedActor
+				actor.OriginalName = nil
+				return actor
+			}(),
 		},
 		{
 			name:   "Success with empty photo",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				actorWithEmptyPhoto := expectedActor
-				actorWithEmptyPhoto.Photo = ""
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(actorWithEmptyPhoto, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
+					Return(&gen.GetActorResponse{
+						Actor: &gen.ActorPage{
+							Id:            actorIDStr,
+							RussianName:   "Леонардо ДиКаприо",
+							OriginalName:  &originalName,
+							Photo:         "",
+							Height:        183,
+							BirthDate:     birthDateStr,
+							Age:           49,
+							ZodiacSign:    "Скорпион",
+							BirthPlace:    "Лос-Анджелес, США",
+							MaritalStatus: "Не женат",
+							FilmsNumber:   45,
+						},
+					}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
-			expectedActor:  expectedActor,
+			expectedActor: func() models.ActorPage {
+				actor := expectedActor
+				actor.Photo = ""
+				return actor
+			}(),
 		},
 	}
 
@@ -153,11 +213,11 @@ func TestGetActor(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockUsecase := mocks.NewMockActorUsecase(ctrl)
-			handler := NewActorHandler(mockUsecase)
+			mockClient := mocks.NewMockFilmsClient(ctrl)
+			handler := NewActorHandler(mockClient)
 
 			if tt.mockSetup != nil {
-				tt.mockSetup(mockUsecase)
+				tt.mockSetup(mockClient)
 			}
 
 			req := httptest.NewRequest(http.MethodGet, "/actors/"+tt.varsID, nil).WithContext(testContext())
@@ -179,6 +239,15 @@ func TestGetActor(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expectedActor.ID, decoded.ID)
 				assert.Equal(t, tt.expectedActor.RussianName, decoded.RussianName)
+				assert.Equal(t, tt.expectedActor.Height, decoded.Height)
+				assert.Equal(t, tt.expectedActor.Age, decoded.Age)
+				assert.Equal(t, tt.expectedActor.FilmsNumber, decoded.FilmsNumber)
+
+				if tt.expectedActor.OriginalName == nil {
+					assert.Nil(t, decoded.OriginalName)
+				} else {
+					assert.Equal(t, *tt.expectedActor.OriginalName, *decoded.OriginalName)
+				}
 			}
 		})
 	}
@@ -213,7 +282,7 @@ func TestGetFilmsByActor(t *testing.T) {
 		name           string
 		url            string
 		varsID         string
-		mockSetup      func(mockUsecase *mocks.MockActorUsecase)
+		mockSetup      func(mockClient *mocks.MockFilmsClient)
 		expectedStatus int
 		expectBody     bool
 		expectedFilms  []models.MainPageFilm
@@ -222,10 +291,27 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:   "Success with films",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return(expectedFilms, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				var grpcFilms []*gen.MainPageFilm
+				for _, film := range expectedFilms {
+					grpcFilms = append(grpcFilms, &gen.MainPageFilm{
+						Id:     film.ID.String(),
+						Cover:  film.Cover,
+						Title:  film.Title,
+						Rating: film.Rating,
+						Year:   int32(film.Year),
+						Genre:  film.Genre,
+					})
+				}
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(&gen.GetFilmsByActorResponse{Films: grpcFilms}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -235,10 +321,16 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:   "Success with empty films list",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return(emptyFilms, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(&gen.GetFilmsByActorResponse{Films: []*gen.MainPageFilm{}}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -248,7 +340,7 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:           "Invalid ID - not a uuid",
 			url:            "/actors/not-a-uuid/films",
 			varsID:         "not-a-uuid",
-			mockSetup:      func(mockUsecase *mocks.MockActorUsecase) {},
+			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
 			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
@@ -256,34 +348,70 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:   "Actor Not Found",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return([]models.MainPageFilm{}, actors.ErrorNotFound)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(nil, status.Error(codes.NotFound, "actor not found"))
 			},
 			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Invalid Argument",
+			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
+			varsID: actorIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
+			},
+			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{
 			name:   "Internal Server Error",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return([]models.MainPageFilm{}, actors.ErrorInternalServerError)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(nil, status.Error(codes.Internal, "internal error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
 		},
 		{
-			name:   "Unknown Error",
+			name:   "Unknown gRPC Error",
 			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 10, Offset: 0}).
-					Return([]models.MainPageFilm{}, errors.New("unknown error"))
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(nil, errors.New("unknown error"))
 			},
 			expectedStatus: http.StatusInternalServerError,
 			expectBody:     false,
@@ -292,10 +420,27 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:   "Success with default pager values",
 			url:    "/actors/" + actorIDStr + "/films",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, gomock.Any()).
-					Return(expectedFilms, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				var grpcFilms []*gen.MainPageFilm
+				for _, film := range expectedFilms {
+					grpcFilms = append(grpcFilms, &gen.MainPageFilm{
+						Id:     film.ID.String(),
+						Cover:  film.Cover,
+						Title:  film.Title,
+						Rating: film.Rating,
+						Year:   int32(film.Year),
+						Genre:  film.Genre,
+					})
+				}
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  10,
+							Offset: 0,
+						},
+					}).
+					Return(&gen.GetFilmsByActorResponse{Films: grpcFilms}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -305,36 +450,27 @@ func TestGetFilmsByActor(t *testing.T) {
 			name:   "Success with custom pager values",
 			url:    "/actors/" + actorIDStr + "/films?count=5&offset=10",
 			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 5, Offset: 10}).
-					Return(expectedFilms, nil)
-			},
-			expectedStatus: http.StatusOK,
-			expectBody:     true,
-			expectedFilms:  expectedFilms,
-		},
-		{
-			name:   "Success with negative pager values",
-			url:    "/actors/" + actorIDStr + "/films?count=-1&offset=-5",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, gomock.Any()).
-					Return(expectedFilms, nil)
-			},
-			expectedStatus: http.StatusOK,
-			expectBody:     true,
-			expectedFilms:  expectedFilms,
-		},
-		{
-			name:   "Success with large pager values",
-			url:    "/actors/" + actorIDStr + "/films?count=1000&offset=500",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, models.Pager{Count: 1000, Offset: 500}).
-					Return(expectedFilms, nil)
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				var grpcFilms []*gen.MainPageFilm
+				for _, film := range expectedFilms {
+					grpcFilms = append(grpcFilms, &gen.MainPageFilm{
+						Id:     film.ID.String(),
+						Cover:  film.Cover,
+						Title:  film.Title,
+						Rating: film.Rating,
+						Year:   int32(film.Year),
+						Genre:  film.Genre,
+					})
+				}
+				mockClient.EXPECT().
+					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
+						ActorId: actorIDStr,
+						Pager: &gen.Pager{
+							Count:  5,
+							Offset: 10,
+						},
+					}).
+					Return(&gen.GetFilmsByActorResponse{Films: grpcFilms}, nil)
 			},
 			expectedStatus: http.StatusOK,
 			expectBody:     true,
@@ -347,11 +483,11 @@ func TestGetFilmsByActor(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockUsecase := mocks.NewMockActorUsecase(ctrl)
-			handler := NewActorHandler(mockUsecase)
+			mockClient := mocks.NewMockFilmsClient(ctrl)
+			handler := NewActorHandler(mockClient)
 
 			if tt.mockSetup != nil {
-				tt.mockSetup(mockUsecase)
+				tt.mockSetup(mockClient)
 			}
 
 			req := httptest.NewRequest(http.MethodGet, tt.url, nil).WithContext(testContext())
@@ -375,171 +511,10 @@ func TestGetFilmsByActor(t *testing.T) {
 				if len(decoded) > 0 {
 					assert.Equal(t, tt.expectedFilms[0].Title, decoded[0].Title)
 					assert.Equal(t, tt.expectedFilms[0].Rating, decoded[0].Rating)
+					assert.Equal(t, tt.expectedFilms[0].Year, decoded[0].Year)
+					assert.Equal(t, tt.expectedFilms[0].Genre, decoded[0].Genre)
 				}
 			}
-		})
-	}
-}
-
-func TestNewActorHandler(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockUsecase := mocks.NewMockActorUsecase(ctrl)
-
-	t.Run("Success creation", func(t *testing.T) {
-		handler := NewActorHandler(mockUsecase)
-		assert.NotNil(t, handler)
-		assert.Equal(t, mockUsecase, handler.uc)
-	})
-
-	t.Run("Creation with nil usecase", func(t *testing.T) {
-		handler := NewActorHandler(nil)
-		assert.NotNil(t, handler)
-		assert.Nil(t, handler.uc)
-	})
-}
-
-func TestGetActor_EdgeCases(t *testing.T) {
-	actorID := uuid.NewV4()
-	actorIDStr := actorID.String()
-
-	tests := []struct {
-		name           string
-		varsID         string
-		mockSetup      func(mockUsecase *mocks.MockActorUsecase)
-		expectedStatus int
-	}{
-		{
-			name:   "Context without logger",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:   "Empty context",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetActor(gomock.Any(), actorID).
-					Return(models.ActorPage{}, nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			mockUsecase := mocks.NewMockActorUsecase(ctrl)
-			handler := NewActorHandler(mockUsecase)
-
-			if tt.mockSetup != nil {
-				tt.mockSetup(mockUsecase)
-			}
-
-			req := httptest.NewRequest(http.MethodGet, "/actors/"+tt.varsID, nil)
-			if tt.name == "Empty context" {
-				req = req.WithContext(context.Background())
-			}
-			rec := httptest.NewRecorder()
-
-			router := mux.NewRouter()
-			router.HandleFunc("/actors/{id}", handler.GetActor)
-
-			if tt.varsID != "" {
-				req = mux.SetURLVars(req, map[string]string{"id": tt.varsID})
-			} else {
-				req = mux.SetURLVars(req, map[string]string{})
-			}
-			router.ServeHTTP(rec, req)
-
-			assert.Equal(t, tt.expectedStatus, rec.Code)
-		})
-	}
-}
-
-func TestGetFilmsByActor_EdgeCases(t *testing.T) {
-	actorID := uuid.NewV4()
-	actorIDStr := actorID.String()
-
-	expectedFilms := []models.MainPageFilm{
-		{
-			ID:     uuid.NewV4(),
-			Cover:  "/covers/test.jpg",
-			Title:  "Test Film",
-			Rating: 7.5,
-			Year:   2020,
-			Genre:  "Test Genre",
-		},
-	}
-
-	tests := []struct {
-		name           string
-		url            string
-		varsID         string
-		mockSetup      func(mockUsecase *mocks.MockActorUsecase)
-		expectedStatus int
-	}{
-		{
-			name:   "Context without logger",
-			url:    "/actors/" + actorIDStr + "/films",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, gomock.Any()).
-					Return(expectedFilms, nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-		{
-			name:   "Empty context",
-			url:    "/actors/" + actorIDStr + "/films",
-			varsID: actorIDStr,
-			mockSetup: func(mockUsecase *mocks.MockActorUsecase) {
-				mockUsecase.EXPECT().
-					GetFilmsByActor(gomock.Any(), actorID, gomock.Any()).
-					Return(expectedFilms, nil)
-			},
-			expectedStatus: http.StatusOK,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			mockUsecase := mocks.NewMockActorUsecase(ctrl)
-			handler := NewActorHandler(mockUsecase)
-
-			if tt.mockSetup != nil {
-				tt.mockSetup(mockUsecase)
-			}
-
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-			if tt.name == "Empty context" {
-				req = req.WithContext(context.Background())
-			}
-			rec := httptest.NewRecorder()
-
-			router := mux.NewRouter()
-			router.HandleFunc("/actors/{id}/films", handler.GetFilmsByActor)
-
-			if tt.varsID != "" {
-				req = mux.SetURLVars(req, map[string]string{"id": tt.varsID})
-			} else {
-				req = mux.SetURLVars(req, map[string]string{})
-			}
-			router.ServeHTTP(rec, req)
-
-			assert.Equal(t, tt.expectedStatus, rec.Code)
 		})
 	}
 }

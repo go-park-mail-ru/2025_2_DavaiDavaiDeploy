@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"kinopoisk/internal/models"
-	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -74,13 +73,42 @@ func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]mode
 	return mainPageFilms, nil
 }
 
-func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPage, error) {
+func (uc *FilmUsecase) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
+	favFilms, _ := uc.filmRepo.GetUsersFavFilms(ctx, id)
+	return favFilms, nil
+}
+
+func (uc *FilmUsecase) GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	filmsInCalendar, err := uc.filmRepo.GetFilmsForCalendar(ctx, pager.Count, pager.Offset)
+	if err != nil {
+		return []models.FilmInCalendar{}, err
+	}
+
+	if len(filmsInCalendar) == 0 {
+		logger.Error("no films")
+		return []models.FilmInCalendar{}, films.ErrorNotFound
+	}
+
+	for i := range filmsInCalendar {
+		_, err = uc.filmRepo.CheckUserLikeExists(ctx, userID, filmsInCalendar[i].ID)
+		filmsInCalendar[i].IsLiked = false
+		if err == nil {
+			filmsInCalendar[i].IsLiked = true
+		}
+	}
+
+	return filmsInCalendar, nil
+}
+
+func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UUID) (models.FilmPage, error) {
 	film, err := uc.filmRepo.GetFilmPage(ctx, id)
-	user, _ := ctx.Value(auth.UserKey).(models.User)
 	if err != nil {
 		return models.FilmPage{}, err
 	}
-	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+
+	feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, id)
 	film.IsReviewed = false
 	emptyFeedback := ""
 	if err == nil && feedback.Title != &emptyFeedback {
@@ -90,17 +118,22 @@ func (uc *FilmUsecase) GetFilm(ctx context.Context, id uuid.UUID) (models.FilmPa
 		film.UserRating = &feedback.Rating
 	}
 
+	_, err = uc.filmRepo.CheckUserLikeExists(ctx, userID, film.ID)
+	film.IsLiked = false
+	if err == nil {
+		film.IsLiked = true
+	}
+
 	return film, nil
 }
 
-func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
+func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, _ := ctx.Value(auth.UserKey).(models.User)
 	result := make([]models.FilmFeedback, 0, pager.Count+1)
 	emptyFeedback := ""
 	usersFeedbackLogin := ""
-	if user.ID != uuid.Nil {
-		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, id)
+	if userID != uuid.Nil {
+		feedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, id)
 		if err == nil && feedback.Text != &emptyFeedback && feedback.Text != nil {
 			feedback.IsMine = true
 			usersFeedbackLogin = feedback.UserLogin
@@ -128,13 +161,8 @@ func (uc *FilmUsecase) GetFilmFeedbacks(ctx context.Context, id uuid.UUID, pager
 	return result, nil
 }
 
-func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("user is unauthorized")
-		return models.FilmFeedback{}, films.ErrorUnauthorized
-	}
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
@@ -151,7 +179,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
-	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
+	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, filmID)
 	if err == nil {
 		// отзыв существует - обновляем
 		existingFeedback.Title = &req.Title
@@ -172,7 +200,7 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	// создаем новый отзыв
 	feedback := models.FilmFeedback{
 		ID:        uuid.NewV4(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FilmID:    filmID,
 		Title:     &req.Title,
 		Text:      &req.Text,
@@ -190,20 +218,35 @@ func (uc *FilmUsecase) SendFeedback(ctx context.Context, req models.FilmFeedback
 	return feedback, nil
 }
 
-func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID) (models.FilmFeedback, error) {
+func (uc *FilmUsecase) SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	return uc.filmRepo.SaveFilm(ctx, userID, filmID)
+}
+
+func (uc *FilmUsecase) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) ([]models.FavFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	user, ok := ctx.Value(auth.UserKey).(models.User)
-	if !ok {
-		logger.Error("user is not authorized")
-		return models.FilmFeedback{}, films.ErrorUnauthorized
+	var favFilms []models.FavFilm
+
+	err := uc.filmRepo.RemoveFilm(ctx, userID, filmID)
+
+	if err == nil {
+		favFilms, err = uc.filmRepo.GetUsersFavFilms(ctx, userID)
+		if err != nil {
+			logger.Error("bad request")
+			return []models.FavFilm{}, films.ErrorBadRequest
+		}
 	}
+	return favFilms, nil
+}
+
+func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
 	if req.Rating < 1 || req.Rating > 10 {
 		logger.Error("invalid rating")
 		return models.FilmFeedback{}, films.ErrorBadRequest
 	}
 
-	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, user.ID, filmID)
+	existingFeedback, err := uc.filmRepo.CheckUserFeedbackExists(ctx, userID, filmID)
 	if err == nil {
 		// запись существует - обновляем рейтинг
 		existingFeedback.Rating = req.Rating
@@ -221,7 +264,7 @@ func (uc *FilmUsecase) SetRating(ctx context.Context, req models.FilmFeedbackInp
 
 	newFeedback := models.FilmFeedback{
 		ID:        uuid.NewV4(),
-		UserID:    user.ID,
+		UserID:    userID,
 		FilmID:    filmID,
 		Rating:    req.Rating,
 		CreatedAt: time.Now().UTC(),

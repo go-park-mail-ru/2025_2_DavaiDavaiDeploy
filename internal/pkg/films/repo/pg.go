@@ -168,7 +168,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
 		&result.Slogan, &result.Duration, &result.Image1, &result.Image2, &result.Image3,
-		&result.Genre, &result.Country, &result.NumberOfRatings,
+		&result.Genre, &result.GenreID, &result.Country, &result.NumberOfRatings, &result.IsOut,
 	)
 
 	if err != nil {
@@ -268,6 +268,28 @@ func (r *FilmRepository) CheckUserFeedbackExists(ctx context.Context, userID, fi
 	return feedback, nil
 }
 
+func (r *FilmRepository) CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var like models.FilmFeedback
+	err := r.db.QueryRow(
+		ctx,
+		CheckUserLikeExistsQuery,
+		userID, filmID,
+	).Scan(
+		&like.ID, &like.UserID, &like.FilmID,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("user or film are not found: " + err.Error())
+			return models.FilmFeedback{}, films.ErrorNotFound
+		}
+		logger.Error("failed to scan like: " + err.Error())
+		return models.FilmFeedback{}, films.ErrorInternalServerError
+	}
+	logger.Info("succesfully checked users like in db")
+	return like, nil
+}
+
 func (r *FilmRepository) UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
@@ -312,6 +334,28 @@ func (r *FilmRepository) SetRating(ctx context.Context, feedback models.FilmFeed
 	return err
 }
 
+func (r *FilmRepository) SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(ctx, InsertIntoSavedQuery, userID, filmID)
+	if err != nil {
+		logger.Error("failed to save film: " + err.Error())
+		return films.ErrorBadRequest
+	}
+	logger.Info("succesfully saved film in db")
+	return err
+}
+
+func (r *FilmRepository) RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(ctx, DeleteFromSavedQuery, userID, filmID)
+	if err != nil {
+		logger.Error("failed to save film: " + err.Error())
+		return films.ErrorInternalServerError
+	}
+	logger.Info("succesfully deleted film from saved in db")
+	return err
+}
+
 func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	var user models.User
@@ -333,4 +377,68 @@ func (r *FilmRepository) GetUserByLogin(ctx context.Context, login string) (mode
 	}
 	logger.Info("succesfully got user by login from db")
 	return user, nil
+}
+
+func (r *FilmRepository) GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetFilmsWithDateOfReleaseQuery, limit, offset)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.FilmInCalendar
+	for rows.Next() {
+		var film models.FilmInCalendar
+		if err := rows.Scan(
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.OriginalTitle,
+			&film.ShortDescription,
+			&film.ReleaseDate,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
+}
+
+func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetUsersFavFilmsQuery, id)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return []models.FavFilm{}, nil
+	}
+	defer rows.Close()
+
+	var films []models.FavFilm
+	for rows.Next() {
+		var film models.FavFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Title,
+			&film.Genre,
+			&film.Year,
+			&film.Duration,
+			&film.Image,
+			&film.ShortDescription,
+			&film.Rating,
+		); err != nil {
+			logger.Error("failed to scan fav films: " + err.Error())
+			continue
+		}
+		rating, _ := strconv.ParseFloat(fmt.Sprintf("%.1f", film.Rating), 64)
+		film.Rating = rating
+		films = append(films, film)
+	}
+	logger.Info(fmt.Sprintf("retrieved %d fav films from db for user %s", len(films), id.String()))
+	return films, nil
 }
