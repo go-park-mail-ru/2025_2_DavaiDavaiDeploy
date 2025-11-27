@@ -174,7 +174,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := []models.MainPageFilm{}
-	for i := range len(mainPageFilms.Films) - 2 {
+	for i := range len(mainPageFilms.Films) - 1 {
 		createdAt, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", mainPageFilms.Films[i].CreatedAt)
 		var film models.MainPageFilm
 		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
