@@ -57,10 +57,10 @@ func (uc *FilmUsecase) GetPromoFilm(ctx context.Context) (models.PromoFilm, erro
 	return promoFilm, nil
 }
 
-func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error) {
+func (uc *FilmUsecase) GetFilms(ctx context.Context, pager models.CursorPager) ([]models.MainPageFilm, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 
-	mainPageFilms, err := uc.filmRepo.GetFilmsWithPagination(ctx, pager.Count, pager.Offset)
+	mainPageFilms, err := uc.filmRepo.GetFilmsWithCursorPagination(ctx, pager.CreatedAt.AsTime(), pager.Count)
 	if err != nil {
 		return []models.MainPageFilm{}, err
 	}

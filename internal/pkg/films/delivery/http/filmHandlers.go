@@ -142,10 +142,11 @@ func (c *FilmHandler) GetUsersFavFilms(w http.ResponseWriter, r *http.Request) {
 // @Router       /films [get]
 func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	pager := helpers.GetPagerFromRequest(r)
+	pager := helpers.GetCursorPagerFromRequest(r)
 
 	mainPageFilms, err := c.client.GetFilms(r.Context(), &gen.GetFilmsRequest{
-		Pager: &gen.Pager{Count: int32(pager.Count), Offset: int32(pager.Offset)},
+		CreatedAt: pager.CreatedAt,
+		Count:     int32(pager.Count),
 	})
 
 	if err != nil {
@@ -165,8 +166,15 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(mainPageFilms.Films) != 11 {
+		w.Header().Set("X-Next-Cursor", "")
+	} else {
+		lastFilm := mainPageFilms.Films[len(mainPageFilms.Films)-2].CreatedAt
+		w.Header().Set("X-Next-Cursor", lastFilm)
+	}
+
 	response := []models.MainPageFilm{}
-	for i := range mainPageFilms.Films {
+	for i := range len(mainPageFilms.Films) - 2 {
 		var film models.MainPageFilm
 		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
 		film.Cover = mainPageFilms.Films[i].Cover
@@ -174,6 +182,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		film.Rating = mainPageFilms.Films[i].Rating
 		film.Genre = mainPageFilms.Films[i].Genre
 		film.Year = int(mainPageFilms.Films[i].Year)
+		film.CreatedAt = mainPageFilms.Films[i].CreatedAt
 		response = append(response, film)
 	}
 

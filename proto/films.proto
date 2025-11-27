@@ -1,6 +1,7 @@
 syntax = "proto3";
 package films;
 option go_package = "./internal/pkg/films/delivery/grpc/gen/;gen";
+import "google/protobuf/timestamp.proto";
 
 service Films {
   rpc GetPromoFilm(EmptyRequest) returns (GetPromoFilmResponse) {}
@@ -119,7 +120,8 @@ message GetPromoFilmResponse {
 }
 
 message GetFilmsRequest {
-  Pager pager = 1;
+  google.protobuf.Timestamp created_at = 1;
+  int32 count = 2;
 }
 
 message GetFilmsResponse {
@@ -257,6 +259,7 @@ message MainPageFilm {
   string cover = 2;
   string title = 3;
   double rating = 4;
+  string created_at = 5;
   int32 year = 6;
   string genre = 7;
 }

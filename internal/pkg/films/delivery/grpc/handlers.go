@@ -83,9 +83,9 @@ func (g GrpcFilmsHandler) GetFavFilms(ctx context.Context, in *gen.GetFavFilmsRe
 
 func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsResponse, error) {
 	var result []*gen.MainPageFilm
-	req := models.Pager{
-		Count:  int(in.Pager.Count),
-		Offset: int(in.Pager.Offset),
+	req := models.CursorPager{
+		Count:     int(in.Count),
+		CreatedAt: in.CreatedAt,
 	}
 	mainPageFilms, err := g.uc.GetFilms(ctx, req)
 	if err != nil {
@@ -100,12 +100,13 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 	for i := range mainPageFilms {
 		mainPageFilms[i].Sanitize()
 		result = append(result, &gen.MainPageFilm{
-			Id:     mainPageFilms[i].ID.String(),
-			Cover:  mainPageFilms[i].Cover,
-			Title:  mainPageFilms[i].Title,
-			Rating: mainPageFilms[i].Rating,
-			Year:   int32(mainPageFilms[i].Year),
-			Genre:  mainPageFilms[i].Genre,
+			Id:        mainPageFilms[i].ID.String(),
+			Cover:     mainPageFilms[i].Cover,
+			Title:     mainPageFilms[i].Title,
+			Rating:    mainPageFilms[i].Rating,
+			Year:      int32(mainPageFilms[i].Year),
+			Genre:     mainPageFilms[i].Genre,
+			CreatedAt: mainPageFilms[i].CreatedAt,
 		})
 	}
 
