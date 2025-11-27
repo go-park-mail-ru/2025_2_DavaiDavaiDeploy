@@ -166,7 +166,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(mainPageFilms.Films) != 11 {
+	if len(mainPageFilms.Films) != 13 {
 		w.Header().Set("X-Next-Cursor", "")
 	} else {
 		lastFilm := mainPageFilms.Films[len(mainPageFilms.Films)-2].CreatedAt

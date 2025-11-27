@@ -42,7 +42,7 @@ func GetPagerFromRequest(r *http.Request) models.Pager {
 func GetCursorPagerFromRequest(r *http.Request) models.CursorPager {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	created_at := GetStringParameter(r, "cursor", "")
-	count := 10
+	count := 12
 
 	cursor, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", created_at)
 	logger.Info("cursor: ", created_at)
