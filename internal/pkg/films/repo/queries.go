@@ -55,3 +55,6 @@ var GetFilmsWithDateOfReleaseQuery string
 
 //go:embed sql/getUsersFavFilmsQuery.sql
 var GetUsersFavFilmsQuery string
+
+//go:embed sql/getFilmsWithCursorPaginationQuery.sql
+var GetFilmsWithCursorPaginationQuery string

@@ -9,6 +9,7 @@ package gen
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -943,7 +944,8 @@ func (x *GetPromoFilmResponse) GetDuration() int32 {
 
 type GetFilmsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Pager         *Pager                 `protobuf:"bytes,1,opt,name=pager,proto3" json:"pager,omitempty"`
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,1,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Count         int32                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -978,11 +980,18 @@ func (*GetFilmsRequest) Descriptor() ([]byte, []int) {
 	return file_films_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *GetFilmsRequest) GetPager() *Pager {
+func (x *GetFilmsRequest) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
-		return x.Pager
+		return x.CreatedAt
 	}
 	return nil
+}
+
+func (x *GetFilmsRequest) GetCount() int32 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
 }
 
 type GetFilmsResponse struct {
@@ -2299,6 +2308,7 @@ type MainPageFilm struct {
 	Cover         string                 `protobuf:"bytes,2,opt,name=cover,proto3" json:"cover,omitempty"`
 	Title         string                 `protobuf:"bytes,3,opt,name=title,proto3" json:"title,omitempty"`
 	Rating        float64                `protobuf:"fixed64,4,opt,name=rating,proto3" json:"rating,omitempty"`
+	CreatedAt     string                 `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Year          int32                  `protobuf:"varint,6,opt,name=year,proto3" json:"year,omitempty"`
 	Genre         string                 `protobuf:"bytes,7,opt,name=genre,proto3" json:"genre,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -2361,6 +2371,13 @@ func (x *MainPageFilm) GetRating() float64 {
 		return x.Rating
 	}
 	return 0
+}
+
+func (x *MainPageFilm) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
 }
 
 func (x *MainPageFilm) GetYear() int32 {
@@ -3233,7 +3250,7 @@ var File_films_proto protoreflect.FileDescriptor
 
 const file_films_proto_rawDesc = "" +
 	"\n" +
-	"\vfilms.proto\x12\x05films\">\n" +
+	"\vfilms.proto\x12\x05films\x1a\x1fgoogle/protobuf/timestamp.proto\">\n" +
 	"\x15GetCompilationRequest\x12%\n" +
 	"\x0ecompilation_id\x18\x01 \x01(\tR\rcompilationId\"N\n" +
 	"\x16GetCompilationResponse\x124\n" +
@@ -3292,9 +3309,11 @@ const file_films_proto_rawDesc = "" +
 	"\x11short_description\x18\x05 \x01(\tR\x10shortDescription\x12\x12\n" +
 	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
 	"\x05genre\x18\a \x01(\tR\x05genre\x12\x1a\n" +
-	"\bduration\x18\b \x01(\x05R\bduration\"5\n" +
-	"\x0fGetFilmsRequest\x12\"\n" +
-	"\x05pager\x18\x01 \x01(\v2\f.films.PagerR\x05pager\"=\n" +
+	"\bduration\x18\b \x01(\x05R\bduration\"b\n" +
+	"\x0fGetFilmsRequest\x129\n" +
+	"\n" +
+	"created_at\x18\x01 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x05R\x05count\"=\n" +
 	"\x10GetFilmsResponse\x12)\n" +
 	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\"Y\n" +
 	"\x1aGetFilmsForCalendarRequest\x12\"\n" +
@@ -3388,12 +3407,14 @@ const file_films_proto_rawDesc = "" +
 	"\x05films\x18\x01 \x03(\v2\x13.films.MainPageFilmR\x05films\"5\n" +
 	"\x05Pager\x12\x14\n" +
 	"\x05count\x18\x01 \x01(\x05R\x05count\x12\x16\n" +
-	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\x8c\x01\n" +
+	"\x06offset\x18\x02 \x01(\x05R\x06offset\"\xab\x01\n" +
 	"\fMainPageFilm\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05cover\x18\x02 \x01(\tR\x05cover\x12\x14\n" +
 	"\x05title\x18\x03 \x01(\tR\x05title\x12\x16\n" +
-	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12\x12\n" +
+	"\x06rating\x18\x04 \x01(\x01R\x06rating\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\tR\tcreatedAt\x12\x12\n" +
 	"\x04year\x18\x06 \x01(\x05R\x04year\x12\x14\n" +
 	"\x05genre\x18\a \x01(\tR\x05genre\"\xee\x02\n" +
 	"\fFilmFeedback\x12\x0e\n" +
@@ -3573,6 +3594,7 @@ var file_films_proto_goTypes = []any{
 	(*ValidateUserRequest)(nil),           // 49: films.ValidateUserRequest
 	(*ValidateUserResponse)(nil),          // 50: films.ValidateUserResponse
 	(*FilmInCalendar)(nil),                // 51: films.FilmInCalendar
+	(*timestamppb.Timestamp)(nil),         // 52: google.protobuf.Timestamp
 }
 var file_films_proto_depIdxs = []int32{
 	6,  // 0: films.GetCompilationResponse.compilation:type_name -> films.Compilation
@@ -3581,7 +3603,7 @@ var file_films_proto_depIdxs = []int32{
 	39, // 3: films.GetFilmsByCompilationRequest.pager:type_name -> films.Pager
 	10, // 4: films.GetFilmsByCompilationResponse.films:type_name -> films.CompFilm
 	9,  // 5: films.GetFavFilmsResponse.films:type_name -> films.FavFilm
-	39, // 6: films.GetFilmsRequest.pager:type_name -> films.Pager
+	52, // 6: films.GetFilmsRequest.created_at:type_name -> google.protobuf.Timestamp
 	40, // 7: films.GetFilmsResponse.films:type_name -> films.MainPageFilm
 	39, // 8: films.GetFilmsForCalendarRequest.pager:type_name -> films.Pager
 	51, // 9: films.GetFilmsForCalendarResponse.films:type_name -> films.FilmInCalendar

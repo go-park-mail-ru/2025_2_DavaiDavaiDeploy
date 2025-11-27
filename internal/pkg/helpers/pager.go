@@ -4,6 +4,9 @@ import (
 	"kinopoisk/internal/models"
 	"net/http"
 	"strconv"
+	"time"
+
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func GetParameter(r *http.Request, s string, defaultValue int) int {
@@ -32,4 +35,18 @@ func GetPagerFromRequest(r *http.Request) models.Pager {
 	offset := GetParameter(r, "offset", 0)
 
 	return models.NewPager(count, offset)
+}
+
+func GetCursorPagerFromRequest(r *http.Request) models.CursorPager {
+	created_at := GetStringParameter(r, "cursor", "")
+	count := 10
+
+	cursor, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", created_at)
+
+	var createdAt *timestamppb.Timestamp
+	if !cursor.IsZero() {
+		createdAt = timestamppb.New(cursor)
+	}
+
+	return models.NewCursorPager(createdAt, count)
 }
