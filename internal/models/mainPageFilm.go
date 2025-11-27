@@ -2,6 +2,7 @@ package models
 
 import (
 	"html"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
@@ -13,12 +14,11 @@ type MainPageFilm struct {
 	Rating    float64   `json:"rating" binding:"required"`
 	Year      int       `json:"year" binding:"required"`
 	Genre     string    `json:"genre" binding:"required"`
-	CreatedAt string    `json:"created_at" binding:"required"`
+	CreatedAt time.Time `json:"created_at" binding:"required"`
 }
 
 func (mpf *MainPageFilm) Sanitize() {
 	mpf.Cover = html.EscapeString(mpf.Cover)
 	mpf.Title = html.EscapeString(mpf.Title)
 	mpf.Genre = html.EscapeString(mpf.Genre)
-	mpf.CreatedAt = html.EscapeString(mpf.CreatedAt)
 }

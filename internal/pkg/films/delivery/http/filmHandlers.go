@@ -175,6 +175,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 
 	response := []models.MainPageFilm{}
 	for i := range len(mainPageFilms.Films) - 2 {
+		createdAt, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", mainPageFilms.Films[i].CreatedAt)
 		var film models.MainPageFilm
 		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
 		film.Cover = mainPageFilms.Films[i].Cover
@@ -182,7 +183,7 @@ func (c *FilmHandler) GetFilms(w http.ResponseWriter, r *http.Request) {
 		film.Rating = mainPageFilms.Films[i].Rating
 		film.Genre = mainPageFilms.Films[i].Genre
 		film.Year = int(mainPageFilms.Films[i].Year)
-		film.CreatedAt = mainPageFilms.Films[i].CreatedAt
+		film.CreatedAt = createdAt
 		response = append(response, film)
 	}
 
