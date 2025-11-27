@@ -99,6 +99,7 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 
 	for i := range mainPageFilms {
 		mainPageFilms[i].Sanitize()
+
 		result = append(result, &gen.MainPageFilm{
 			Id:        mainPageFilms[i].ID.String(),
 			Cover:     mainPageFilms[i].Cover,
@@ -106,7 +107,7 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 			Rating:    mainPageFilms[i].Rating,
 			Year:      int32(mainPageFilms[i].Year),
 			Genre:     mainPageFilms[i].Genre,
-			CreatedAt: mainPageFilms[i].CreatedAt,
+			CreatedAt: mainPageFilms[i].CreatedAt.String(),
 		})
 	}
 
