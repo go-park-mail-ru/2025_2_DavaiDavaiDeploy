@@ -1209,3 +1209,5 @@ INSERT INTO actor_in_film (id, actor_id, film_id, character, description) VALUES
 -- Ограбление в Лос-Анджелесе
 ('a3bb189e-8bf9-3888-9912-000000000020', 'a3bb189e-8bf9-3888-9912-000000000020', 'a3bb189e-8bf9-3888-9912-6c2d5c7c5ba3', 'Джейк Райан', 'Профессиональный грабитель, планирующий ограбление'),
 ('a3bb189e-8bf9-3888-9912-000000000021', 'a3bb189e-8bf9-3888-9912-000000000021', 'a3bb189e-8bf9-3888-9912-6c2d5c7c5ba3', 'Детектив Фрэнк Морган', 'Опытный детектив, расследующий ограбления');
+
+UPDATE film SET created_at = CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '7 days');
