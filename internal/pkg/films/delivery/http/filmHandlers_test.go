@@ -134,6 +134,10 @@ func TestGetPromoFilm(t *testing.T) {
 	}
 }
 
+func TestEasyJson(t *testing.T) {
+	n := models.MainPageFilm{}
+	json.Marshal(n)
+}
 func TestGetFilm(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

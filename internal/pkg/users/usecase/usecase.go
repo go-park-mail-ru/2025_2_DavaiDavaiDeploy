@@ -103,6 +103,16 @@ func (uc *UserUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 		return models.User{}, users.ErrorUnauthorized
 	}
 
+	version, ok := claims["version"].(int)
+	if !ok {
+		logger.Error("invalid version claim")
+		return models.User{}, users.ErrorUnauthorized
+	}
+
+	if version != user.Version {
+		return models.User{}, err
+	}
+
 	return user, nil
 }
 
