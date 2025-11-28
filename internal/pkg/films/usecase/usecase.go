@@ -328,16 +328,15 @@ func (uc *FilmUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 		return models.User{}, films.ErrorUnauthorized
 	}
 
-	version, ok := claims["version"].(int)
+	version, ok := claims["version"].(float64)
 	if !ok {
 		logger.Error("invalid version claim")
 		return models.User{}, films.ErrorUnauthorized
 	}
 
-	if version != user.Version {
+	if int(version) != user.Version {
 		return models.User{}, err
 	}
-
 	return user, nil
 }
 
