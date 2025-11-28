@@ -49,11 +49,12 @@ func NewUserUsecase(userRepo users.UsersRepo, storageRepo users.StorageRepo) *Us
 	}
 }
 
-func (uc *UserUsecase) GenerateToken(id uuid.UUID, login string) (string, error) {
+func (uc *UserUsecase) GenerateToken(id uuid.UUID, login string, version int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    id,
-		"login": login,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"id":      id,
+		"login":   login,
+		"version": version,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 	return token.SignedString([]byte(uc.secret))
 }
@@ -157,7 +158,7 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	neededUser.PasswordHash = HashPass(newPassword)
 	neededUser.UpdatedAt = time.Now().UTC()
 
-	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
+	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login, neededUser.Version)
 	if err != nil {
 		return models.User{}, "", err
 	}
@@ -205,7 +206,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", err
 	}
 
-	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
+	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login, neededUser.Version)
 	if err != nil {
 		return models.User{}, "", err
 	}
