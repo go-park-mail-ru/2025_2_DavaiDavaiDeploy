@@ -9,7 +9,7 @@ import (
 )
 
 type UsersUsecase interface {
-	GenerateToken(id uuid.UUID, login string) (string, error)
+	GenerateToken(id uuid.UUID, login string, version int) (string, error)
 	ParseToken(token string) (*jwt.Token, error)
 	GetUser(ctx context.Context, id uuid.UUID) (models.User, error)
 	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)

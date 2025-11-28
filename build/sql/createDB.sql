@@ -262,9 +262,7 @@ $$
 BEGIN
     RETURN (
         setweight(to_tsvector('ru', coalesce(title, '')), 'A') ||
-        setweight(to_tsvector('en', coalesce(original_title, '')), 'A') ||
-        setweight(to_tsvector('ru', coalesce(description, '')), 'B') ||
-		setweight(to_tsvector('ru', coalesce(short_description, '')), 'C')
+        setweight(to_tsvector('en', coalesce(original_title, '')), 'A')
     );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
