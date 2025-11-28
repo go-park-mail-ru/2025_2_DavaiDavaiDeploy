@@ -52,11 +52,12 @@ func NewAuthUsecase(repo auth.AuthRepo) *AuthUsecase {
 	}
 }
 
-func (uc *AuthUsecase) GenerateToken(id uuid.UUID, login string) (string, error) {
+func (uc *AuthUsecase) GenerateToken(id uuid.UUID, login string, version int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    id,
-		"login": login,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"id":      id,
+		"login":   login,
+		"version": version,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 	return token.SignedString([]byte(uc.secret))
 }
@@ -108,7 +109,7 @@ func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (
 		return models.User{}, "", err
 	}
 
-	token, err := uc.GenerateToken(id, req.Login)
+	token, err := uc.GenerateToken(id, req.Login, user.Version)
 	if err != nil {
 		logger.Error("cannot generate token")
 		return models.User{}, "", auth.ErrorInternalServerError
@@ -150,7 +151,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 			return models.User{}, "", auth.ErrorBadRequest
 		}
 
-		token, err := uc.GenerateToken(neededUser.ID, req.Login)
+		token, err := uc.GenerateToken(neededUser.ID, req.Login, neededUser.Version)
 		if err != nil {
 			logger.Error("cannot generate token")
 			return models.User{}, "", auth.ErrorInternalServerError
@@ -175,7 +176,7 @@ func (uc *AuthUsecase) SignInUser(ctx context.Context, req models.SignInInput) (
 		return models.User{}, "", auth.ErrorUnauthorized
 	}
 
-	token, err := uc.GenerateToken(neededUser.ID, req.Login)
+	token, err := uc.GenerateToken(neededUser.ID, req.Login, neededUser.Version)
 	if err != nil {
 		logger.Error("cannot generate token")
 		return models.User{}, "", auth.ErrorInternalServerError
@@ -290,6 +291,16 @@ func (uc *AuthUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 
 	user, err := uc.authRepo.GetUserByLogin(ctx, login)
 	if err != nil {
+		return models.User{}, err
+	}
+
+	version, ok := claims["version"].(int)
+	if !ok {
+		logger.Error("invalid version claim")
+		return models.User{}, auth.ErrorUnauthorized
+	}
+
+	if version != user.Version {
 		return models.User{}, err
 	}
 

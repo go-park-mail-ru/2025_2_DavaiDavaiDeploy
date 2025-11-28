@@ -9,7 +9,7 @@ import (
 )
 
 type AuthUsecase interface {
-	GenerateToken(id uuid.UUID, login string) (string, error)
+	GenerateToken(id uuid.UUID, login string, version int) (string, error)
 	ParseToken(token string) (*jwt.Token, error)
 	SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error)
 	SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error)
