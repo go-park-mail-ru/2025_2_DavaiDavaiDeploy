@@ -204,7 +204,7 @@ func (uc *AuthUsecase) GenerateQRCode(login string) ([]byte, string, error) {
 
 	secretBase32 := base32.StdEncoding.EncodeToString(secret)
 
-	issuer := "kinopoisk"
+	issuer := "ddfilms"
 	otpURL := fmt.Sprintf("otpauth://totp/%s:%s?secret=%s&issuer=%s",
 		url.PathEscape(issuer),
 		url.PathEscape(login),

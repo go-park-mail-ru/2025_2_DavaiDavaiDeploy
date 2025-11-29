@@ -224,8 +224,8 @@ func (u *UserHandler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		Avatar:  user.User.Avatar,
 	}
 
-	helpers.WriteJSON(w, response)
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
+	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
 
