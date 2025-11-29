@@ -42,4 +42,5 @@ type FilmRepo interface {
 	GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error)
 	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
 	GetFilmsWithCursorPagination(ctx context.Context, cursor time.Time, offset int) ([]models.MainPageFilm, error)
+	GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool)
 }

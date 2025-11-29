@@ -8,6 +8,7 @@ import (
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/films/delivery/grpc/gen"
 	"kinopoisk/internal/pkg/helpers"
+	"kinopoisk/internal/pkg/hub"
 	"kinopoisk/internal/pkg/users"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
@@ -17,6 +18,7 @@ import (
 	"google.golang.org/grpc/codes"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 	uuid "github.com/satori/go.uuid"
 	"google.golang.org/grpc/status"
 )
@@ -28,10 +30,23 @@ const (
 
 type FilmHandler struct {
 	client gen.FilmsClient
+	hub    *hub.Hub
 }
 
-func NewFilmHandler(client gen.FilmsClient) *FilmHandler {
-	return &FilmHandler{client: client}
+func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
+	return &FilmHandler{client: client, hub: hub}
+}
+
+func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	web := websocket.Upgrader{}
+	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
+	conn, err := web.Upgrade(w, r, nil)
+	if err != nil {
+		log.LogHandlerError(logger, err, http.StatusUnauthorized)
+		return
+	}
+	c.hub.AddClient(conn)
 }
 
 // GetPromoFilm godoc
