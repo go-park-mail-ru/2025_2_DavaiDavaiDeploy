@@ -235,6 +235,7 @@ func main() {
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodDelete, http.MethodOptions)
+	protectedFilmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
