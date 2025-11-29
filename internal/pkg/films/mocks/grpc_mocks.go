@@ -322,6 +322,26 @@ func (mr *MockFilmsClientMockRecorder) GetPromoFilm(ctx, in any, opts ...any) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromoFilm", reflect.TypeOf((*MockFilmsClient)(nil).GetPromoFilm), varargs...)
 }
 
+// GetSimilarFilms mocks base method.
+func (m *MockFilmsClient) GetSimilarFilms(ctx context.Context, in *gen.GetSimilarFilmsRequest, opts ...grpc.CallOption) (*gen.GetSimilarFilmsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetSimilarFilms", varargs...)
+	ret0, _ := ret[0].(*gen.GetSimilarFilmsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilarFilms indicates an expected call of GetSimilarFilms.
+func (mr *MockFilmsClientMockRecorder) GetSimilarFilms(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmsClient)(nil).GetSimilarFilms), varargs...)
+}
+
 // RemoveFilm mocks base method.
 func (m *MockFilmsClient) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequest, opts ...grpc.CallOption) (*gen.GetFavFilmsResponse, error) {
 	m.ctrl.T.Helper()
@@ -674,6 +694,21 @@ func (m *MockFilmsServer) GetPromoFilm(arg0 context.Context, arg1 *gen.EmptyRequ
 func (mr *MockFilmsServerMockRecorder) GetPromoFilm(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromoFilm", reflect.TypeOf((*MockFilmsServer)(nil).GetPromoFilm), arg0, arg1)
+}
+
+// GetSimilarFilms mocks base method.
+func (m *MockFilmsServer) GetSimilarFilms(arg0 context.Context, arg1 *gen.GetSimilarFilmsRequest) (*gen.GetSimilarFilmsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSimilarFilms", arg0, arg1)
+	ret0, _ := ret[0].(*gen.GetSimilarFilmsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilarFilms indicates an expected call of GetSimilarFilms.
+func (mr *MockFilmsServerMockRecorder) GetSimilarFilms(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmsServer)(nil).GetSimilarFilms), arg0, arg1)
 }
 
 // RemoveFilm mocks base method.

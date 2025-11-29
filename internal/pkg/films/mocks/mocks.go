@@ -118,6 +118,21 @@ func (mr *MockFilmUsecaseMockRecorder) GetPromoFilm(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromoFilm", reflect.TypeOf((*MockFilmUsecase)(nil).GetPromoFilm), ctx)
 }
 
+// GetSimilarFilms mocks base method.
+func (m *MockFilmUsecase) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSimilarFilms", ctx, filmID)
+	ret0, _ := ret[0].([]models.MainPageFilm)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilarFilms indicates an expected call of GetSimilarFilms.
+func (mr *MockFilmUsecaseMockRecorder) GetSimilarFilms(ctx, filmID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmUsecase)(nil).GetSimilarFilms), ctx, filmID)
+}
+
 // GetUsersFavFilms mocks base method.
 func (m *MockFilmUsecase) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error) {
 	m.ctrl.T.Helper()
@@ -423,6 +438,21 @@ func (m *MockFilmRepo) GetPromoFilmByID(ctx context.Context, id uuid.UUID) (mode
 func (mr *MockFilmRepoMockRecorder) GetPromoFilmByID(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromoFilmByID", reflect.TypeOf((*MockFilmRepo)(nil).GetPromoFilmByID), ctx, id)
+}
+
+// GetSimilarFilms mocks base method.
+func (m *MockFilmRepo) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSimilarFilms", ctx, filmID)
+	ret0, _ := ret[0].([]models.MainPageFilm)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSimilarFilms indicates an expected call of GetSimilarFilms.
+func (mr *MockFilmRepoMockRecorder) GetSimilarFilms(ctx, filmID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmRepo)(nil).GetSimilarFilms), ctx, filmID)
 }
 
 // GetUserByLogin mocks base method.

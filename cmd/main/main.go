@@ -216,6 +216,7 @@ func main() {
 	filmRouter.HandleFunc("/calendar", filmHandler.GetFilmsForCalendar).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/{id}/similar", filmHandler.GetSimilarFilms).Methods(http.MethodGet)
 
 	// Protected film routes
 	protectedFilmRouter := filmRouter.PathPrefix("").Subrouter()
