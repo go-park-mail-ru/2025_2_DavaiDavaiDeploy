@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS film (
     trailer_url text,
     year integer NOT NULL,
     country_id uuid NOT NULL,
-    cluster_id integer NOT NULL,
+    cluster_id integer,
     genre_id uuid NOT NULL,
     slogan text,
     duration integer NOT NULL,
