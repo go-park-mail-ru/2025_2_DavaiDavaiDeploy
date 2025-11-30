@@ -507,6 +507,8 @@ func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) 
 	}
 	logger.Info("succesfully got films from db")
 	return films, nil
+}
+
 func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
