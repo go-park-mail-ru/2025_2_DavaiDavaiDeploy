@@ -225,6 +225,7 @@ func main() {
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/calendar", filmHandler.GetFilmsForCalendar).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/similar", filmHandler.GetSimilarFilms).Methods(http.MethodGet)
@@ -236,7 +237,6 @@ func main() {
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodDelete, http.MethodOptions)
-	apiRouter.HandleFunc("/ws", filmHandler.Subscribe)
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()
