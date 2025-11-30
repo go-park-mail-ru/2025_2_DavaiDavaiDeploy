@@ -16,7 +16,7 @@ import (
 
 	"github.com/dgryski/dgoogauth"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 	"github.com/skip2/go-qrcode"
 	"golang.org/x/crypto/argon2"

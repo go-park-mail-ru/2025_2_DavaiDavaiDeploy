@@ -14,7 +14,7 @@ import (
 	models "kinopoisk/internal/models"
 	reflect "reflect"
 
-	jwt "github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 	gomock "go.uber.org/mock/gomock"
 )
