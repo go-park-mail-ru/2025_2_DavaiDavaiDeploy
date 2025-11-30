@@ -5,13 +5,29 @@ on:
     branches:
       - main  
       - develop 
+
 jobs:
+  govulncheck:
+    name: Run govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
 
   deploy:
     name: Deploy MyApp
+    needs: govulncheck
     timeout-minutes: 30
-    #needs: linters-act 
     runs-on: ubuntu-latest
+
     steps:
       - name: Pull code 
         uses: appleboy/ssh-action@master
@@ -20,6 +36,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && git stash && git pull 
+
       - name: Build containers 
         uses: appleboy/ssh-action@master
         with:
@@ -29,6 +46,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy 
+
       - name: Restart service 
         uses: appleboy/ssh-action@master
         with:
