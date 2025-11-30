@@ -27,7 +27,17 @@ service Films {
 
   rpc SaveFilm(SaveFilmRequest) returns (EmptyResponse) {}
   rpc RemoveFilm(RemoveFilmRequest) returns (GetFavFilmsResponse) {}
-  rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {};
+  rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {}
+
+  rpc GetSimilarFilms(GetSimilarFilmsRequest) returns (GetSimilarFilmsResponse) {};
+}
+
+message GetSimilarFilmsRequest {
+  string film_id = 1;
+}
+
+message GetSimilarFilmsResponse {
+  repeated MainPageFilm films = 1;
 }
 
 message GetCompilationRequest {

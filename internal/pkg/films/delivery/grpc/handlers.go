@@ -758,3 +758,34 @@ func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.Get
 		Films: result,
 	}, nil
 }
+
+func (g GrpcFilmsHandler) GetSimilarFilms(ctx context.Context, in *gen.GetSimilarFilmsRequest) (*gen.GetSimilarFilmsResponse, error) {
+	var result []*gen.MainPageFilm
+	mainPageFilms, err := g.uc.GetSimilarFilms(ctx, uuid.FromStringOrNil(in.FilmId))
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "films not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "internal server error")
+		}
+	}
+
+	for i := range mainPageFilms {
+		mainPageFilms[i].Sanitize()
+
+		result = append(result, &gen.MainPageFilm{
+			Id:        mainPageFilms[i].ID.String(),
+			Cover:     mainPageFilms[i].Cover,
+			Title:     mainPageFilms[i].Title,
+			Rating:    mainPageFilms[i].Rating,
+			Year:      int32(mainPageFilms[i].Year),
+			Genre:     mainPageFilms[i].Genre,
+			CreatedAt: mainPageFilms[i].CreatedAt.String(),
+		})
+	}
+
+	return &gen.GetSimilarFilmsResponse{
+		Films: result,
+	}, nil
+}

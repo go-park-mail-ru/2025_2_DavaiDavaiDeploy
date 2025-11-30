@@ -39,6 +39,7 @@ const (
 	Films_SaveFilm_FullMethodName              = "/films.Films/SaveFilm"
 	Films_RemoveFilm_FullMethodName            = "/films.Films/RemoveFilm"
 	Films_GetFavFilms_FullMethodName           = "/films.Films/GetFavFilms"
+	Films_GetSimilarFilms_FullMethodName       = "/films.Films/GetSimilarFilms"
 )
 
 // FilmsClient is the client API for Films service.
@@ -65,6 +66,7 @@ type FilmsClient interface {
 	SaveFilm(ctx context.Context, in *SaveFilmRequest, opts ...grpc.CallOption) (*EmptyResponse, error)
 	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 	GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
+	GetSimilarFilms(ctx context.Context, in *GetSimilarFilmsRequest, opts ...grpc.CallOption) (*GetSimilarFilmsResponse, error)
 }
 
 type filmsClient struct {
@@ -275,6 +277,16 @@ func (c *filmsClient) GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, o
 	return out, nil
 }
 
+func (c *filmsClient) GetSimilarFilms(ctx context.Context, in *GetSimilarFilmsRequest, opts ...grpc.CallOption) (*GetSimilarFilmsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSimilarFilmsResponse)
+	err := c.cc.Invoke(ctx, Films_GetSimilarFilms_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilmsServer is the server API for Films service.
 // All implementations must embed UnimplementedFilmsServer
 // for forward compatibility.
@@ -299,6 +311,7 @@ type FilmsServer interface {
 	SaveFilm(context.Context, *SaveFilmRequest) (*EmptyResponse, error)
 	RemoveFilm(context.Context, *RemoveFilmRequest) (*GetFavFilmsResponse, error)
 	GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error)
+	GetSimilarFilms(context.Context, *GetSimilarFilmsRequest) (*GetSimilarFilmsResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
 
@@ -368,6 +381,9 @@ func (UnimplementedFilmsServer) RemoveFilm(context.Context, *RemoveFilmRequest) 
 }
 func (UnimplementedFilmsServer) GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetFavFilms not implemented")
+}
+func (UnimplementedFilmsServer) GetSimilarFilms(context.Context, *GetSimilarFilmsRequest) (*GetSimilarFilmsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSimilarFilms not implemented")
 }
 func (UnimplementedFilmsServer) mustEmbedUnimplementedFilmsServer() {}
 func (UnimplementedFilmsServer) testEmbeddedByValue()               {}
@@ -750,6 +766,24 @@ func _Films_GetFavFilms_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_GetSimilarFilms_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSimilarFilmsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetSimilarFilms(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetSimilarFilms_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetSimilarFilms(ctx, req.(*GetSimilarFilmsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Films_ServiceDesc is the grpc.ServiceDesc for Films service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -836,6 +870,10 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetFavFilms",
 			Handler:    _Films_GetFavFilms_Handler,
+		},
+		{
+			MethodName: "GetSimilarFilms",
+			Handler:    _Films_GetSimilarFilms_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -479,6 +479,34 @@ func (r *FilmRepository) GetFilmsWithCursorPagination(ctx context.Context, curso
 	return films, nil
 }
 
+func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetSimilarFilmsQuery, filmID)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.MainPageFilm
+	for rows.Next() {
+		var film models.MainPageFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.Rating,
+			&film.Year,
+			&film.Genre,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
 func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)

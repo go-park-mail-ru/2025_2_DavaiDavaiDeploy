@@ -357,3 +357,19 @@ func (uc *FilmUsecase) SiteMap(ctx context.Context) (models.Urlset, error) {
 	}
 	return urlSet, nil
 }
+
+func (uc *FilmUsecase) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	mainPageFilms, err := uc.filmRepo.GetSimilarFilms(ctx, filmID)
+	if err != nil {
+		return []models.MainPageFilm{}, err
+	}
+
+	if len(mainPageFilms) == 0 {
+		logger.Error("no films")
+		return []models.MainPageFilm{}, films.ErrorNotFound
+	}
+
+	return mainPageFilms, nil
+}

@@ -801,3 +801,59 @@ func (c *FilmHandler) SiteMap(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+func (c *FilmHandler) GetSimilarFilms(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	vars := mux.Vars(r)
+	filmID, err := uuid.FromString(vars["id"])
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid id of film"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	mainPageFilms, err := c.client.GetSimilarFilms(r.Context(), &gen.GetSimilarFilmsRequest{
+		FilmId: filmID.String(),
+	})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if len(mainPageFilms.Films) != 13 {
+		w.Header().Set("X-Next-Cursor", "")
+	} else {
+		lastFilm := mainPageFilms.Films[len(mainPageFilms.Films)-2].CreatedAt
+		w.Header().Set("X-Next-Cursor", lastFilm)
+	}
+
+	response := []models.MainPageFilm{}
+	for i := range len(mainPageFilms.Films) - 1 {
+		createdAt, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", mainPageFilms.Films[i].CreatedAt)
+		var film models.MainPageFilm
+		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
+		film.Cover = mainPageFilms.Films[i].Cover
+		film.Title = mainPageFilms.Films[i].Title
+		film.Rating = mainPageFilms.Films[i].Rating
+		film.Genre = mainPageFilms.Films[i].Genre
+		film.Year = int(mainPageFilms.Films[i].Year)
+		film.CreatedAt = createdAt
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
