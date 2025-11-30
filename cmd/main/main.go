@@ -20,7 +20,9 @@ import (
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
 	compilationHandlers "kinopoisk/internal/pkg/compilations/delivery/http"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
+	filmRepo "kinopoisk/internal/pkg/films/repo"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
+	"kinopoisk/internal/pkg/hub"
 	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
@@ -121,6 +123,12 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 
 func main() {
 	_ = godotenv.Load()
+	ctx := context.Background()
+	dbpool, err := initDB(ctx)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer dbpool.Close()
 
 	// Подключение к auth microservice
 	authConn, err := grpc.Dial("auth:5459", grpc.WithInsecure())
@@ -149,12 +157,15 @@ func main() {
 	filmClient := filmGen.NewFilmsClient(filmConn)
 	authClient := authGen.NewAuthClient(authConn)
 	searchClient := searchGen.NewSearchClient(searchConn)
+	filmRepo := filmRepo.NewFilmRepository(dbpool)
+	hubNew := &hub.Hub{Repo: filmRepo}
+	go hubNew.Run(context.Background())
 
 	authHandler := authHandlers.NewAuthHandler(authClient)
 	userHandler := userHandlers.NewUserHandler(authClient)
 	genreHandler := genreHandlers.NewGenreHandler(filmClient)
 	actorHandler := actorHandlers.NewActorHandler(filmClient)
-	filmHandler := filmHandlers.NewFilmHandler(filmClient)
+	filmHandler := filmHandlers.NewFilmHandler(filmClient, hubNew)
 	searchHandler := searchHandlers.NewSearchHandler(searchClient)
 	compilationHandler := compilationHandlers.NewCompilationHandler(filmClient)
 
@@ -225,6 +236,7 @@ func main() {
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/remove", filmHandler.RemoveFilm).Methods(http.MethodDelete, http.MethodOptions)
+	apiRouter.HandleFunc("/ws", filmHandler.Subscribe)
 
 	// Genre routes
 	genreRouter := apiRouter.PathPrefix("/genres").Subrouter()

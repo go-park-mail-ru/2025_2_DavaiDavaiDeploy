@@ -507,4 +507,35 @@ func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) 
 	}
 	logger.Info("succesfully got films from db")
 	return films, nil
+func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return []models.News{}, false
+	}
+	defer rows.Close()
+
+	var allNews []models.News
+	for rows.Next() {
+		var news models.News
+		if err := rows.Scan(
+			&news.ID,
+			&news.Title,
+			&news.Text,
+			&news.CreatedAt,
+		); err != nil {
+			logger.Error("failed to scan news: " + err.Error())
+			continue
+		}
+		allNews = append(allNews, news)
+	}
+
+	if len(allNews) == 0 {
+		logger.Info("no news")
+		return allNews, false
+	}
+
+	logger.Info("succesfully got news from db")
+	return allNews, true
 }
