@@ -45,28 +45,20 @@ def loadFilmsData():
 
 
 def constrained_kmeans(features, n_clusters, min_size):
-    # Первоначальная кластеризация
     kmeans = KMeans(n_clusters=n_clusters, random_state=42)
     labels = kmeans.fit_predict(features)
 
-    # Проверяем размеры кластеров и перераспределяем
-    for _ in range(100):  # максимальное количество итераций
+    for _ in range(100):  
         cluster_sizes = np.bincount(labels, minlength=n_clusters)
 
-        # Если все кластеры достаточно большие - выходим
         if all(size >= min_size for size in cluster_sizes):
             break
 
-        # Находим самый маленький кластер
         smallest_cluster = np.argmin(cluster_sizes)
 
-        # Находим ближайшие точки к центру маленького кластера из других кластеров
         distances = kmeans.transform(features)
 
-        # Сортируем точки по расстоянию к центру маленького кластера
         closest_points = np.argsort(distances[:, smallest_cluster])
-
-        # Перераспределяем ближайшие точки в маленький кластер
         for point_idx in closest_points:
             if cluster_sizes[smallest_cluster] >= min_size:
                 break
@@ -105,7 +97,6 @@ print(f"Найдено {len(np.unique(clusterLabels))} кластеров")
 print("Распределение по кластерам:")
 print(films['cluster'].value_counts().sort_index())
 
-# магия
 plt.figure(figsize=(12, 8))
 
 from sklearn.decomposition import PCA
@@ -120,7 +111,6 @@ plt.title('Кластеризация фильмов (2D проекция)')
 plt.xlabel('PCA Component 1')
 plt.ylabel('PCA Component 2')
 
-# Распределение кластеров
 plt.subplot(1, 2, 2)
 clusterCounts = films['cluster'].value_counts().sort_index()
 plt.bar(clusterCounts.index, clusterCounts.values)
