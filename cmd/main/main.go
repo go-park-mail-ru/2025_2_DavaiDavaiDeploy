@@ -225,6 +225,7 @@ func main() {
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/calendar", filmHandler.GetFilmsForCalendar).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/similar", filmHandler.GetSimilarFilms).Methods(http.MethodGet)
@@ -232,7 +233,6 @@ func main() {
 	// Protected film routes
 	protectedFilmRouter := filmRouter.PathPrefix("").Subrouter()
 	protectedFilmRouter.Use(authHandler.Middleware)
-	protectedFilmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 	protectedFilmRouter.HandleFunc("/{id}/feedback", filmHandler.SendFeedback).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/rating", filmHandler.SetRating).Methods(http.MethodPost, http.MethodOptions)
 	protectedFilmRouter.HandleFunc("/{id}/save", filmHandler.SaveFilm).Methods(http.MethodPost, http.MethodOptions)
