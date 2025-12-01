@@ -1,25 +1,69 @@
+WITH search_words AS (
+    SELECT unnest(string_to_array(lower($1), ' ')) AS word
+),
+long_words AS (
+    SELECT word
+    FROM search_words
+    WHERE length(word) >= 3
+),
+short_words AS (
+    SELECT word
+    FROM search_words
+    WHERE length(word) < 3
+),
+words_to_use AS (
+    SELECT 
+        CASE 
+            WHEN EXISTS (SELECT 1 FROM long_words) THEN (SELECT array_agg(word) FROM long_words)
+            ELSE (SELECT array_agg(word) FROM search_words WHERE word <> '')
+        END AS arr_long,
+        CASE 
+            WHEN EXISTS (SELECT 1 FROM long_words) THEN '{}'
+            ELSE (SELECT array_agg(word) FROM short_words)
+        END AS arr_short
+),
+similarity_rank AS (
+    SELECT
+        a.id,
+        a.russian_name,
+        a.original_name,
+        a.photo,
+        ts_rank(a.tsvector_column, plainto_tsquery('ru', lower($1))) AS ts_rank_ru,
+        ts_rank(a.tsvector_column, plainto_tsquery('en', lower($1))) AS ts_rank_en,
+        (
+            SELECT COALESCE(MAX(similarity(t, lw)), 0)
+            FROM unnest(words_to_use.arr_long) AS lw
+            CROSS JOIN unnest(
+                regexp_split_to_array(lower(a.russian_name), '\s+') ||
+                regexp_split_to_array(lower(a.original_name), '\s+') 
+            ) AS t
+        ) AS max_similarity_long,
+        (
+            SELECT COALESCE(SUM(0.1), 0)
+            FROM unnest(words_to_use.arr_long) AS lw
+            CROSS JOIN unnest(
+                regexp_split_to_array(lower(a.russian_name), '\s+') ||
+                regexp_split_to_array(lower(a.original_name), '\s+')
+            ) AS t
+            WHERE t ILIKE '%' || lw || '%'
+        ) AS long_word_contain_bonus,
+        (
+            SELECT COALESCE(SUM(0.05),0)
+            FROM unnest(words_to_use.arr_short) AS sw
+            CROSS JOIN unnest(
+                regexp_split_to_array(lower(a.russian_name), '\s+') ||
+                regexp_split_to_array(lower(a.original_name), '\s+')
+            ) AS t
+            WHERE t ILIKE '%' || sw || '%'
+        ) AS short_word_bonus
+    FROM actor a
+    CROSS JOIN words_to_use
+)
 SELECT 
-    a.id,
-    a.russian_name,
-    a.photo
-FROM actor a
-WHERE 
-    (a.tsvector_column @@ phraseto_tsquery('ru', lower($1)) AND ts_rank(a.tsvector_column, phraseto_tsquery('ru', lower($1))) >= 0.3)
-    OR
-    (a.tsvector_column @@ phraseto_tsquery('en', lower($1)) AND ts_rank(a.tsvector_column, phraseto_tsquery('en', lower($1))) >= 0.3)
-    OR
-    (
-        SELECT bool_or(
-            token ILIKE '%' || search_word || '%' OR 
-            (length(search_word) > 3 AND similarity(token, search_word) >= 0.2)
-        )
-        FROM unnest(string_to_array(lower($1), ' ')) as search_word
-        CROSS JOIN unnest(tsvector_to_array(a.tsvector_column)) as token
-        WHERE search_word != ''
-    )
-ORDER BY 
-    GREATEST(
-        COALESCE(ts_rank(a.tsvector_column, phraseto_tsquery('ru', lower($1))), 0),
-        COALESCE(ts_rank(a.tsvector_column, phraseto_tsquery('en', lower($1))), 0)
-    ) DESC
+    id,
+    russian_name,
+    photo
+FROM similarity_rank
+WHERE (ts_rank_ru > 0.3 OR ts_rank_en > 0.3 OR max_similarity_long > 0.3 OR long_word_contain_bonus > 0 OR short_word_bonus > 0)
+ORDER BY (GREATEST(ts_rank_ru, ts_rank_en) + max_similarity_long + long_word_contain_bonus + short_word_bonus) DESC
 LIMIT $2 OFFSET $3;
