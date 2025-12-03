@@ -37,6 +37,14 @@ func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
 	return &FilmHandler{client: client, hub: hub}
 }
 
+// Subscribe godoc
+// @Summary      News about films
+// @Tags         films
+// @Produce      json
+// @Success      101     {string} string "Switching Protocols"
+// @Failure      400
+// @Failure 	 500
+// @Router       /ws [get]
 func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
 	web := websocket.Upgrader{}

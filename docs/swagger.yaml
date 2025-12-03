@@ -283,6 +283,8 @@ definitions:
         type: string
       is_liked:
         type: boolean
+      is_out:
+        type: boolean
       is_reviewed:
         type: boolean
       number_of_ratings:
@@ -319,6 +321,7 @@ definitions:
     - genre_id
     - id
     - is_liked
+    - is_out
     - is_reviewed
     - number_of_ratings
     - poster
@@ -366,6 +369,8 @@ definitions:
     properties:
       cover:
         type: string
+      created_at:
+        type: string
       genre:
         type: string
       id:
@@ -378,6 +383,7 @@ definitions:
         type: integer
     required:
     - cover
+    - created_at
     - genre
     - id
     - rating
@@ -1223,6 +1229,22 @@ paths:
         "500":
           description: Internal Server Error
       summary: Get user's favorite films
+      tags:
+      - films
+  /ws:
+    get:
+      produces:
+      - application/json
+      responses:
+        "101":
+          description: Switching Protocols
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+        "500":
+          description: Internal Server Error
+      summary: News about films
       tags:
       - films
 swagger: "2.0"
