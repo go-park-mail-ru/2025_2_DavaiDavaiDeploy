@@ -640,7 +640,7 @@ func (re *RecommendationEngine) clusterBasedRecommendation(n int) []models.RecFi
 	}
 
 	// вес для каждого кластера
-	var clusterWeights map[int]float64
+	clusterWeights := make(map[int]float64)
 	for clusterID, ratings := range clusterRatings {
 		var sum float64
 		for _, rating := range ratings {
