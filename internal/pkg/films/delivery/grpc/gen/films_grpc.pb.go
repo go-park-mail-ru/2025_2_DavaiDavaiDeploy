@@ -19,27 +19,28 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Films_GetPromoFilm_FullMethodName          = "/films.Films/GetPromoFilm"
-	Films_GetFilms_FullMethodName              = "/films.Films/GetFilms"
-	Films_GetFilmsForCalendar_FullMethodName   = "/films.Films/GetFilmsForCalendar"
-	Films_GetFilm_FullMethodName               = "/films.Films/GetFilm"
-	Films_GetFilmFeedbacks_FullMethodName      = "/films.Films/GetFilmFeedbacks"
-	Films_SendFeedback_FullMethodName          = "/films.Films/SendFeedback"
-	Films_SetRating_FullMethodName             = "/films.Films/SetRating"
-	Films_SiteMap_FullMethodName               = "/films.Films/SiteMap"
-	Films_GetGenre_FullMethodName              = "/films.Films/GetGenre"
-	Films_GetGenres_FullMethodName             = "/films.Films/GetGenres"
-	Films_GetFilmsByGenre_FullMethodName       = "/films.Films/GetFilmsByGenre"
-	Films_GetCompilation_FullMethodName        = "/films.Films/GetCompilation"
-	Films_GetCompilations_FullMethodName       = "/films.Films/GetCompilations"
-	Films_GetFilmsByCompilation_FullMethodName = "/films.Films/GetFilmsByCompilation"
-	Films_GetActor_FullMethodName              = "/films.Films/GetActor"
-	Films_GetFilmsByActor_FullMethodName       = "/films.Films/GetFilmsByActor"
-	Films_ValidateUser_FullMethodName          = "/films.Films/ValidateUser"
-	Films_SaveFilm_FullMethodName              = "/films.Films/SaveFilm"
-	Films_RemoveFilm_FullMethodName            = "/films.Films/RemoveFilm"
-	Films_GetFavFilms_FullMethodName           = "/films.Films/GetFavFilms"
-	Films_GetSimilarFilms_FullMethodName       = "/films.Films/GetSimilarFilms"
+	Films_GetPromoFilm_FullMethodName            = "/films.Films/GetPromoFilm"
+	Films_GetFilms_FullMethodName                = "/films.Films/GetFilms"
+	Films_GetFilmsForCalendar_FullMethodName     = "/films.Films/GetFilmsForCalendar"
+	Films_GetFilm_FullMethodName                 = "/films.Films/GetFilm"
+	Films_GetFilmFeedbacks_FullMethodName        = "/films.Films/GetFilmFeedbacks"
+	Films_SendFeedback_FullMethodName            = "/films.Films/SendFeedback"
+	Films_SetRating_FullMethodName               = "/films.Films/SetRating"
+	Films_SiteMap_FullMethodName                 = "/films.Films/SiteMap"
+	Films_GetGenre_FullMethodName                = "/films.Films/GetGenre"
+	Films_GetGenres_FullMethodName               = "/films.Films/GetGenres"
+	Films_GetFilmsByGenre_FullMethodName         = "/films.Films/GetFilmsByGenre"
+	Films_GetCompilation_FullMethodName          = "/films.Films/GetCompilation"
+	Films_GetCompilations_FullMethodName         = "/films.Films/GetCompilations"
+	Films_GetFilmsByCompilation_FullMethodName   = "/films.Films/GetFilmsByCompilation"
+	Films_GetActor_FullMethodName                = "/films.Films/GetActor"
+	Films_GetFilmsByActor_FullMethodName         = "/films.Films/GetFilmsByActor"
+	Films_ValidateUser_FullMethodName            = "/films.Films/ValidateUser"
+	Films_SaveFilm_FullMethodName                = "/films.Films/SaveFilm"
+	Films_RemoveFilm_FullMethodName              = "/films.Films/RemoveFilm"
+	Films_GetFavFilms_FullMethodName             = "/films.Films/GetFavFilms"
+	Films_GetSimilarFilms_FullMethodName         = "/films.Films/GetSimilarFilms"
+	Films_GetUsersRecommendations_FullMethodName = "/films.Films/GetUsersRecommendations"
 )
 
 // FilmsClient is the client API for Films service.
@@ -67,6 +68,7 @@ type FilmsClient interface {
 	RemoveFilm(ctx context.Context, in *RemoveFilmRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 	GetFavFilms(ctx context.Context, in *GetFavFilmsRequest, opts ...grpc.CallOption) (*GetFavFilmsResponse, error)
 	GetSimilarFilms(ctx context.Context, in *GetSimilarFilmsRequest, opts ...grpc.CallOption) (*GetSimilarFilmsResponse, error)
+	GetUsersRecommendations(ctx context.Context, in *GetUsersRecommendationsRequest, opts ...grpc.CallOption) (*GetSimilarFilmsResponse, error)
 }
 
 type filmsClient struct {
@@ -287,6 +289,16 @@ func (c *filmsClient) GetSimilarFilms(ctx context.Context, in *GetSimilarFilmsRe
 	return out, nil
 }
 
+func (c *filmsClient) GetUsersRecommendations(ctx context.Context, in *GetUsersRecommendationsRequest, opts ...grpc.CallOption) (*GetSimilarFilmsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSimilarFilmsResponse)
+	err := c.cc.Invoke(ctx, Films_GetUsersRecommendations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // FilmsServer is the server API for Films service.
 // All implementations must embed UnimplementedFilmsServer
 // for forward compatibility.
@@ -312,6 +324,7 @@ type FilmsServer interface {
 	RemoveFilm(context.Context, *RemoveFilmRequest) (*GetFavFilmsResponse, error)
 	GetFavFilms(context.Context, *GetFavFilmsRequest) (*GetFavFilmsResponse, error)
 	GetSimilarFilms(context.Context, *GetSimilarFilmsRequest) (*GetSimilarFilmsResponse, error)
+	GetUsersRecommendations(context.Context, *GetUsersRecommendationsRequest) (*GetSimilarFilmsResponse, error)
 	mustEmbedUnimplementedFilmsServer()
 }
 
@@ -384,6 +397,9 @@ func (UnimplementedFilmsServer) GetFavFilms(context.Context, *GetFavFilmsRequest
 }
 func (UnimplementedFilmsServer) GetSimilarFilms(context.Context, *GetSimilarFilmsRequest) (*GetSimilarFilmsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSimilarFilms not implemented")
+}
+func (UnimplementedFilmsServer) GetUsersRecommendations(context.Context, *GetUsersRecommendationsRequest) (*GetSimilarFilmsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUsersRecommendations not implemented")
 }
 func (UnimplementedFilmsServer) mustEmbedUnimplementedFilmsServer() {}
 func (UnimplementedFilmsServer) testEmbeddedByValue()               {}
@@ -784,6 +800,24 @@ func _Films_GetSimilarFilms_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Films_GetUsersRecommendations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUsersRecommendationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(FilmsServer).GetUsersRecommendations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Films_GetUsersRecommendations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(FilmsServer).GetUsersRecommendations(ctx, req.(*GetUsersRecommendationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Films_ServiceDesc is the grpc.ServiceDesc for Films service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -874,6 +908,10 @@ var Films_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetSimilarFilms",
 			Handler:    _Films_GetSimilarFilms_Handler,
+		},
+		{
+			MethodName: "GetUsersRecommendations",
+			Handler:    _Films_GetUsersRecommendations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

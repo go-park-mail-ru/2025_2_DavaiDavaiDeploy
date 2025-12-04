@@ -455,6 +455,21 @@ func (mr *MockFilmRepoMockRecorder) GetSimilarFilms(ctx, filmID any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmRepo)(nil).GetSimilarFilms), ctx, filmID)
 }
 
+// GetUpdates mocks base method.
+func (m *MockFilmRepo) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUpdates", ctx, offset)
+	ret0, _ := ret[0].([]models.News)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetUpdates indicates an expected call of GetUpdates.
+func (mr *MockFilmRepoMockRecorder) GetUpdates(ctx, offset any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdates", reflect.TypeOf((*MockFilmRepo)(nil).GetUpdates), ctx, offset)
+}
+
 // GetUserByLogin mocks base method.
 func (m *MockFilmRepo) GetUserByLogin(ctx context.Context, login string) (models.User, error) {
 	m.ctrl.T.Helper()
