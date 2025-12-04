@@ -541,3 +541,39 @@ func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]mo
 	logger.Info("succesfully got news from db")
 	return allNews, true
 }
+
+func (r *FilmRepository) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetUsersRecommendationsQuery, userID)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.RecFilm
+	for rows.Next() {
+		var film models.RecFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Title,
+			&film.Year,
+			&film.GenreID,
+			&film.AgeCategory,
+			&film.CountryID,
+			&film.Duration,
+			&film.ClusterID,
+			&film.Rating,
+			&film.AmountOfReviews,
+			&film.UserRating,
+			&film.Cover,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
+}

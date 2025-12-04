@@ -61,5 +61,9 @@ var GetFilmsWithCursorPaginationQuery string
 
 //go:embed sql/getSimilarFilmsQuery.sql
 var GetSimilarFilmsQuery string
+
 //go:embed sql/getUpdatesQuery.sql
 var GetUpdatesQuery string
+
+//go:embed sql/getUsersRecommendationsQuery.sql
+var GetUsersRecommendationsQuery string

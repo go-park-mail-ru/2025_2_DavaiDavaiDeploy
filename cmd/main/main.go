@@ -216,6 +216,7 @@ func main() {
 	protectedUserRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/saved", filmHandler.GetUsersFavFilms).Methods(http.MethodGet)
+	protectedUserRouter.HandleFunc("/recommendations", filmHandler.GetUsersRecommendations).Methods(http.MethodGet)
 
 	userRouter.HandleFunc("/{id}", userHandler.GetUser).Methods(http.MethodGet)
 

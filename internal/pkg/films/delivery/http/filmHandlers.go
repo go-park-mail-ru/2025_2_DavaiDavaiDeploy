@@ -858,3 +858,51 @@ func (c *FilmHandler) GetSimilarFilms(w http.ResponseWriter, r *http.Request) {
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)
 }
+
+func (c *FilmHandler) GetUsersRecommendations(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
+
+	mainPageFilms, err := c.client.GetUsersRecommendations(r.Context(), &gen.GetUsersRecommendationsRequest{
+		UserId: user.ID.String(),
+	})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+
+		switch st.Code() {
+		case codes.NotFound:
+			log.LogHandlerError(logger, err, http.StatusNotFound)
+			helpers.WriteError(w, http.StatusNotFound)
+		case codes.InvalidArgument:
+			log.LogHandlerError(logger, err, http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+		default:
+			log.LogHandlerError(logger, err, http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	response := []models.MainPageFilm{}
+	for i := range len(mainPageFilms.Films) {
+		createdAt, _ := time.Parse("2006-01-02 15:04:05.999999999 -0700 MST", mainPageFilms.Films[i].CreatedAt)
+		var film models.MainPageFilm
+		film.ID = uuid.FromStringOrNil(mainPageFilms.Films[i].Id)
+		film.Cover = mainPageFilms.Films[i].Cover
+		film.Title = mainPageFilms.Films[i].Title
+		film.Rating = mainPageFilms.Films[i].Rating
+		film.Genre = mainPageFilms.Films[i].Genre
+		film.Year = int(mainPageFilms.Films[i].Year)
+		film.CreatedAt = createdAt
+		response = append(response, film)
+	}
+
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}

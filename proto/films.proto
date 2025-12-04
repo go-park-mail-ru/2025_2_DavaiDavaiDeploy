@@ -30,10 +30,15 @@ service Films {
   rpc GetFavFilms(GetFavFilmsRequest) returns (GetFavFilmsResponse) {}
 
   rpc GetSimilarFilms(GetSimilarFilmsRequest) returns (GetSimilarFilmsResponse) {};
+  rpc GetUsersRecommendations(GetUsersRecommendationsRequest) returns (GetSimilarFilmsResponse) {};
 }
 
 message GetSimilarFilmsRequest {
   string film_id = 1;
+}
+
+message GetUsersRecommendationsRequest {
+  string user_id = 1;
 }
 
 message GetSimilarFilmsResponse {

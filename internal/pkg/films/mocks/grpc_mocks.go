@@ -342,6 +342,26 @@ func (mr *MockFilmsClientMockRecorder) GetSimilarFilms(ctx, in any, opts ...any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmsClient)(nil).GetSimilarFilms), varargs...)
 }
 
+// GetUsersRecommendations mocks base method.
+func (m *MockFilmsClient) GetUsersRecommendations(ctx context.Context, in *gen.GetUsersRecommendationsRequest, opts ...grpc.CallOption) (*gen.GetSimilarFilmsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetUsersRecommendations", varargs...)
+	ret0, _ := ret[0].(*gen.GetSimilarFilmsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersRecommendations indicates an expected call of GetUsersRecommendations.
+func (mr *MockFilmsClientMockRecorder) GetUsersRecommendations(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersRecommendations", reflect.TypeOf((*MockFilmsClient)(nil).GetUsersRecommendations), varargs...)
+}
+
 // RemoveFilm mocks base method.
 func (m *MockFilmsClient) RemoveFilm(ctx context.Context, in *gen.RemoveFilmRequest, opts ...grpc.CallOption) (*gen.GetFavFilmsResponse, error) {
 	m.ctrl.T.Helper()
@@ -709,6 +729,21 @@ func (m *MockFilmsServer) GetSimilarFilms(arg0 context.Context, arg1 *gen.GetSim
 func (mr *MockFilmsServerMockRecorder) GetSimilarFilms(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSimilarFilms", reflect.TypeOf((*MockFilmsServer)(nil).GetSimilarFilms), arg0, arg1)
+}
+
+// GetUsersRecommendations mocks base method.
+func (m *MockFilmsServer) GetUsersRecommendations(arg0 context.Context, arg1 *gen.GetUsersRecommendationsRequest) (*gen.GetSimilarFilmsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersRecommendations", arg0, arg1)
+	ret0, _ := ret[0].(*gen.GetSimilarFilmsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersRecommendations indicates an expected call of GetUsersRecommendations.
+func (mr *MockFilmsServerMockRecorder) GetUsersRecommendations(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersRecommendations", reflect.TypeOf((*MockFilmsServer)(nil).GetUsersRecommendations), arg0, arg1)
 }
 
 // RemoveFilm mocks base method.
