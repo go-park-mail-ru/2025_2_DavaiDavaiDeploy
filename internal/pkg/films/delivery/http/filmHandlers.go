@@ -853,7 +853,7 @@ func (c *FilmHandler) GetSimilarFilms(w http.ResponseWriter, r *http.Request) {
 
 func (c *FilmHandler) GetUsersRecommendations(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
 		helpers.WriteError(w, http.StatusUnauthorized)
@@ -861,7 +861,7 @@ func (c *FilmHandler) GetUsersRecommendations(w http.ResponseWriter, r *http.Req
 	}
 
 	mainPageFilms, err := c.client.GetUsersRecommendations(r.Context(), &gen.GetUsersRecommendationsRequest{
-		UserId: user.ID.String(),
+		UserId: userID.String(),
 	})
 
 	if err != nil {
