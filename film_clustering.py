@@ -45,29 +45,84 @@ def loadFilmsData():
 
 
 def constrained_kmeans(features, n_clusters, min_size):
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
     labels = kmeans.fit_predict(features)
+    distances = kmeans.transform(features)
 
-    for _ in range(100):  
+    max_iterations = 100
+    for iteration in range(max_iterations):
         cluster_sizes = np.bincount(labels, minlength=n_clusters)
-
-        if all(size >= min_size for size in cluster_sizes):
+        
+        small_clusters = np.where(cluster_sizes < min_size)[0]
+        large_clusters = np.where(cluster_sizes > min_size)[0]
+        
+        if len(small_clusters) == 0:
             break
-
-        smallest_cluster = np.argmin(cluster_sizes)
-
-        distances = kmeans.transform(features)
-
-        closest_points = np.argsort(distances[:, smallest_cluster])
-        for point_idx in closest_points:
-            if cluster_sizes[smallest_cluster] >= min_size:
+        for small_cluster in small_clusters:
+            needed = min_size - cluster_sizes[small_cluster]
+            
+            if needed <= 0:
+                continue
+            candidates = []
+            
+            for large_cluster in large_clusters:
+                if cluster_sizes[large_cluster] <= min_size:
+                    continue
+                    
+                points_in_large = np.where(labels == large_cluster)[0]
+                for point_idx in points_in_large:
+                    distance_diff = distances[point_idx, small_cluster] - distances[point_idx, large_cluster]
+                    cluster_size_penalty = cluster_sizes[large_cluster] / max(cluster_sizes)
+                    
+                    score = distance_diff * cluster_size_penalty
+                    candidates.append((score, point_idx, large_cluster, small_cluster))
+            
+            candidates.sort(key=lambda x: x[0])
+            
+            moved = 0
+            for score, point_idx, large_cluster, small_cluster in candidates:
+                if moved >= needed:
+                    break
+                labels[point_idx] = small_cluster
+                cluster_sizes[small_cluster] += 1
+                cluster_sizes[large_cluster] -= 1
+                moved += 1
+            
+            large_clusters = np.where(cluster_sizes > min_size)[0]
+            
+            if len(large_clusters) == 0:
                 break
-            if labels[point_idx] != smallest_cluster:
-                labels[point_idx] = smallest_cluster
-                cluster_sizes = np.bincount(labels, minlength=n_clusters)
-
+    
+    final_sizes = np.bincount(labels, minlength=n_clusters)
+    small_clusters_final = np.where(final_sizes < min_size)[0]
+    
+    if len(small_clusters_final) > 0:
+        
+        for small_cluster in small_clusters_final:
+            needed = min_size - final_sizes[small_cluster]
+            if needed <= 0:
+                continue
+            
+            largest_cluster = np.argmax(final_sizes)
+            if final_sizes[largest_cluster] <= min_size:
+                continue
+            
+            points_in_largest = np.where(labels == largest_cluster)[0]
+            
+            if len(points_in_largest) > 0:
+                point_distances = []
+                for point_idx in points_in_largest:
+                    dist = distances[point_idx, small_cluster]
+                    point_distances.append((dist, point_idx))
+                
+                point_distances.sort(key=lambda x: x[0])
+                
+                for i in range(min(needed, len(point_distances))):
+                    _, point_idx = point_distances[i]
+                    labels[point_idx] = small_cluster
+                    final_sizes[small_cluster] += 1
+                    final_sizes[largest_cluster] -= 1
     return labels
-
 
 films = loadFilmsData()
 
