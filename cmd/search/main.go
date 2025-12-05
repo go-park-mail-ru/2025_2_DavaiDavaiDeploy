@@ -14,7 +14,9 @@ import (
 	"net"
 	"net/http"
 	"os/signal"
+	"strconv"
 	"syscall"
+	"time"
 
 	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/logger"
@@ -50,6 +52,24 @@ func initDB(ctx context.Context) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	maxConnsStr := os.Getenv("DB_MAX_CONNS")
+	minConnsStr := os.Getenv("DB_MIN_CONNS")
+	maxConns := 20
+	minConns := 5
+
+	if mc, err := strconv.Atoi(maxConnsStr); err == nil && mc > 0 {
+		maxConns = mc
+	}
+	if mic, err := strconv.Atoi(minConnsStr); err == nil && mic > 0 {
+		minConns = mic
+	}
+
+	config.MaxConns = int32(maxConns)
+	config.MinConns = int32(minConns)
+	config.MaxConnLifetime = time.Hour
+	config.MaxConnIdleTime = 30 * time.Minute
+	config.HealthCheckPeriod = 1 * time.Minute
 
 	pool, err := pgxpool.ConnectConfig(ctx, config)
 	if err != nil {
