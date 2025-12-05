@@ -83,9 +83,9 @@ func (g GrpcFilmsHandler) GetFavFilms(ctx context.Context, in *gen.GetFavFilmsRe
 
 func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest) (*gen.GetFilmsResponse, error) {
 	var result []*gen.MainPageFilm
-	req := models.Pager{
-		Count:  int(in.Pager.Count),
-		Offset: int(in.Pager.Offset),
+	req := models.CursorPager{
+		Count:     int(in.Count),
+		CreatedAt: in.CreatedAt,
 	}
 	mainPageFilms, err := g.uc.GetFilms(ctx, req)
 	if err != nil {
@@ -99,13 +99,15 @@ func (g GrpcFilmsHandler) GetFilms(ctx context.Context, in *gen.GetFilmsRequest)
 
 	for i := range mainPageFilms {
 		mainPageFilms[i].Sanitize()
+
 		result = append(result, &gen.MainPageFilm{
-			Id:     mainPageFilms[i].ID.String(),
-			Cover:  mainPageFilms[i].Cover,
-			Title:  mainPageFilms[i].Title,
-			Rating: mainPageFilms[i].Rating,
-			Year:   int32(mainPageFilms[i].Year),
-			Genre:  mainPageFilms[i].Genre,
+			Id:        mainPageFilms[i].ID.String(),
+			Cover:     mainPageFilms[i].Cover,
+			Title:     mainPageFilms[i].Title,
+			Rating:    mainPageFilms[i].Rating,
+			Year:      int32(mainPageFilms[i].Year),
+			Genre:     mainPageFilms[i].Genre,
+			CreatedAt: mainPageFilms[i].CreatedAt.String(),
 		})
 	}
 
@@ -753,6 +755,68 @@ func (g GrpcFilmsHandler) GetFilmsByCompilation(ctx context.Context, in *gen.Get
 	}
 
 	return &gen.GetFilmsByCompilationResponse{
+		Films: result,
+	}, nil
+}
+
+func (g GrpcFilmsHandler) GetSimilarFilms(ctx context.Context, in *gen.GetSimilarFilmsRequest) (*gen.GetSimilarFilmsResponse, error) {
+	var result []*gen.MainPageFilm
+	mainPageFilms, err := g.uc.GetSimilarFilms(ctx, uuid.FromStringOrNil(in.FilmId))
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "films not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "internal server error")
+		}
+	}
+
+	for i := range mainPageFilms {
+		mainPageFilms[i].Sanitize()
+
+		result = append(result, &gen.MainPageFilm{
+			Id:        mainPageFilms[i].ID.String(),
+			Cover:     mainPageFilms[i].Cover,
+			Title:     mainPageFilms[i].Title,
+			Rating:    mainPageFilms[i].Rating,
+			Year:      int32(mainPageFilms[i].Year),
+			Genre:     mainPageFilms[i].Genre,
+			CreatedAt: mainPageFilms[i].CreatedAt.String(),
+		})
+	}
+
+	return &gen.GetSimilarFilmsResponse{
+		Films: result,
+	}, nil
+}
+
+func (g GrpcFilmsHandler) GetUsersRecommendations(ctx context.Context, in *gen.GetUsersRecommendationsRequest) (*gen.GetSimilarFilmsResponse, error) {
+	var result []*gen.MainPageFilm
+	mainPageFilms, err := g.uc.GetUsersRecommendations(ctx, uuid.FromStringOrNil(in.UserId))
+	if err != nil {
+		switch {
+		case errors.Is(err, films.ErrorNotFound):
+			return nil, status.Errorf(codes.NotFound, "films not found")
+		default:
+			return nil, status.Errorf(codes.Internal, "internal server error")
+		}
+	}
+
+	for i := range mainPageFilms {
+		mainPageFilms[i].Sanitize()
+
+		result = append(result, &gen.MainPageFilm{
+			Id:        mainPageFilms[i].ID.String(),
+			Cover:     mainPageFilms[i].Cover,
+			Title:     mainPageFilms[i].Title,
+			Rating:    mainPageFilms[i].Rating,
+			Year:      int32(mainPageFilms[i].Year),
+			Genre:     mainPageFilms[i].Genre,
+			CreatedAt: mainPageFilms[i].CreatedAt.String(),
+		})
+	}
+
+	return &gen.GetSimilarFilmsResponse{
 		Films: result,
 	}, nil
 }

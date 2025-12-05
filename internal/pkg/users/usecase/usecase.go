@@ -12,7 +12,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/argon2"
 )
@@ -49,11 +49,12 @@ func NewUserUsecase(userRepo users.UsersRepo, storageRepo users.StorageRepo) *Us
 	}
 }
 
-func (uc *UserUsecase) GenerateToken(id uuid.UUID, login string) (string, error) {
+func (uc *UserUsecase) GenerateToken(id uuid.UUID, login string, version int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    id,
-		"login": login,
-		"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		"id":      id,
+		"login":   login,
+		"version": version,
+		"exp":     time.Now().Add(time.Hour * 24).Unix(),
 	})
 	return token.SignedString([]byte(uc.secret))
 }
@@ -103,6 +104,16 @@ func (uc *UserUsecase) ValidateAndGetUser(ctx context.Context, token string) (mo
 		return models.User{}, users.ErrorUnauthorized
 	}
 
+	version, ok := claims["version"].(float64)
+	if !ok {
+		logger.Error("invalid version claim")
+		return models.User{}, users.ErrorUnauthorized
+	}
+
+	if int(version) != user.Version {
+		return models.User{}, err
+	}
+
 	return user, nil
 }
 
@@ -147,7 +158,7 @@ func (uc *UserUsecase) ChangePassword(ctx context.Context, id uuid.UUID, oldPass
 	neededUser.PasswordHash = HashPass(newPassword)
 	neededUser.UpdatedAt = time.Now().UTC()
 
-	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
+	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login, neededUser.Version)
 	if err != nil {
 		return models.User{}, "", err
 	}
@@ -195,7 +206,7 @@ func (uc *UserUsecase) ChangeUserAvatar(ctx context.Context, id uuid.UUID, buffe
 		return models.User{}, "", err
 	}
 
-	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login)
+	token, err := uc.GenerateToken(neededUser.ID, neededUser.Login, neededUser.Version)
 	if err != nil {
 		return models.User{}, "", err
 	}

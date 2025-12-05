@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS film (
     trailer_url text,
     year integer NOT NULL,
     country_id uuid NOT NULL,
+    cluster_id integer,
     genre_id uuid NOT NULL,
     slogan text,
     duration integer NOT NULL,
@@ -128,6 +129,14 @@ CREATE TABLE IF NOT EXISTS user_table (
     CONSTRAINT user_table_password_hash_check CHECK ((octet_length(password_hash) = 40))
 );
 
+CREATE TABLE IF NOT EXISTS news_table (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    title text,
+    text text,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
+
 
 ALTER TABLE ONLY actor_in_film
     ADD CONSTRAINT actor_in_film_pkey PRIMARY KEY (id);
@@ -193,6 +202,8 @@ CREATE TRIGGER set_film_timestamps BEFORE INSERT OR UPDATE ON film FOR EACH ROW 
 CREATE TRIGGER set_genre_timestamps BEFORE INSERT OR UPDATE ON genre FOR EACH ROW EXECUTE FUNCTION set_timestamps();
 
 CREATE TRIGGER set_user_timestamps BEFORE INSERT OR UPDATE ON user_table FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+CREATE TRIGGER set_news_timestamps BEFORE INSERT OR UPDATE ON news_table FOR EACH ROW EXECUTE FUNCTION set_timestamps();
 
 ALTER TABLE ONLY actor_in_film
     ADD CONSTRAINT actor_in_film_actor_fk FOREIGN KEY (actor_id) REFERENCES actor(id) ON DELETE CASCADE;
@@ -262,9 +273,7 @@ $$
 BEGIN
     RETURN (
         setweight(to_tsvector('ru', coalesce(title, '')), 'A') ||
-        setweight(to_tsvector('en', coalesce(original_title, '')), 'A') ||
-        setweight(to_tsvector('ru', coalesce(description, '')), 'B') ||
-		setweight(to_tsvector('ru', coalesce(short_description, '')), 'C')
+        setweight(to_tsvector('en', coalesce(original_title, '')), 'A')
     );
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
@@ -342,3 +351,41 @@ CREATE TABLE IF NOT EXISTS film_in_compilation (
 CREATE TRIGGER set_film_in_compilation_timestamps 
     BEFORE INSERT OR UPDATE ON film_in_compilation
     FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+
+
+CREATE OR REPLACE FUNCTION add_film_news()
+RETURNS TRIGGER AS $$
+DECLARE
+    news_title text;
+    news_text text;
+BEGIN
+    IF NEW.release_date > CURRENT_DATE THEN
+        news_title := 'Скоро в кино: ' || NEW.title;
+        news_text := 'Фильм "' || COALESCE(NEW.title, NEW.original_title) || 
+                    '" выходит ' || TO_CHAR(NEW.release_date, 'DD.MM.YYYY') || '! 🎬 ' ||
+                    COALESCE(NEW.short_description, 'Сохраняйте дату! Скоро будет больше информации.');
+    ELSE
+        news_title := '"' || NEW.title || '" теперь у нас';
+        news_text := 'Мы добавили новый фильм: "' || 
+                    COALESCE(NEW.title, NEW.original_title) || 
+                    '" (' || NEW.year || '). ' ||
+                    CASE 
+                        WHEN NEW.short_description IS NOT NULL THEN NEW.short_description
+                        WHEN NEW.description IS NOT NULL THEN substring(NEW.description from 1 for 200) || '...'
+                        ELSE 'Описание пока отсутствует.'
+                    END;
+    END IF;
+
+    INSERT INTO news_table (title, text)
+    VALUES (news_title, news_text);
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_add_film_news ON film;
+CREATE TRIGGER trg_add_film_news
+    AFTER INSERT ON film
+    FOR EACH ROW
+    EXECUTE FUNCTION add_film_news();

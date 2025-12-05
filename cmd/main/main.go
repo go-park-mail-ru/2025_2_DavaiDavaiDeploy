@@ -20,7 +20,9 @@ import (
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
 	compilationHandlers "kinopoisk/internal/pkg/compilations/delivery/http"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
+	filmRepo "kinopoisk/internal/pkg/films/repo"
 	genreHandlers "kinopoisk/internal/pkg/genres/delivery/http"
+	"kinopoisk/internal/pkg/hub"
 	"kinopoisk/internal/pkg/metrics"
 	"kinopoisk/internal/pkg/middleware/cors"
 	logger "kinopoisk/internal/pkg/middleware/logger"
@@ -121,6 +123,12 @@ func initS3Client(ctx context.Context) (*s3.Client, string, error) {
 
 func main() {
 	_ = godotenv.Load()
+	ctx := context.Background()
+	dbpool, err := initDB(ctx)
+	if err != nil {
+		log.Fatalf("Unable to connect to database: %v\n", err)
+	}
+	defer dbpool.Close()
 
 	// Подключение к auth microservice
 	authConn, err := grpc.Dial("auth:5459", grpc.WithInsecure())
@@ -149,12 +157,15 @@ func main() {
 	filmClient := filmGen.NewFilmsClient(filmConn)
 	authClient := authGen.NewAuthClient(authConn)
 	searchClient := searchGen.NewSearchClient(searchConn)
+	filmRepo := filmRepo.NewFilmRepository(dbpool)
+	hubNew := &hub.Hub{Repo: filmRepo}
+	go hubNew.Run(context.Background())
 
 	authHandler := authHandlers.NewAuthHandler(authClient)
 	userHandler := userHandlers.NewUserHandler(authClient)
 	genreHandler := genreHandlers.NewGenreHandler(filmClient)
 	actorHandler := actorHandlers.NewActorHandler(filmClient)
-	filmHandler := filmHandlers.NewFilmHandler(filmClient)
+	filmHandler := filmHandlers.NewFilmHandler(filmClient, hubNew)
 	searchHandler := searchHandlers.NewSearchHandler(searchClient)
 	compilationHandler := compilationHandlers.NewCompilationHandler(filmClient)
 
@@ -205,6 +216,7 @@ func main() {
 	protectedUserRouter.HandleFunc("/change/password", userHandler.ChangePassword).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/change/avatar", userHandler.ChangeAvatar).Methods(http.MethodPut, http.MethodOptions)
 	protectedUserRouter.HandleFunc("/saved", filmHandler.GetUsersFavFilms).Methods(http.MethodGet)
+	protectedUserRouter.HandleFunc("/recommendations", filmHandler.GetUsersRecommendations).Methods(http.MethodGet)
 
 	userRouter.HandleFunc("/{id}", userHandler.GetUser).Methods(http.MethodGet)
 
@@ -214,8 +226,10 @@ func main() {
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/calendar", filmHandler.GetFilmsForCalendar).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
+	filmRouter.HandleFunc("/{id}/similar", filmHandler.GetSimilarFilms).Methods(http.MethodGet)
 
 	// Protected film routes
 	protectedFilmRouter := filmRouter.PathPrefix("").Subrouter()

@@ -9,6 +9,7 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"strconv"
+	"time"
 
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/jackc/pgx/v4"
@@ -440,5 +441,139 @@ func (r *FilmRepository) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]
 		films = append(films, film)
 	}
 	logger.Info(fmt.Sprintf("retrieved %d fav films from db for user %s", len(films), id.String()))
+	return films, nil
+}
+
+func (r *FilmRepository) GetFilmsWithCursorPagination(ctx context.Context, cursor time.Time, count int) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetFilmsWithCursorPaginationQuery, cursor, count+1)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.MainPageFilm
+	for rows.Next() {
+		var film models.MainPageFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.Year,
+			&film.Genre,
+			&film.CreatedAt,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		rating, err := r.GetFilmAvgRating(ctx, film.ID)
+		if err != nil {
+			logger.Error("failed to get rating: " + err.Error())
+		}
+		film.Rating = rating
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
+}
+
+func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetSimilarFilmsQuery, filmID)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.MainPageFilm
+	for rows.Next() {
+		var film models.MainPageFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Cover,
+			&film.Title,
+			&film.Rating,
+			&film.Year,
+			&film.Genre,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
+	return films, nil
+}
+
+func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return []models.News{}, false
+	}
+	defer rows.Close()
+
+	var allNews []models.News
+	for rows.Next() {
+		var news models.News
+		if err := rows.Scan(
+			&news.ID,
+			&news.Title,
+			&news.Text,
+			&news.CreatedAt,
+		); err != nil {
+			logger.Error("failed to scan news: " + err.Error())
+			continue
+		}
+		allNews = append(allNews, news)
+	}
+
+	if len(allNews) == 0 {
+		logger.Info("no news")
+		return allNews, false
+	}
+
+	logger.Info("succesfully got news from db")
+	return allNews, true
+}
+
+func (r *FilmRepository) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	rows, err := r.db.Query(ctx, GetUsersRecommendationsQuery, userID)
+	if err != nil {
+		logger.Error("failed to get rows: " + err.Error())
+		return nil, films.ErrorInternalServerError
+	}
+	defer rows.Close()
+
+	var films []models.RecFilm
+	for rows.Next() {
+		var film models.RecFilm
+		if err := rows.Scan(
+			&film.ID,
+			&film.Title,
+			&film.Year,
+			&film.GenreID,
+			&film.AgeCategory,
+			&film.CountryID,
+			&film.Duration,
+			&film.ClusterID,
+			&film.Rating,
+			&film.AmountOfReviews,
+			&film.UserRating,
+			&film.Cover,
+		); err != nil {
+			logger.Error("failed to scan films: " + err.Error())
+			continue
+		}
+		films = append(films, film)
+	}
+	logger.Info("succesfully got films from db")
 	return films, nil
 }

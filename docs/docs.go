@@ -1147,6 +1147,31 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/ws": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "News about films",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1515,6 +1540,7 @@ const docTemplate = `{
                 "genre_id",
                 "id",
                 "is_liked",
+                "is_out",
                 "is_reviewed",
                 "number_of_ratings",
                 "poster",
@@ -1569,6 +1595,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "is_liked": {
+                    "type": "boolean"
+                },
+                "is_out": {
                     "type": "boolean"
                 },
                 "is_reviewed": {
@@ -1661,6 +1690,7 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "cover",
+                "created_at",
                 "genre",
                 "id",
                 "rating",
@@ -1669,6 +1699,9 @@ const docTemplate = `{
             ],
             "properties": {
                 "cover": {
+                    "type": "string"
+                },
+                "created_at": {
                     "type": "string"
                 },
                 "genre": {

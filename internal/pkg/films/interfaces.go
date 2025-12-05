@@ -3,13 +3,14 @@ package films
 import (
 	"context"
 	"kinopoisk/internal/models"
+	"time"
 
 	uuid "github.com/satori/go.uuid"
 )
 
 type FilmUsecase interface {
 	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
-	GetFilms(ctx context.Context, pager models.Pager) ([]models.MainPageFilm, error)
+	GetFilms(ctx context.Context, pager models.CursorPager) ([]models.MainPageFilm, error)
 	GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UUID) (models.FilmPage, error)
 	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
 	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
@@ -20,6 +21,8 @@ type FilmUsecase interface {
 	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) ([]models.FavFilm, error)
 	GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error)
 	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
+	GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error)
+	GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.MainPageFilm, error)
 }
 
 type FilmRepo interface {
@@ -40,4 +43,8 @@ type FilmRepo interface {
 	CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
 	GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error)
 	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
+	GetFilmsWithCursorPagination(ctx context.Context, cursor time.Time, offset int) ([]models.MainPageFilm, error)
+	GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error)
+	GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool)
+	GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error)
 }

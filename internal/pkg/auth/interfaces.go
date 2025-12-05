@@ -4,12 +4,12 @@ import (
 	"context"
 	"kinopoisk/internal/models"
 
-	"github.com/golang-jwt/jwt"
+	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 )
 
 type AuthUsecase interface {
-	GenerateToken(id uuid.UUID, login string) (string, error)
+	GenerateToken(id uuid.UUID, login string, version int) (string, error)
 	ParseToken(token string) (*jwt.Token, error)
 	SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error)
 	SignInUser(ctx context.Context, req models.SignInInput) (models.User, string, error)

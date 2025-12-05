@@ -1141,6 +1141,31 @@
                     }
                 }
             }
+        },
+        "/ws": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "films"
+                ],
+                "summary": "News about films",
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1509,6 +1534,7 @@
                 "genre_id",
                 "id",
                 "is_liked",
+                "is_out",
                 "is_reviewed",
                 "number_of_ratings",
                 "poster",
@@ -1563,6 +1589,9 @@
                     "type": "string"
                 },
                 "is_liked": {
+                    "type": "boolean"
+                },
+                "is_out": {
                     "type": "boolean"
                 },
                 "is_reviewed": {
@@ -1655,6 +1684,7 @@
             "type": "object",
             "required": [
                 "cover",
+                "created_at",
                 "genre",
                 "id",
                 "rating",
@@ -1663,6 +1693,9 @@
             ],
             "properties": {
                 "cover": {
+                    "type": "string"
+                },
+                "created_at": {
                     "type": "string"
                 },
                 "genre": {

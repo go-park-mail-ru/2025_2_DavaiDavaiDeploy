@@ -25,3 +25,6 @@ generate-mocks:
 
 clean:
 	rm -f $(COVERAGE_FILE) $(COVERAGE_HTML) ${COVERPROFILE_TMP} 
+
+easyjson:
+	easyjson -all -pkg ./internal/models/
