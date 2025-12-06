@@ -17,7 +17,7 @@ GRANT SELECT ON
 TO ddfilms_user;
 
 
-GRANT INSERT ON user_table TO ddfilms_user;
+GRANT INSERT, SELECT ON user_table TO ddfilms_user;
 GRANT UPDATE (avatar, password_hash, has_2fa, secret_code, updated_at) 
 ON user_table TO ddfilms_user;
 
