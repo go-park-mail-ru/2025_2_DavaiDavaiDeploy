@@ -47,6 +47,7 @@ func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
 // @Router       /ws [get]
 func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+
 	web := websocket.Upgrader{}
 	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
 	conn, err := web.Upgrade(w, r, nil)
