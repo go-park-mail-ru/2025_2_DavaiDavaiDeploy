@@ -526,7 +526,7 @@ func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]mo
 			&news.Title,
 			&news.Text,
 			&news.FilmID,
-			&news.CreatedAt,
+			&news.ScheduledAt,
 		); err != nil {
 			logger.Error("failed to scan news: " + err.Error())
 			continue
