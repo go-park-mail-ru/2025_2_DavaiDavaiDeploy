@@ -509,7 +509,7 @@ func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) 
 	return films, nil
 }
 
-func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+func (r *FilmRepository) GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
 	if err != nil {

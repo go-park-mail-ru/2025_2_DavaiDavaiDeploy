@@ -397,7 +397,6 @@ CREATE TRIGGER trg_add_film_news
     EXECUTE FUNCTION add_film_news();
 
 
-
 CREATE OR REPLACE FUNCTION released_film_news()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -405,7 +404,7 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1 FROM news_table 
             WHERE film_id = NEW.id 
-            AND title = 'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ' 
+            AND title LIKE 'Сегодня премьера фильма%'
         ) THEN
             INSERT INTO news_table (title, text, film_id, scheduled_at) VALUES (
                 'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
@@ -413,6 +412,11 @@ BEGIN
                 NEW.id,
                 (NEW.release_date::timestamp + INTERVAL '19 hours 38 minutes')
             );
+        ELSE 
+            UPDATE news_table SET 
+                text = COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
+                scheduled_at = (NEW.release_date::timestamp + INTERVAL '19 hours 38 minutes')
+                WHERE film_id = NEW.id;
         END IF;
     END IF;
     RETURN NEW;
