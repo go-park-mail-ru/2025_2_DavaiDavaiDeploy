@@ -402,12 +402,18 @@ CREATE OR REPLACE FUNCTION released_film_news()
 RETURNS TRIGGER AS $$
 BEGIN
     IF NEW.release_date >= CURRENT_DATE THEN 
-        INSERT INTO news_table (title, text, film_id, scheduled_at) VALUES (
-            'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
-            COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
-            NEW.id,
-            (NEW.release_date::timestamp + INTERVAL '18 hours 15 minutes')
-        );
+        IF NOT EXISTS (
+            SELECT 1 FROM news_table 
+            WHERE film_id = NEW.id 
+            AND DATE(scheduled_at) = NEW.release_date
+        ) THEN
+            INSERT INTO news_table (title, text, film_id, scheduled_at) VALUES (
+                'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
+                COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
+                NEW.id,
+                (NEW.release_date::timestamp + INTERVAL '18 hours 35 minutes')
+            );
+        END IF;
     END IF;
     RETURN NEW;
 END;
