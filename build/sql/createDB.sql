@@ -405,13 +405,13 @@ BEGIN
         IF NOT EXISTS (
             SELECT 1 FROM news_table 
             WHERE film_id = NEW.id 
-            AND DATE(scheduled_at) = NEW.release_date
+            AND title = 'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ' 
         ) THEN
             INSERT INTO news_table (title, text, film_id, scheduled_at) VALUES (
                 'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
                 COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
                 NEW.id,
-                (NEW.release_date::timestamp + INTERVAL '18 hours 45 minutes')
+                (NEW.release_date::timestamp + INTERVAL '19 hours 38 minutes')
             );
         END IF;
     END IF;
