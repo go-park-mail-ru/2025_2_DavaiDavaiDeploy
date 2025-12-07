@@ -406,7 +406,7 @@ BEGIN
             'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
             COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
             NEW.id,
-            (NEW.release_date::timestamp + INTERVAL '19 hours')
+            (NEW.release_date::timestamp + INTERVAL '16 hours 25 minutes')
         );
     END IF;
     RETURN NEW;
