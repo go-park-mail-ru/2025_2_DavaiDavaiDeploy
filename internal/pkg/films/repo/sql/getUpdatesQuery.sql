@@ -2,7 +2,7 @@ SELECT
     id,
     title,
     text,
-    film_id
+    film_id,
     scheduled_at
 FROM news_table 
 WHERE scheduled_at > $1
