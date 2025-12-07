@@ -5,11 +5,12 @@ package models
 import (
 	json "encoding/json"
 	xml "encoding/xml"
+	time "time"
+
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
-	time "time"
 )
 
 // suppress unused package warning
@@ -1584,12 +1585,12 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels11(in *jlexer.Lexer, out *News
 			} else {
 				out.Text = string(in.String())
 			}
-		case "created_at":
+		case "scheduled_at":
 			if in.IsNull() {
 				in.Skip()
 			} else {
 				if data := in.Raw(); in.Ok() {
-					in.AddError((out.CreatedAt).UnmarshalJSON(data))
+					in.AddError((out.ScheduledAt).UnmarshalJSON(data))
 				}
 			}
 		default:
@@ -1624,7 +1625,7 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels11(out *jwriter.Writer, in New
 	{
 		const prefix string = ",\"created_at\":"
 		out.RawString(prefix)
-		out.Raw((in.CreatedAt).MarshalJSON())
+		out.Raw((in.ScheduledAt).MarshalJSON())
 	}
 	out.RawByte('}')
 }
