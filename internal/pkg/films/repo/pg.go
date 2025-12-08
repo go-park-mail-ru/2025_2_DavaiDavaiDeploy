@@ -511,7 +511,7 @@ func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) 
 
 func (r *FilmRepository) GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
+	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset, userID)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
 		return []models.News{}, false
