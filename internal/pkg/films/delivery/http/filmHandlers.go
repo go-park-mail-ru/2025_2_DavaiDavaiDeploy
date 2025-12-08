@@ -47,7 +47,12 @@ func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
 // @Router       /ws [get]
 func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-
+	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
+		return
+	}
 	web := websocket.Upgrader{}
 	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
 	conn, err := web.Upgrade(w, r, nil)
@@ -55,7 +60,7 @@ func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		log.LogHandlerError(logger, err, http.StatusUnauthorized)
 		return
 	}
-	c.hub.AddClient(conn)
+	c.hub.AddClient(user.ID, conn)
 }
 
 // GetPromoFilm godoc

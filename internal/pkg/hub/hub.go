@@ -18,8 +18,8 @@ type Hub struct {
 	Repo          *repo.FilmRepository
 }
 
-func (h *Hub) AddClient(client *websocket.Conn) {
-	h.connect.Store(client, true)
+func (h *Hub) AddClient(userID uuid.UUID, client *websocket.Conn) {
+	h.connect.Store(client, userID)
 	go func() {
 		for {
 			_, _, err := client.NextReader()
