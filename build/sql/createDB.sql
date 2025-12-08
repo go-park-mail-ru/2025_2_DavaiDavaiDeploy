@@ -410,12 +410,12 @@ BEGIN
                 'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
                 COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
                 NEW.id,
-                (NEW.release_date::timestamp + INTERVAL '19 hours 38 minutes')
+                (NEW.release_date::timestamp + INTERVAL '16 hours')
             );
         ELSE 
             UPDATE news_table SET 
                 text = COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
-                scheduled_at = (NEW.release_date::timestamp + INTERVAL '19 hours 38 minutes')
+                scheduled_at = (NEW.release_date::timestamp + INTERVAL '16 hours')
                 WHERE film_id = NEW.id;
         END IF;
     END IF;
