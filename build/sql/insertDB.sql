@@ -4925,3 +4925,793 @@ COMMIT;
 
 
 UPDATE film SET created_at = CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '7 days');
+
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'А зори здесь тихие' THEN 'https://rutube.ru/video/10839c1d382040902b1115e8ff9814f9/'
+        WHEN '1+1' THEN 'https://vkvideo.ru/video-220018529_456243240'
+        WHEN '12 обезьян' THEN 'https://rutube.ru/video/f9dc3c5c94b45d9ec52e2563795ad94f/'
+        WHEN '12 разгневанных мужчин' THEN 'https://rutube.ru/video/c00f7e1c6a3d52c0b037b63684653590/'
+        WHEN '2001 год: Космическая одиссея' THEN 'https://rutube.ru/video/1b0fd8cfe8c4dbd8631ed68a28d860f8/'
+        WHEN '25-й час' THEN 'https://rutube.ru/video/92ded1ffe44502944192a8ed1ef4d55e/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'А зори здесь тихие',
+    '1+1',
+    '12 обезьян',
+    '12 разгневанных мужчин',
+    '2001 год: Космическая одиссея',
+    '25-й час'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN '39 ступеней' THEN 'https://vkvideo.ru/video-228340866_456240319'
+        WHEN '8 с половиной' THEN 'https://rutube.ru/video/59d40343748c74c13adb443e3581bbc3/'
+        WHEN 'Амадей' THEN 'https://rutube.ru/video/29895d4671930e77dad836504693eec0/'
+        WHEN 'Амели' THEN 'https://vkvideo.ru/video-220947868_456239402'
+        WHEN 'Американская история X' THEN 'https://rutube.ru/video/3807e1c8fa32cdf3025c25903bdb5c65/'
+        WHEN 'Апокалипсис сегодня' THEN 'https://rutube.ru/video/a5543a4cc5f77ea86a05be3d3f2dbf42/'
+        WHEN 'Афера' THEN 'https://rutube.ru/video/135696596812e364f751fef33aff13dc/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    '39 ступеней',
+    '8 с половиной',
+    'Амадей',
+    'Амели',
+    'Американская история X',
+    'Апокалипсис сегодня',
+    'Афера'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Африканская королева' THEN 'https://vkvideo.ru/video-74449405_456242323'
+        WHEN 'Багровые реки' THEN 'https://rutube.ru/video/89a8f58a2a512880036d93a9486a89e8/'
+        WHEN 'Беги, Лола, беги' THEN 'https://rutube.ru/video/514c93b0fff56cda2014b5a82a1f4551/'
+        WHEN 'Бегущий по лезвию' THEN 'https://rutube.ru/video/3652a79aad4c2cd6ee5df9d8a4d5f739/'
+        WHEN 'Бен-Гур' THEN 'https://rutube.ru/video/88d51398dbbad97c39ec64eaedefd0df/'
+        WHEN 'Бешеные псы' THEN 'https://rutube.ru/video/a6d8fbd1c85aef882159e9b4cf4a7e59/'
+        WHEN 'Бешеный бык' THEN 'https://rutube.ru/video/d4a5b7909240b35ebd9048a6706fbf3b/'
+        WHEN 'Бильярдист' THEN 'https://rutube.ru/video/62d7689e3d7493e4e6f7d084b6b963ac/'
+        WHEN 'Бойцовский клуб' THEN 'https://rutube.ru/video/df90c64749f7e553ff97b20a54e0f3b5/'
+        WHEN 'Большой куш' THEN 'https://rutube.ru/video/51da19ba4bdd106a2992c826bc507c1d/'
+        WHEN 'Большой побег' THEN 'https://rutube.ru/video/8c1d12abb1c818345000b57f82c5ea2c/'
+        WHEN 'Бонни и Клайд' THEN 'https://rutube.ru/video/92afd6e3caff252bc50e461520e5ebe9/'
+        WHEN 'Бразилия' THEN 'https://rutube.ru/video/9fb84b64aa37d73d7fdeaf4d9375609d/'
+        WHEN 'Брат' THEN 'https://vkvideo.ru/video-231547357_456239230'
+        WHEN 'Брат 2' THEN 'https://vkvideo.ru/video-226305437_456239390'
+        WHEN 'Бриллиантовая рука' THEN 'https://rutube.ru/video/1a7baf7b3eb80925774b0174b1e2c0f9/'
+        WHEN 'Броненосец «Потемкин»' THEN 'https://rutube.ru/video/9a6fc3c628f1e790381fbd778d084e7c/'
+        WHEN 'Будучи там' THEN 'https://vkvideo.ru/video-218359460_456241027'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Африканская королева',
+    'Багровые реки',
+    'Беги, Лола, беги',
+    'Бегущий по лезвию',
+    'Бен-Гур',
+    'Бешеные псы',
+    'Бешеный бык',
+    'Бильярдист',
+    'Бойцовский клуб',
+    'Большой куш',
+    'Большой побег',
+    'Бонни и Клайд',
+    'Бразилия',
+    'Брат',
+    'Брат 2',
+    'Бриллиантовая рука',
+    'Броненосец «Потемкин»',
+    'Будучи там'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Буч Кэссиди и Сандэнс Кид' THEN 'https://rutube.ru/video/31565c59f3a71123fcc04ac35e455a19/'
+        WHEN 'Быть Джоном Малковичем' THEN 'https://vkvideo.ru/video-220018529_456245068'
+        WHEN 'Быть или не быть' THEN 'https://rutube.ru/video/f906f6fede1d43764528f94f462a7e50/'
+        WHEN 'В августе 44-го' THEN 'https://rutube.ru/video/feb08d0cfac520d98cf2c369cb923f5d/'
+        WHEN 'В джазе только девушки' THEN 'https://rutube.ru/video/b84016ef1e9b7aee4e7b3d35eeb2a8b4/'
+        WHEN 'В порту' THEN 'https://rutube.ru/video/1d06d54904e7bde08a67582301d96df6/'
+        WHEN 'Великая иллюзия' THEN 'https://rutube.ru/video/74b72a868f62e5f03d10e481d28162f8/'
+        WHEN 'Великий диктатор' THEN 'https://rutube.ru/video/3e8c184bebdfb63f0404ebd8ed85179a/'
+        WHEN 'Вернись ко мне' THEN 'https://vkvideo.ru/video-26551941_456242840'
+        WHEN 'Вечер в опере' THEN 'https://vkvideo.ru/video-74449405_456241186'
+        WHEN 'Взвод' THEN 'https://rutube.ru/video/4855f1327f8cde8bf080cbf5c8145447/'
+        WHEN 'Властелин колец: Братство кольца' THEN 'https://rutube.ru/video/6a20ed30f8b1368f21d36605b43f8ba0/'
+        WHEN 'Властелин колец: Возвращение короля' THEN 'https://rutube.ru/video/f763beb56ed1161b01d155e455cbc27f/'
+        WHEN 'Властелин колец: Две крепости' THEN 'https://rutube.ru/video/9fbd4d062514a01e568bdeff5988a816/'
+        WHEN 'Военно-полевой госпиталь' THEN 'https://vkvideo.ru/video-129086231_456239469'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Буч Кэссиди и Сандэнс Кид',
+    'Быть Джоном Малковичем',
+    'Быть или не быть',
+    'В августе 44-го',
+    'В джазе только девушки',
+    'В порту',
+    'Великая иллюзия',
+    'Великий диктатор',
+    'Вернись ко мне',
+    'Вечер в опере',
+    'Взвод',
+    'Властелин колец: Братство кольца',
+    'Властелин колец: Возвращение короля',
+    'Властелин колец: Две крепости',
+    'Военно-полевой госпиталь'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Волшебник страны Оз' THEN 'https://rutube.ru/video/6c9790dd6d1cee014b1a7cafd5a4048a/'
+        WHEN 'Воспитание Крошки' THEN 'https://rutube.ru/video/e32687c9157d18512f0f1d36bd19315c/'
+        WHEN 'Вся президентская рать' THEN 'https://vkvideo.ru/video735831744_456241629'
+        WHEN 'Всё о Еве' THEN 'https://rutube.ru/video/d423e398a94d262bc559b81a21e059c9/'
+        WHEN 'Всё о моей матери' THEN 'https://rutube.ru/video/430a897ee85b47fddf3d7ba6f85c53b4/'
+        WHEN 'Выпускник' THEN 'https://rutube.ru/video/90bd4be45d492a199a2891f43629426e/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Волшебник страны Оз',
+    'Воспитание Крошки',
+    'Вся президентская рать',
+    'Всё о Еве',
+    'Всё о моей матери',
+    'Выпускник'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Ганди' THEN 'https://rutube.ru/video/43a38c7a7297673d2dd0acb81e9b3ae1/'
+        WHEN 'Гарри Поттер и узник Азкабана' THEN 'https://rutube.ru/video/f23b6543f203b2b2e3f103cf00a55f03/'
+        WHEN 'Гарри Поттер и философский камень' THEN 'https://rutube.ru/video/576b517cd87f3f0ea2ae3eb552761ebb/'
+        WHEN 'Генрих V: Битва при Азенкуре' THEN 'https://vkvideo.ru/video-78517495_456246076'
+        WHEN 'Гладиатор' THEN 'https://rutube.ru/video/6c8de6e788dd4b5d0e433289ad556a4b/'
+        WHEN 'Глубокий сон' THEN 'https://rutube.ru/video/02f2e97af8cbe7a7a86d7d777806f057/'
+        WHEN 'Головокружение' THEN 'https://rutube.ru/video/9c6022e87f7873996f4c50e9366c931e/'
+        WHEN 'Город бога' THEN 'https://rutube.ru/video/e6ee3f86860a24d2cb914a24133ece79/'
+        WHEN 'Гражданин Кейн' THEN 'https://rutube.ru/video/c99b8930b85031ae9e912dc72c8adec3/'
+        WHEN 'Гроздья гнева' THEN 'https://rutube.ru/video/bca5aeddd33627db934ac675f050a6c3/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Ганди',
+    'Гарри Поттер и узник Азкабана',
+    'Гарри Поттер и философский камень',
+    'Генрих V: Битва при Азенкуре',
+    'Гладиатор',
+    'Глубокий сон',
+    'Головокружение',
+    'Город бога',
+    'Гражданин Кейн',
+    'Гроздья гнева'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Дангал' THEN 'https://rutube.ru/video/1533629fc4145eadaaf83f9321a7bd8f/'
+        WHEN 'Двойная страховка' THEN 'https://rutube.ru/video/f1d7ed723540a0ed9cbc64c36c5ab63d/'
+        WHEN 'Двойной форсаж' THEN 'https://rutube.ru/video/a63d51c3f631bfab62f9658fa75bda1b/'
+        WHEN 'Девчата' THEN 'https://rutube.ru/video/7358ddc35dd78d6f136be8e99f8be457/'
+        WHEN 'Девятая сессия' THEN 'https://rutube.ru/video/c5f4c7848621ff39c947f83661cfb332/'
+        WHEN 'Дежурный папа' THEN 'https://rutube.ru/video/0f72c64615010037e25d3a84b8a5435a/'
+        WHEN 'День сурка' THEN 'https://rutube.ru/video/7137fdcf6c797b32d455cc512a02a23b/'
+        WHEN 'Детектив Шафт' THEN 'https://rutube.ru/video/3ae36585d6cb04dec39b074f9771a8f6/'
+        WHEN 'Дети шпионов' THEN 'https://rutube.ru/video/f54663d2ba9f4a91694526efd7473cb4/'
+        WHEN 'Дети шпионов 2: Остров несбывшихся надежд' THEN 'https://vkvideo.ru/video-220018529_456239394'
+        WHEN 'Джанго освобожденный' THEN 'https://rutube.ru/video/e1f0e0ffd9802fc6b43d623a08f59c81/'
+        WHEN 'Джентльмены' THEN 'https://rutube.ru/video/117b02b35df581b9e0d6884355b64336/'
+        WHEN 'Дикая банда' THEN 'https://vkvideo.ru/video29154082_456239857'
+        WHEN 'Дикий робот' THEN 'https://rutube.ru/video/8a6ffe2e6c1d77ee457f94d803af35da/'
+        WHEN 'Дилижанс' THEN 'https://rutube.ru/video/3b089d660e6d1e0985dd21d9593ca6fb/'
+        WHEN 'Доблесть' THEN 'https://rutube.ru/video/0fdd89b417761dc94fa2cbc39479f0df/'
+        WHEN 'Доктор Стрейнджлав, или Как я научился не волноваться и полюбил атомную бомбу' THEN 'https://rutube.ru/video/db290dc67d9204f2178309e78ca51d7a/'
+        WHEN 'Донни Дарко' THEN 'https://vkvideo.ru/video-220018529_456239424'
+        WHEN 'Дорога' THEN 'https://rutube.ru/video/e5c6693f8601a1dbf0718c7efb3fa8fc/'
+        WHEN 'Дорога на Эльдорадо' THEN 'https://rutube.ru/video/56e2f5468d9eb954226b7db16554eebd/'
+        WHEN 'Дорожное приключение' THEN 'https://rutube.ru/video/65b149fd71c8c2f6520402bb7f9117e2/'
+        WHEN 'Достучаться до небес' THEN 'https://rutube.ru/video/2a32e9af4a8be0f8505d30fd3be52aeb/'
+        WHEN 'Другие' THEN 'https://rutube.ru/video/4873e841da24fec0073f56f2691db7b2/'
+        WHEN 'Дублеры' THEN 'https://rutube.ru/video/b5e866ccb69e991040fcccd679799851/'
+        WHEN 'Дурная слава' THEN 'https://vkvideo.ru/video-228340866_456240349'
+        WHEN 'Дюна: Часть вторая' THEN 'https://rutube.ru/video/1442bf34b5b9cfc739c809cd19a6718f/'
+        WHEN 'Его девушка Пятница' THEN 'https://rutube.ru/video/46b485497b5ca47e54a37dcab528ff95/'
+        WHEN 'Жизнь за кадром' THEN 'https://vkvideo.ru/video-101928313_456241091'
+        WHEN 'Жизнь прекрасна' THEN 'https://rutube.ru/video/3b91da70187630452ec374785fabd48b/'
+        WHEN 'Житие Брайана по Монти Пайтон' THEN 'https://rutube.ru/video/8631176418052c9d9cebc4cb49e5d9a2/'
+        WHEN 'За мной последний танец' THEN 'https://rutube.ru/video/07755f330665f48fa807aac345359665/'
+        WHEN 'Заводной апельсин' THEN 'https://rutube.ru/video/9b34cf1743717c750655fe0d60c4f8b6/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Дангал',
+    'Двойная страховка',
+    'Двойной форсаж',
+    'Девчата',
+    'Девятая сессия',
+    'Дежурный папа',
+    'День сурка',
+    'Детектив Шафт',
+    'Дети шпионов',
+    'Дети шпионов 2: Остров несбывшихся надежд',
+    'Джанго освобожденный',
+    'Джентльмены',
+    'Дикая банда',
+    'Дикий робот',
+    'Дилижанс',
+    'Доблесть',
+    'Доктор Стрейнджлав, или Как я научился не волноваться и полюбил атомную бомбу',
+    'Донни Дарко',
+    'Дорога',
+    'Дорога на Эльдорадо',
+    'Дорожное приключение',
+    'Достучаться до небес',
+    'Другие',
+    'Дублеры',
+    'Дурная слава',
+    'Дюна: Часть вторая',
+    'Его девушка Пятница',
+    'Жизнь за кадром',
+    'Жизнь прекрасна',
+    'Житие Брайана по Монти Пайтон',
+    'За мной последний танец',
+    'Заводной апельсин'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Звездный путь: Возмездие' THEN 'https://rutube.ru/video/0066157bc84a6a4a3417b39ab3010f3a/'
+        WHEN 'Звонок' THEN 'https://rutube.ru/video/2f635c01204f8b9a3242e52b6bbca28c/'
+        WHEN 'Звёздные войны: Эпизод 2 – Атака клонов' THEN 'https://rutube.ru/video/b771ce1769188045bbe21fedd79f0580/'
+        WHEN 'Звёздные войны: Эпизод 4 – Новая надежда' THEN 'https://rutube.ru/video/c096f82793196fc053143ede423833ea/'
+        WHEN 'Звёздные войны: Эпизод 5 – Империя наносит ответный удар' THEN 'https://rutube.ru/video/ac749d6d3ba2074b23b990a6c25e936e/'
+        WHEN 'Звёздные войны: Эпизод 6 – Возвращение Джедая' THEN 'https://rutube.ru/video/e2c10e2eaa23bb4c29d3d575862ad24c/'
+        WHEN 'Зеленая книга' THEN 'https://rutube.ru/video/48c9ac5eb3d4682729e56a574be7e94f/'
+        WHEN 'Зеленая миля' THEN 'https://rutube.ru/video/3267e6cc1bb86f2399b1e09c1993bbc9/'
+        WHEN 'Земляне' THEN 'https://rutube.ru/video/fdda5559d98b6668b7b08574837ef2cb/'
+        WHEN 'Земляничная поляна' THEN 'https://rutube.ru/video/f81da66510fc5f738bd2ad74a503f0ca/'
+        WHEN 'Знаки' THEN 'https://rutube.ru/video/55757f729b9df587f1c1b63bec80dc12/'
+        WHEN 'Золотая лихорадка' THEN 'https://rutube.ru/video/f520f8ce108aeb886db97d33a021bd97/'
+        WHEN 'Играй как Бекхэм' THEN 'https://vkvideo.ru/video-220018529_456246044'
+        WHEN 'Игры разума' THEN 'https://rutube.ru/video/071ab4305f16c7a3ac147a259ae5cc69/'
+        WHEN 'Иди и смотри' THEN 'https://rutube.ru/video/8a444281685a97ee8828ff27e87b0178/'
+        WHEN 'Изгоняющий дьявола' THEN 'https://rutube.ru/video/256b35414936b96df033e01851e25eb4/'
+        WHEN 'Индиана Джонс и последний крестовый поход' THEN 'https://rutube.ru/video/aa5195c5d9460c639634427411d60935/'
+        WHEN 'Индиана Джонс: В поисках утраченного ковчега' THEN 'https://rutube.ru/video/7dbb0e0847751ca2a23cbe5b7261fc45/'
+        WHEN 'Инопланетянин' THEN 'https://rutube.ru/video/011890f5f745aab33cda4a6b495a991e/'
+        WHEN 'Интерстеллар' THEN 'https://rutube.ru/video/17465fc541700b94ebd5648423675100/'
+        WHEN 'Интуиция' THEN 'https://rutube.ru/video/6a271d3dffe7bcb5ab4a9e9d97cde380/'
+        WHEN 'Искатели' THEN 'https://rutube.ru/video/bd6b754903535209ec72aa713c78f410/'
+        WHEN 'История игрушек' THEN 'https://rutube.ru/video/2c8683cd21fc83d01bd1824585f0786a/'
+        WHEN 'История игрушек 2' THEN 'https://rutube.ru/video/b28c2f61fdb12a07619cc96caef6814d/'
+        WHEN 'Кавказская пленница, или Новые приключения Шурика' THEN 'https://rutube.ru/video/2959f7a99504290930cc68951bd2f5ce/'
+        WHEN 'Карты, деньги, два ствола' THEN 'https://rutube.ru/video/d1e1d0d17b9cb01f47d043c9f1f2769d/'
+        WHEN 'Касабланка' THEN 'https://rutube.ru/video/5c85696760e74444f968eed3f8152b58/'
+        WHEN 'Квартира' THEN 'https://rutube.ru/video/7eccf647778f4842b1a453ab21ce0ac3/'
+        WHEN 'Кинг Конг' THEN 'https://rutube.ru/video/47d177c7fe7bad118c8685691bf47f87/'
+        WHEN 'Китайский квартал' THEN 'https://rutube.ru/video/0c35dbe1b8932f36c26ea3d52336ef98/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Звездный путь: Возмездие',
+    'Звонок',
+    'Звёздные войны: Эпизод 2 – Атака клонов',
+    'Звёздные войны: Эпизод 4 – Новая надежда',
+    'Звёздные войны: Эпизод 5 – Империя наносит ответный удар',
+    'Звёздные войны: Эпизод 6 – Возвращение Джедая',
+    'Зеленая книга',
+    'Зеленая миля',
+    'Земляне',
+    'Земляничная поляна',
+    'Знаки',
+    'Золотая лихорадка',
+    'Играй как Бекхэм',
+    'Игры разума',
+    'Иди и смотри',
+    'Изгоняющий дьявола',
+    'Индиана Джонс и последний крестовый поход',
+    'Индиана Джонс: В поисках утраченного ковчега',
+    'Инопланетянин',
+    'Интерстеллар',
+    'Интуиция',
+    'Искатели',
+    'История игрушек',
+    'История игрушек 2',
+    'Кавказская пленница, или Новые приключения Шурика',
+    'Карты, деньги, два ствола',
+    'Касабланка',
+    'Квартира',
+    'Кинг Конг',
+    'Китайский квартал'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Клад' THEN 'https://rutube.ru/video/5deb70f4984e735c948f44425cdf2293/'
+        WHEN 'Клерки' THEN 'https://rutube.ru/video/62d3ca65ccb7f2234dbd5d289c8dec4d/'
+        WHEN 'Комната сына' THEN 'https://vkvideo.ru/video-200002481_456240355'
+        WHEN 'Корабельные новости' THEN 'https://vkvideo.ru/video-228093609_456239112'
+        WHEN 'Корпорация монстров' THEN 'https://rutube.ru/video/b416157d7cb65a307ad2bb2db1b935eb/'
+        WHEN 'Космические ковбои' THEN 'https://rutube.ru/video/4f11e5be508b43dedb1553349ef200ab/'
+        WHEN 'Крадущийся тигр, затаившийся дракон' THEN 'https://rutube.ru/video/35b86dda561a5b714b71178215e2a650/'
+        WHEN 'Красавица и чудовище' THEN 'https://rutube.ru/video/88874eaf99cca840c9f5c21bf744358c/'
+        WHEN 'Красота по-американски' THEN 'https://rutube.ru/video/e2937b7f5f9f01e75b57a89f5b5581f5/'
+        WHEN 'Крепкий орешек' THEN 'https://rutube.ru/video/a11db2f466df2b9b745ad77d12a9d04d/'
+        WHEN 'Крестный отец' THEN 'https://rutube.ru/video/6c9f685c1dea6e3e306849e29152546d/'
+        WHEN 'Крестный отец 2' THEN 'https://rutube.ru/video/43f30c2d440416b89caa7fb750eb5261/'
+        WHEN 'Криминальное чтиво' THEN 'https://rutube.ru/video/b655f8af33deef0514481b2bb39b90e2/'
+        WHEN 'Кто боится Вирджинии Вульф?' THEN 'https://rutube.ru/video/23a46559deadae6a5a78b277dfc8ca41/'
+        WHEN 'Лагерь для военнопленных № 17' THEN 'https://vkvideo.ru/video-64230937_171725206'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Клад',
+    'Клерки',
+    'Комната сына',
+    'Корабельные новости',
+    'Корпорация монстров',
+    'Космические ковбои',
+    'Крадущийся тигр, затаившийся дракон',
+    'Красавица и чудовище',
+    'Красота по-американски',
+    'Крепкий орешек',
+    'Крестный отец',
+    'Крестный отец 2',
+    'Криминальное чтиво',
+    'Кто боится Вирджинии Вульф?',
+    'Лагерь для военнопленных № 17'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Лев зимой' THEN 'https://rutube.ru/video/ba8a1c39f66daaca6e59ec4c221d0d16/'
+        WHEN 'Леон' THEN 'https://rutube.ru/video/6e738b6d624eaf47c5de593c31d88ee3/'
+        WHEN 'Лиззи Магуайр' THEN 'https://rutube.ru/video/ec7ea877aa99054421773bcde7138998/'
+        WHEN 'Лора' THEN 'https://vkvideo.ru/video-74449405_456243121'
+        WHEN 'Лоуренс Аравийский' THEN 'https://rutube.ru/video/138ae9cddd1639cb509bd24b70fe8e56/'
+        WHEN 'Лучшие годы нашей жизни' THEN 'https://rutube.ru/video/9f98398d43042827fcd5e7b2094922bb/'
+        WHEN 'Любовь зла' THEN 'https://rutube.ru/video/b8a6daeb7b6a647d6a23f8ca0342f374/'
+        WHEN 'Любовь с уведомлением' THEN 'https://rutube.ru/video/c28f8b2f6122d4d7595ebfd2297c7593/'
+        WHEN 'М убийца' THEN 'https://rutube.ru/video/d9e1fa99174a5a98b1debda93f77da6b/'
+        WHEN 'Магнолия' THEN 'https://rutube.ru/video/cfaa461f2f09c02bb49dcb978d432e21/'
+        WHEN 'Малхолланд Драйв' THEN 'https://rutube.ru/video/b8f12fc715bd07e37dc8245c2e624db9/'
+        WHEN 'Мальтийский сокол' THEN 'https://rutube.ru/video/5991ca72ba7d09caf5cfc54ee15a531a/'
+        WHEN 'Манхэттен' THEN 'https://vkvideo.ru/video-52526415_456245067'
+        WHEN 'Маньчжурский кандидат' THEN 'https://rutube.ru/video/058047eed24322e80463fda28fe7b47f/'
+        WHEN 'Матрица' THEN 'https://rutube.ru/video/307c52af7c3e122855aea0899c247971/'
+        WHEN 'Матрица: Революция' THEN 'https://rutube.ru/video/1dbfc90d2c55665081e98b68538e976a/'
+        WHEN 'Медвежатник' THEN 'https://rutube.ru/video/f6ee93a251ba5b21f43f3764196869e2/'
+        WHEN 'Мелкие мошенники' THEN 'https://vkvideo.ru/video693128_456243854'
+        WHEN 'Мементо' THEN 'https://vkvideo.ru/video-214127521_456239125'
+        WHEN 'Метрополис' THEN 'https://rutube.ru/video/3a9e332dcd91d31ecc1c851283820dd7/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Лев зимой',
+    'Леон',
+    'Лиззи Магуайр',
+    'Лора',
+    'Лоуренс Аравийский',
+    'Лучшие годы нашей жизни',
+    'Любовь зла',
+    'Любовь с уведомлением',
+    'М убийца',
+    'Магнолия',
+    'Малхолланд Драйв',
+    'Мальтийский сокол',
+    'Манхэттен',
+    'Маньчжурский кандидат',
+    'Матрица',
+    'Матрица: Революция',
+    'Медвежатник',
+    'Мелкие мошенники',
+    'Мементо',
+    'Метрополис'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Мистер Смит едет в Вашингтон' THEN 'https://rutube.ru/video/f6d4726299670ae4b738ca4c438a3558/'
+        WHEN 'Мокасины Маниту' THEN 'https://rutube.ru/video/dd5b8fa9fd91e07bb61b557ded8542ba/'
+        WHEN 'Молодой Франкенштейн' THEN 'https://rutube.ru/video/26854c40dd3f67a1e5cf359eab53f709/'
+        WHEN 'Молчание ягнят' THEN 'https://rutube.ru/video/a4e9818b98f7057404c538d1807e7629/'
+        WHEN 'Монти Пайтон и Священный Грааль' THEN 'https://rutube.ru/video/63d397670387cb5d4291ad55aa313d44/'
+        WHEN 'Море Солтона' THEN 'https://rutube.ru/video/768284dd2e626672b8ec53ecf07b22ea/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Мистер Смит едет в Вашингтон',
+    'Мокасины Маниту',
+    'Молодой Франкенштейн',
+    'Молчание ягнят',
+    'Монти Пайтон и Священный Грааль',
+    'Море Солтона'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Мост через реку Квай' THEN 'https://rutube.ru/video/8e9a77a010c5c09c08e985f236d9cf44/'
+        WHEN 'Мышьяк и старые кружева' THEN 'https://rutube.ru/video/0d97d554835bec297a442eb9afbb2a43/'
+        WHEN 'На Западном фронте без перемен' THEN 'https://rutube.ru/video/f77d5a1f54df01534b501b0fc86503ef/'
+        WHEN 'На игле' THEN 'https://rutube.ru/video/4f32c1cdc45306bfbe53b8af577d8b64/'
+        WHEN 'На север через северо-запад' THEN 'https://rutube.ru/video/a16d7dfb7a698b3ad1b0301415abe043/'
+        WHEN 'Назад в будущее' THEN 'https://rutube.ru/video/95d5daa567cdd707899b9fb45ea247e1/'
+        WHEN 'Начало' THEN 'https://rutube.ru/video/27c335dcbef386ff6adfd3fb392465c0/'
+        WHEN 'Наёмный убийца' THEN 'https://vkvideo.ru/video-228630506_456241473'
+        WHEN 'Незнакомцы в поезде' THEN 'https://rutube.ru/video/172371682b6015cc058a56e8f57e4a43/'
+        WHEN 'Неприкасаемые' THEN 'https://rutube.ru/video/8f7d0b668fac57b26716f4bfba1bcfb9/'
+        WHEN 'Непрощенный' THEN 'https://rutube.ru/video/c49daf980f1b21091b491b350290551f/'
+        WHEN 'Новичок' THEN 'https://rutube.ru/video/7f1f13513728cfb1366d2f0672e35ce7/'
+        WHEN 'Новые времена' THEN 'https://rutube.ru/video/515c7272cf5c42f00577e57a7774c25a/'
+        WHEN 'Новый кинотеатр «Парадизо»' THEN 'https://rutube.ru/video/4c05c68cc2a9e6d92e830bdbb316bc4d/'
+        WHEN 'Носферату, симфония ужаса' THEN 'https://rutube.ru/video/7c6ac3c1a0858e5d0b9eaa8334e3b4e0/'
+        WHEN 'Ночь охотника' THEN 'https://rutube.ru/video/4e4328d8a7951ee578d98d29f7402bfb/'
+        WHEN 'Обвиняемая' THEN 'https://vkvideo.ru/video-169479352_456240037'
+        WHEN 'Обитель зла' THEN 'https://rutube.ru/video/eafeb272586e73beee9fd29def386afa/'
+        WHEN 'Огни большого города' THEN 'https://rutube.ru/video/8386d2713bbe7e1aadf54b8654e9ebf0/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Мост через реку Квай',
+    'Мышьяк и старые кружева',
+    'На Западном фронте без перемен',
+    'На игле',
+    'На север через северо-запад',
+    'Назад в будущее',
+    'Начало',
+    'Наёмный убийца',
+    'Незнакомцы в поезде',
+    'Неприкасаемые',
+    'Непрощенный',
+    'Новичок',
+    'Новые времена',
+    'Новый кинотеатр «Парадизо»',
+    'Носферату, симфония ужаса',
+    'Ночь охотника',
+    'Обвиняемая',
+    'Обитель зла',
+    'Огни большого города'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE 
+        WHEN title = 'Поющие под дождем' AND year = 1951 THEN 'https://rutube.ru/video/210fc0899a5d118f006a7b15848e47c5/'
+        WHEN title = 'Поющие под дождем' AND year = 1952 THEN 'https://rutube.ru/video/939f4358709beb3ed7f49fc1b4cd9e7f/'
+        WHEN 'Ограбление по-итальянски' THEN 'https://rutube.ru/video/dc1059e3655c06a47be33c91f78ee6ec/'
+        WHEN 'Один дома' THEN 'https://rutube.ru/video/b82cd9a27b3c4bb5fa2fce80403530b8/'
+        WHEN 'Однажды в Америке' THEN 'https://rutube.ru/video/6901fb599f78f69855525d63405b7eb1/'
+        WHEN 'Однажды на Диком Западе' THEN 'https://rutube.ru/video/6a34491ff15da524b30f5fa2ffbcdae2/'
+        WHEN 'Окно во двор' THEN 'https://rutube.ru/video/67b0951c3598a31cfd7d6f6f78777bab/'
+        WHEN 'Операция «Ы» и другие приключения Шурика' THEN 'https://rutube.ru/video/fcb693c38528938caa3b70101b7c58bf/'
+        WHEN 'Остров проклятых' THEN 'https://rutube.ru/video/99c934dae8e6106e17e9d04ab3ffb859/'
+        WHEN 'Отточенное лезвие' THEN 'https://rutube.ru/video/cb441a92fa3c4a8d0f3a0cbe800a5048/'
+        WHEN 'Охотник на оленей' THEN 'https://rutube.ru/video/1ba95011054b322588ab5341fe1e0bda/'
+        WHEN 'Парни что надо' THEN 'https://rutube.ru/video/3946727c4183e8bb9366327da5da0c26/'
+        WHEN 'Паровоз Генерал' THEN 'https://rutube.ru/video/ea041b6b0912617bcb26e9134b4a2727/'
+        WHEN 'Пароль «Рыба-меч»' THEN 'https://rutube.ru/video/402b6bdcf52e4be1b4ec54d309a884d9/'
+        WHEN 'Паттон' THEN 'https://vkvideo.ru/video-225780984_456239044'
+        WHEN 'Паук' THEN 'https://vkvideo.ru/video-162947134_456240410'
+        WHEN 'Перекресток Миллера' THEN 'https://rutube.ru/video/e3f5ad8d6c85dedd2cceff7449b7b69f/'
+        WHEN 'Печать зла' THEN 'https://vkvideo.ru/video-229988576_456240693'
+        WHEN 'Пианист' THEN 'https://rutube.ru/video/34c94490f0358a899d6eb20d4f33cfaa/'
+        WHEN 'Планета обезьян' THEN 'https://rutube.ru/video/921d72fff9d1253d92be6b5b2d94bf1b/'
+        WHEN 'Побег из Шоушенка' THEN 'https://rutube.ru/video/cae96c24f81419ccd444ed151a169985/'
+        WHEN 'Поговори с ней' THEN 'https://rutube.ru/video/436eaa38dc13f7afef0b29e5b21ae9d1/'
+        WHEN 'Подводная лодка' THEN 'https://rutube.ru/video/402bcf881fdd5dbe520579c96b67f077/'
+        WHEN 'Подозрительные лица' THEN 'https://rutube.ru/video/e1d0dca7e004cd8e47439b3fb7ba92fa/'
+        WHEN 'Поймай меня, если сможешь' THEN 'https://rutube.ru/video/4eae39b6ff9cc1a0c3aca440de20c959/'
+        WHEN 'Полуночный ковбой' THEN 'https://rutube.ru/video/d975a8dd99fc8608aef0e49e563d85a8/'
+        WHEN 'Похитители велосипедов' THEN 'https://rutube.ru/video/9bfad7eb93f34d3c10313f76de806fb5/'
+        WHEN 'Почти знаменит' THEN 'https://vkvideo.ru/video-8727399_456242075'
+        WHEN 'Правила боя' THEN 'https://rutube.ru/video/6150dc642421ce84ce77699bce7742cb/'
+        WHEN 'Правила секса' THEN 'https://rutube.ru/video/97696adb7a91752b90316b54c034c70d/'
+        WHEN 'Приключения Робин Гуда' THEN 'https://rutube.ru/video/6d75b81910f56810234630ac2944dbb6/'
+        WHEN 'Принцесса Мононоке' THEN 'https://vkvideo.ru/video-159157918_456241405'
+        WHEN 'Принцесса-невеста' THEN 'https://rutube.ru/video/adbe6ff66f9ec1e0dc18f323f04db9e9/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE (title = 'Поющие под дождем' AND year IN (1951, 1952))
+   OR title IN (
+    'Ограбление по-итальянски',
+    'Один дома',
+    'Однажды в Америке',
+    'Однажды на Диком Западе',
+    'Окно во двор',
+    'Операция «Ы» и другие приключения Шурика',
+    'Остров проклятых',
+    'Отточенное лезвие',
+    'Охотник на оленей',
+    'Парни что надо',
+    'Паровоз Генерал',
+    'Пароль «Рыба-меч»',
+    'Паттон',
+    'Паук',
+    'Перекресток Миллера',
+    'Печать зла',
+    'Пианист',
+    'Планета обезьян',
+    'Побег из Шоушенка',
+    'Поговори с ней',
+    'Подводная лодка',
+    'Подозрительные лица',
+    'Поймай меня, если сможешь',
+    'Полуночный ковбой',
+    'Похитители велосипедов',
+    'Почти знаменит',
+    'Правила боя',
+    'Правила секса',
+    'Приключения Робин Гуда',
+    'Принцесса Мононоке',
+    'Принцесса-невеста'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Пролетая над гнездом кукушки' THEN 'https://rutube.ru/video/4507a97dee7b8c70672df3d91473bb1b/'
+        WHEN 'Простая история' THEN 'https://rutube.ru/video/a2cb9e1cbd8ea4fdabddf0744101af9d/'
+        WHEN 'Психо' THEN 'https://rutube.ru/video/3908adbf20334741927047a6d87a65af/'
+        WHEN 'Пуленепробиваемый' THEN 'https://rutube.ru/video/fb4fca99debef148e6b48cce457fc620/'
+        WHEN 'Пятый элемент' THEN 'https://rutube.ru/video/c3977e98477de3bccb43ceaf4c8d92c7/'
+        WHEN 'Разговор' THEN 'https://vkvideo.ru/video-210149339_456239100'
+        WHEN 'Разыскиваются в Малибу' THEN 'https://vkvideo.ru/video-167086926_456240470'
+        WHEN 'Ран' THEN 'https://rutube.ru/video/7ffd7ff27bae4164e8065d365106a13f/'
+        WHEN 'Расёмон' THEN 'https://rutube.ru/video/09dcbbda453598f2950a40d284904c91/'
+        WHEN 'Реальная любовь' THEN 'https://vkvideo.ru/video-224007470_456239921'
+        WHEN 'Ребекка' THEN 'https://rutube.ru/video/61c537a50d0febb19522fe2a0426e088/'
+        WHEN 'Реквием по мечте' THEN 'https://rutube.ru/video/d4975e39627beb8a1fd0f5dafd68b4d5/'
+        WHEN 'Рекрут' THEN 'https://rutube.ru/video/d6d3e5fd88522b0f84df62be33ae0ecf/'
+        WHEN 'Ровно в полдень' THEN 'https://vkvideo.ru/video-74449405_456240944'
+        WHEN 'Рождественская история' THEN 'https://rutube.ru/video/af6b83c6aa4888ebbdf43fefa9d76759/'
+        WHEN 'Рокки' THEN 'https://rutube.ru/video/5784ba796f5da4d17237a64f34251659/'
+        WHEN 'Сансет бульвар' THEN 'https://rutube.ru/video/345fc58ce3f802de8ce19f507ccedfb9/'
+        WHEN 'Санта Клаус 2' THEN 'https://rutube.ru/video/ddb6c1a3259bf365522fd7c496c0e9c6/'
+        WHEN 'Свидетель обвинения' THEN 'https://rutube.ru/video/13bd2b6ec2d1ebbce9b73d0195decc99/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Пролетая над гнездом кукушки',
+    'Простая история',
+    'Психо',
+    'Пуленепробиваемый',
+    'Пятый элемент',
+    'Разговор',
+    'Разыскиваются в Малибу',
+    'Ран',
+    'Расёмон',
+    'Реальная любовь',
+    'Ребекка',
+    'Реквием по мечте',
+    'Рекрут',
+    'Ровно в полдень',
+    'Рождественская история',
+    'Рокки',
+    'Сансет бульвар',
+    'Санта Клаус 2',
+    'Свидетель обвинения'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Свой человек' THEN 'https://rutube.ru/video/dea9ac79ecfeb6ab2d9251a632906a29/'
+        WHEN 'Седьмая печать' THEN 'https://rutube.ru/video/802f505b7861a5aff65c538e77e91ebb/'
+        WHEN 'Секретарша' THEN 'https://rutube.ru/video/924ea5965cc2121a47882ea4ebebdefd/'
+        WHEN 'Секреты Лос-Анджелеса' THEN 'https://rutube.ru/video/d9c3bd2bc7cecdaa468ae4d08d317889/'
+        WHEN 'Сексуальная тварь' THEN 'https://vkvideo.ru/video162793578_170095238'
+        WHEN 'Семейка Тененбаум' THEN 'https://vkvideo.ru/video-220018529_456240069'
+        WHEN 'Семь' THEN 'https://rutube.ru/video/78280c450050adc22e0d532e877be58a/'
+        WHEN 'Семь самураев' THEN 'https://rutube.ru/video/e733cfecdcdd5efdfae220929dbb039d/'
+        WHEN 'Сильная женщина' THEN 'https://rutube.ru/video/24f958e6d8734f8ee7078f75235e78e8/'
+        WHEN 'Симона' THEN 'https://rutube.ru/video/a281ff54431d417ac03096e4dfdf0adb/'
+        WHEN 'Сияние' THEN 'https://rutube.ru/video/6f019640e95283617cc0d1eae0d8bf4b/'
+        WHEN 'Сказочник' THEN 'https://vkvideo.ru/video-39165340_456247641'
+        WHEN 'Славные парни' THEN 'https://rutube.ru/video/80ef0919b3f30c814a9651249de4d802/'
+        WHEN 'Собачий полдень' THEN 'https://rutube.ru/video/992b17d8cbc18ce195b657cb6b3db928/'
+        WHEN 'Собачье сердце' THEN 'https://rutube.ru/video/70f71452498d48342dae93a78e83db84/'
+        WHEN 'Сокровища Сьерра Мадре' THEN 'https://rutube.ru/video/9d01c0f7477b4e600463bb64aea072a5/'
+        WHEN 'Солярис' THEN 'https://rutube.ru/video/be1b3767cab5b4e5f997c51483b24166/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Свой человек',
+    'Седьмая печать',
+    'Секретарша',
+    'Секреты Лос-Анджелеса',
+    'Сексуальная тварь',
+    'Семейка Тененбаум',
+    'Семь',
+    'Семь самураев',
+    'Сильная женщина',
+    'Симона',
+    'Сияние',
+    'Сказочник',
+    'Славные парни',
+    'Собачий полдень',
+    'Собачье сердце',
+    'Сокровища Сьерра Мадре',
+    'Солярис'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Спартак' THEN 'https://rutube.ru/video/c6c043f26ff914bc23c0fd5ba3cf12e8/'
+        WHEN 'Спасите Грейс' THEN 'https://vkvideo.ru/video-26551941_456242944'
+        WHEN 'Спасти рядового Райана' THEN 'https://rutube.ru/video/ae8e9fcf22ef7b7f00e91721c60c4837/'
+        WHEN 'Спирит: Душа прерий' THEN 'https://rutube.ru/video/9eb0dafeafb2664283488f9128ce9a72/'
+        WHEN 'Список Шиндлера' THEN 'https://rutube.ru/video/0317304662f58bcc595abf3e607fe2b5/'
+        WHEN 'Стальной гигант' THEN 'https://rutube.ru/video/5b912ffd4588f8369864f38b9fd7910c/'
+        WHEN 'Сука-любовь' THEN 'https://rutube.ru/video/895b13833efbd474c6a0a20b21607b02/'
+        WHEN 'Суперполицейские' THEN 'https://rutube.ru/video/492c859a6d64a8ec794847b7879ea0a4/'
+        WHEN 'Тайна Коко' THEN 'https://rutube.ru/video/694861f3ea39d352a9b27f7647f13230/'
+        WHEN 'Таксист' THEN 'https://rutube.ru/video/ecaf556d2ac0c430bd1140d8a2843073/'
+        WHEN 'Телесеть' THEN 'https://rutube.ru/video/5b1a0d02dcaa01cd653a57e41b4d0fa3/'
+        WHEN 'Телефонная будка' THEN 'https://rutube.ru/video/7eee38ad4d75b9fe3875014783eed6dc/'
+        WHEN 'Телохранитель' THEN 'https://vkvideo.ru/video-133501082_456239135'
+        WHEN 'Темный рыцарь' THEN 'https://rutube.ru/video/74fb252e6f3a0e6eaedb0909dc6eaf29/'
+        WHEN 'Тень вампира' THEN 'https://rutube.ru/video/6d6e704d2634d242f9ad60e4e9043277/'
+        WHEN 'Тень сомнения' THEN 'https://vkvideo.ru/video-184447514_456245573'
+        WHEN 'Терминатор' THEN 'https://rutube.ru/video/bb88fa5b0d8092225806499b93e416cb/'
+        WHEN 'Терминатор 2: Судный день' THEN 'https://vkvideo.ru/video-230513320_456239255'
+        WHEN 'Терминатор 3: Восстание машин' THEN 'https://rutube.ru/video/5b560eb5eb22de48e25100d11e9f27d5/'
+        WHEN 'Титаник' THEN 'https://rutube.ru/video/7a2bff0fba2b8cc93ccbdf3da064d94a/'
+        WHEN 'Торжество' THEN 'https://vkvideo.ru/video-52106913_456239296'
+        WHEN 'Трамвай «Желание»' THEN 'https://rutube.ru/video/717482f7010022412899827c3acb0cff/'
+        WHEN 'Трасса 60' THEN 'https://rutube.ru/video/11f910abb4f3377e270f6b618623acf8/'
+        WHEN 'Третий человек' THEN 'https://rutube.ru/video/3a98020d982dd265fc3fa98c2fd32250/'
+        WHEN 'Три цвета: Красный' THEN 'https://vkvideo.ru/video-220655667_456241503'
+        WHEN 'Тропы славы' THEN 'https://rutube.ru/video/2e4298ff6d5992fa21522d91112774cc/'
+        WHEN 'Тротуары Нью-Йорка' THEN 'https://vkvideo.ru/video-2989343_456239184'
+        WHEN 'Туз в рукаве' THEN 'https://rutube.ru/video/37683e80fa2ededecb2825a53e9fb9cc/'
+        WHEN 'Тупой и еще тупее тупого: Когда Гарри встретил Ллойда' THEN 'https://rutube.ru/video/3f689e359accb71e7537cbfabc73d6ca/'
+        WHEN 'Убийство' THEN 'https://vkvideo.ru/video735831744_456241205'
+        WHEN 'Убить пересмешника' THEN 'https://rutube.ru/video/87cc5c94c185febb40118c27d74135ff/'
+        WHEN 'Убойный футбол' THEN 'https://rutube.ru/video/943a976307e00e7e272d3e5a66ea3f18/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Спартак',
+    'Спасите Грейс',
+    'Спасти рядового Райана',
+    'Спирит: Душа прерий',
+    'Список Шиндлера',
+    'Стальной гигант',
+    'Сука-любовь',
+    'Суперполицейские',
+    'Тайна Коко',
+    'Таксист',
+    'Телесеть',
+    'Телефонная будка',
+    'Телохранитель',
+    'Темный рыцарь',
+    'Тень вампира',
+    'Тень сомнения',
+    'Терминатор',
+    'Терминатор 2: Судный день',
+    'Терминатор 3: Восстание машин',
+    'Титаник',
+    'Торжество',
+    'Трамвай «Желание»',
+    'Трасса 60',
+    'Третий человек',
+    'Три цвета: Красный',
+    'Тропы славы',
+    'Тротуары Нью-Йорка',
+    'Туз в рукаве',
+    'Тупой и еще тупее тупого: Когда Гарри встретил Ллойда',
+    'Убийство',
+    'Убить пересмешника',
+    'Убойный футбол'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Умница Уилл Хантинг' THEN 'https://rutube.ru/video/20c75b2acd578f89a9deb67dceb822e7/'
+        WHEN 'Унесённые ветром' THEN 'https://vkvideo.ru/video-230010297_456239302'
+        WHEN 'Унесённые призраками' THEN 'https://vkvideo.ru/video-198299329_456239336'
+        WHEN 'Управление гневом' THEN 'https://rutube.ru/video/35d88c984958a6aaf6c0786f8114421b/'
+        WHEN 'Утиный суп' THEN 'https://vkvideo.ru/video-169479352_456239994'
+        WHEN 'Фантазия' THEN 'https://rutube.ru/video/a175d53d4f47f1c493531fb052b4f758/'
+        WHEN 'Фарго' THEN 'https://rutube.ru/video/38d243d6d97c62ab86d146216226ee71/'
+        WHEN 'Филадельфийская история' THEN 'https://rutube.ru/video/4dc8279da7d283f4bb1de4388fe08067/'
+        WHEN 'Форрест Гамп' THEN 'https://rutube.ru/video/0110b8f621971fa81f83f79e3edcee67/'
+        WHEN 'Харви' THEN 'https://rutube.ru/video/a0cb7166a504c14768f491c05f4770f4/'
+        WHEN 'Хатико: Самый верный друг' THEN 'https://rutube.ru/video/e52d50aad1affe26656a54fc10a1cda8/'
+        WHEN 'Хладнокровный Люк' THEN 'https://rutube.ru/video/b192891a8b6cb48f96c518f10856882d/'
+        WHEN 'Хороший, плохой, злой' THEN 'https://rutube.ru/video/deb07e579b7e3048294a3ad7378d7796/'
+        WHEN 'Храброе сердце' THEN 'https://rutube.ru/video/16f305892146bdfd55d02126828217c2/'
+        WHEN 'Цельнометаллическая оболочка' THEN 'https://rutube.ru/video/cd53f915567eb91d21b5de71c701c711/'
+        WHEN 'Цена страха' THEN 'https://rutube.ru/video/647a7ede12ce948fc8ebfcbd53c06916/'
+        WHEN 'Цыпочка' THEN 'https://rutube.ru/video/a69f477d40788628c48113186f0d7519/'
+        WHEN 'Час пик 2' THEN 'https://rutube.ru/video/0bfdf7ad93884ae0d4bef42dfa187c27/'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Умница Уилл Хантинг',
+    'Унесённые ветром',
+    'Унесённые призраками',
+    'Управление гневом',
+    'Утиный суп',
+    'Фантазия',
+    'Фарго',
+    'Филадельфийская история',
+    'Форрест Гамп',
+    'Харви',
+    'Хатико: Самый верный друг',
+    'Хладнокровный Люк',
+    'Хороший, плохой, злой',
+    'Храброе сердце',
+    'Цельнометаллическая оболочка',
+    'Цена страха',
+    'Цыпочка',
+    'Час пик 2'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Человек дождя' THEN 'https://rutube.ru/video/b2ce4316d4480d440fe4d1720a78ace7/'
+        WHEN 'Человек, который застрелил Либерти Вэланса' THEN 'https://rutube.ru/video/408eaf02f196f2531762bbfe6ea77614/'
+        WHEN 'Человек-паук' THEN 'https://rutube.ru/video/b3ae4ff9ae868999ed68a4e49d643750/'
+        WHEN 'Человек-слон' THEN 'https://rutube.ru/video/75ceda5fd93b2d7498c320a23ca0dd7b/'
+        WHEN 'Челюсти' THEN 'https://vkvideo.ru/video-220018529_456244523'
+        WHEN 'Четыреста ударов' THEN 'https://rutube.ru/video/0e2ce0c4865d2869e87c66032336ff85/'
+        WHEN 'Чужие' THEN 'https://rutube.ru/video/b32ac5665032284813a9ca96f88c9d5c/'
+        WHEN 'Чужой' THEN 'https://rutube.ru/video/df4ce5db4f57f9ce306c6b0a332e3b34/'
+        WHEN 'Шанхайские рыцари' THEN 'https://rutube.ru/video/31e849ae22fa9d9cbdcbeeda04022d20/'
+        WHEN 'Шанхайский полдень' THEN 'https://rutube.ru/video/6998c067a5b41d55b61a56184ffc3dca/'
+        WHEN 'Шарада' THEN 'https://rutube.ru/video/85465bda5e53949d82d1e5b0de4ef341/'
+        WHEN 'Шестое чувство' THEN 'https://rutube.ru/video/72784ca1be1451568086223965aff2b3/'
+        WHEN 'Шпионские игры' THEN 'https://rutube.ru/video/b5adc3f36b00c8f9f2db2eb0de8ccd34/'
+        WHEN 'Шрэк' THEN 'https://rutube.ru/video/a7274e3abd271d8b97857e370495e290/'
+        WHEN 'Эд Вуд' THEN 'https://rutube.ru/video/4ad966f9650a6bc0aab2bc692dedd083/'
+        WHEN 'Эквилибриум' THEN 'https://rutube.ru/video/c8be41ed3bddd2a213d5bd78cb6e745e/'
+        WHEN 'Энни Холл' THEN 'https://rutube.ru/video/e966bbe917d8e259064802af80a5bf75/'
+        WHEN 'Эта замечательная жизнь' THEN 'https://rutube.ru/video/7e313a5d040947a2c6c0f632e74f5bb7/'
+        WHEN 'Это случилось однажды ночью' THEN 'https://rutube.ru/video/fa4d2400ccfe7436bf5f9278bc0c60fa/'
+        WHEN 'Это – Spinal Tap' THEN 'https://vkvideo.ru/video-12101065_456244272'
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Человек дождя',
+    'Человек, который застрелил Либерти Вэланса',
+    'Человек-паук',
+    'Человек-слон',
+    'Челюсти',
+    'Четыреста ударов',
+    'Чужие',
+    'Чужой',
+    'Шанхайские рыцари',
+    'Шанхайский полдень',
+    'Шарада',
+    'Шестое чувство',
+    'Шпионские игры',
+    'Шрэк',
+    'Эд Вуд',
+    'Эквилибриум',
+    'Энни Холл',
+    'Эта замечательная жизнь',
+    'Это случилось однажды ночью',
+    'Это – Spinal Tap'
+);

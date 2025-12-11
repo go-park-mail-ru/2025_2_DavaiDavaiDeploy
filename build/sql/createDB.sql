@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS film (
     budget bigint,
     worldwide_fees bigint,
     trailer_url text,
+    film_url text,
     year integer NOT NULL,
     country_id uuid NOT NULL,
     cluster_id integer,
