@@ -381,6 +381,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		IsLiked:          film.IsLiked,
 		GenreID:          uuid.FromStringOrNil(film.GenreId),
 		IsOut:            film.IsOut,
+		FilmURL:          film.FilmUrl,
 	}
 
 	if film.UserRating != nil {
