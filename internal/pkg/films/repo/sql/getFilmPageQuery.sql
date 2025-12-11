@@ -6,6 +6,7 @@ SELECT
     g.title as genre, 
     g.id as genre_id,  
     c.name as country,
+    f.film_url,
     COUNT(ff.id) as number_of_ratings,
     CASE 
         WHEN f.release_date > CURRENT_DATE THEN false

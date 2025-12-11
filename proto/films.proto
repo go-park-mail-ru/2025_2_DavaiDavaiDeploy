@@ -185,6 +185,7 @@ message GetFilmResponse {
   string genre_id = 25;
   bool is_liked = 26;
   bool is_out = 27;
+  string film_url = 28;
 }
 
 message GetFilmFeedbacksRequest {
