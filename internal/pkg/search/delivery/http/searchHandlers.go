@@ -141,7 +141,7 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 
 	convertedFile, err := os.CreateTemp("", "voice-*.wav")
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("failed to create temporary file"), http.StatusInternalServerError)
+		log.LogHandlerError(logger, err, http.StatusInternalServerError)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
 	}
