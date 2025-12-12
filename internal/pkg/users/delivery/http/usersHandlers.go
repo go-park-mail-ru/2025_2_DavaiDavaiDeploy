@@ -51,6 +51,35 @@ func NewUserHandler(client gen.AuthClient) *UserHandler {
 	}
 }
 
+func (u *UserHandler) JWTMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+		var token string
+		cookie, err := r.Cookie(CookieName)
+		if err == nil {
+			token = cookie.Value
+		}
+
+		user, err := u.client.ValidateAndGetUser(r.Context(), &gen.ValidateAndGetUserRequest{Token: token})
+		if err != nil {
+			st, _ := status.FromError(err)
+			switch st.Code() {
+			case codes.Unauthenticated:
+				helpers.WriteError(w, http.StatusUnauthorized)
+			default:
+				helpers.WriteError(w, http.StatusInternalServerError)
+			}
+		}
+		neededUser := models.User{
+			ID: uuid.FromStringOrNil(user.ID),
+		}
+		ctx := context.WithValue(r.Context(), users.UserKey, neededUser.ID)
+
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 func (u *UserHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))

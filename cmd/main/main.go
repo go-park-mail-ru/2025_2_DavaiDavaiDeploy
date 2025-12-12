@@ -224,7 +224,7 @@ func main() {
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
 	filmRouter.Use(filmHandler.Middleware)
 	WSRouter := filmRouter.PathPrefix("").Subrouter()
-	WSRouter.Use(authHandler.Middleware)
+	WSRouter.Use(userHandler.JWTMiddleware)
 	WSRouter.HandleFunc("/ws", filmHandler.Subscribe)
 
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
