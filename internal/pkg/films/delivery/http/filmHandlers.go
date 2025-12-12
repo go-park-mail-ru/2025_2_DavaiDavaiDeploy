@@ -47,7 +47,7 @@ func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
 // @Router       /ws [get]
 func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	user, ok := r.Context().Value(auth.UserKey).(models.User)
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
 	if !ok {
 		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
 		helpers.WriteError(w, http.StatusUnauthorized)
@@ -60,7 +60,7 @@ func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 		log.LogHandlerError(logger, err, http.StatusUnauthorized)
 		return
 	}
-	c.hub.AddClient(user.ID, conn)
+	c.hub.AddClient(userID, conn)
 }
 
 // GetPromoFilm godoc
