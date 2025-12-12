@@ -15,6 +15,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/go-audio/audio"
@@ -139,7 +141,20 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	convertedFile, err := os.CreateTemp("", "voice-*.wav")
+	_, filename, _, _ := runtime.Caller(0)
+	currentDir := filepath.Dir(filename)
+	tempDir := filepath.Join(currentDir, "tmp")
+
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.LogHandlerError(logger,
+			fmt.Errorf("failed to create temp dir %s: %w", tempDir, err),
+			http.StatusInternalServerError,
+		)
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+
+	convertedFile, err := os.CreateTemp(tempDir, "voice-*.wav")
 	if err != nil {
 		log.LogHandlerError(logger, err, http.StatusInternalServerError)
 		helpers.WriteError(w, http.StatusInternalServerError)
