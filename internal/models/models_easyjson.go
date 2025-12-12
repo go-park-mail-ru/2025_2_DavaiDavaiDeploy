@@ -2119,6 +2119,12 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels15(in *jlexer.Lexer, out *Film
 					*out.TrailerURL = string(in.String())
 				}
 			}
+		case "film_url":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.FilmURL = string(in.String())
+			}
 		case "number_of_ratings":
 			if in.IsNull() {
 				in.Skip()
@@ -2349,6 +2355,11 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels15(out *jwriter.Writer, in Fil
 		} else {
 			out.String(string(*in.TrailerURL))
 		}
+	}
+	{
+		const prefix string = ",\"film_url\":"
+		out.RawString(prefix)
+		out.String(string(in.FilmURL))
 	}
 	{
 		const prefix string = ",\"number_of_ratings\":"
