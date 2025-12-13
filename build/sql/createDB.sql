@@ -120,6 +120,7 @@ CREATE TABLE IF NOT EXISTS user_table (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     version integer DEFAULT 1 NOT NULL,
     login text NOT NULL,
+    vkid text DEFAULT '',
     password_hash bytea NOT NULL,
     avatar text DEFAULT 'avatars/default.png',
     has_2fa boolean DEFAULT false, 

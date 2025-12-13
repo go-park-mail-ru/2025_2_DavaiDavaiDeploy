@@ -13,6 +13,13 @@ service Auth {
 
   rpc Enable2fa(Enable2faRequest) returns (Enable2faResponse) {}
   rpc Disable2fa(Disable2faRequest) returns (Disable2faResponse) {}
+  rpc SignupUserVK(SignupVKRequest) returns (AuthResponse) {}
+  rpc SigninUserVK(SignupVKRequest) returns (AuthResponse) {}
+}
+
+message SignupVKRequest {
+  optional string Login = 1;
+  string VkID = 2;
 }
 
 message Enable2faRequest {

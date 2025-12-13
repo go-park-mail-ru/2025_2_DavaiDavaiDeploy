@@ -222,3 +222,42 @@ func (r *AuthRepository) GetUserSecretCode(ctx context.Context, userID uuid.UUID
 	logger.Info("successfully checked 2FA status")
 	return secretCode
 }
+
+func (r *AuthRepository) GetVKUser(ctx context.Context, vkid string) (models.User, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	var user models.User
+	err := r.db.QueryRow(
+		ctx,
+		CheckVKUserExistsQuery,
+		vkid,
+	).Scan(
+		&user.ID, &user.Version, &user.Login,
+		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("vk user not exists")
+			return models.User{}, auth.ErrorBadRequest
+		}
+		logger.Error("failed to scan vk user: " + err.Error())
+		return models.User{}, auth.ErrorInternalServerError
+	}
+
+	logger.Info("succesfully got vk user by id from db")
+	return user, nil
+}
+
+func (r *AuthRepository) CreateVKUser(ctx context.Context, user models.User, vkid string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(
+		ctx,
+		CreateUserQuery,
+		user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt, vkid,
+	)
+	if err != nil {
+		logger.Error("failed to create vk user: " + err.Error())
+		return auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully created vk user")
+	return nil
+}

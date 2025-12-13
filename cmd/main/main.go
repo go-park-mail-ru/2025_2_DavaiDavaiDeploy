@@ -199,6 +199,7 @@ func main() {
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
+	authRouter.HandleFunc("/vk", authHandler.VKAuth).Methods(http.MethodPost, http.MethodOptions)
 
 	protectedAuthRouter := authRouter.PathPrefix("").Subrouter()
 	protectedAuthRouter.Use(authHandler.Middleware)
