@@ -24,7 +24,7 @@ const (
 type SignupVKRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Login         *string                `protobuf:"bytes,1,opt,name=Login,proto3,oneof" json:"Login,omitempty"`
-	AccessToken   string                 `protobuf:"bytes,2,opt,name=AccessToken,proto3" json:"AccessToken,omitempty"`
+	VkID          string                 `protobuf:"bytes,2,opt,name=VkID,proto3" json:"VkID,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -66,9 +66,9 @@ func (x *SignupVKRequest) GetLogin() string {
 	return ""
 }
 
-func (x *SignupVKRequest) GetAccessToken() string {
+func (x *SignupVKRequest) GetVkID() string {
 	if x != nil {
-		return x.AccessToken
+		return x.VkID
 	}
 	return ""
 }
@@ -874,10 +874,10 @@ var File_auth_proto protoreflect.FileDescriptor
 const file_auth_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
-	"auth.proto\x12\x04auth\"X\n" +
+	"auth.proto\x12\x04auth\"J\n" +
 	"\x0fSignupVKRequest\x12\x19\n" +
-	"\x05Login\x18\x01 \x01(\tH\x00R\x05Login\x88\x01\x01\x12 \n" +
-	"\vAccessToken\x18\x02 \x01(\tR\vAccessTokenB\b\n" +
+	"\x05Login\x18\x01 \x01(\tH\x00R\x05Login\x88\x01\x01\x12\x12\n" +
+	"\x04VkID\x18\x02 \x01(\tR\x04VkIDB\b\n" +
 	"\x06_Login\":\n" +
 	"\x10Enable2faRequest\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x16\n" +
@@ -928,7 +928,7 @@ const file_auth_proto_rawDesc = "" +
 	"\x06Avatar\x18\x04 \x01(\tR\x06Avatar\"\x14\n" +
 	"\x12LogOutUserResponse\"1\n" +
 	"\x19ValidateAndGetUserRequest\x12\x14\n" +
-	"\x05Token\x18\x01 \x01(\tR\x05Token2\x85\x05\n" +
+	"\x05Token\x18\x01 \x01(\tR\x05Token2\xc2\x05\n" +
 	"\x04Auth\x127\n" +
 	"\n" +
 	"SignupUser\x12\x13.auth.SignupRequest\x1a\x12.auth.AuthResponse\"\x00\x127\n" +
@@ -943,7 +943,8 @@ const file_auth_proto_rawDesc = "" +
 	"\tEnable2fa\x12\x16.auth.Enable2faRequest\x1a\x17.auth.Enable2faResponse\"\x00\x12A\n" +
 	"\n" +
 	"Disable2fa\x12\x17.auth.Disable2faRequest\x1a\x18.auth.Disable2faResponse\"\x00\x12;\n" +
-	"\fSignupUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00B,Z*./internal/pkg/auth/delivery/grpc/gen/;genb\x06proto3"
+	"\fSignupUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00\x12;\n" +
+	"\fSigninUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00B,Z*./internal/pkg/auth/delivery/grpc/gen/;genb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
@@ -988,18 +989,20 @@ var file_auth_proto_depIdxs = []int32{
 	1,  // 8: auth.Auth.Enable2fa:input_type -> auth.Enable2faRequest
 	3,  // 9: auth.Auth.Disable2fa:input_type -> auth.Disable2faRequest
 	0,  // 10: auth.Auth.SignupUserVK:input_type -> auth.SignupVKRequest
-	9,  // 11: auth.Auth.SignupUser:output_type -> auth.AuthResponse
-	9,  // 12: auth.Auth.SignInUser:output_type -> auth.AuthResponse
-	14, // 13: auth.Auth.LogOutUser:output_type -> auth.LogOutUserResponse
-	6,  // 14: auth.Auth.GetUser:output_type -> auth.UserResponse
-	9,  // 15: auth.Auth.ChangePassword:output_type -> auth.AuthResponse
-	9,  // 16: auth.Auth.ChangeAvatar:output_type -> auth.AuthResponse
-	6,  // 17: auth.Auth.ValidateAndGetUser:output_type -> auth.UserResponse
-	2,  // 18: auth.Auth.Enable2fa:output_type -> auth.Enable2faResponse
-	4,  // 19: auth.Auth.Disable2fa:output_type -> auth.Disable2faResponse
-	9,  // 20: auth.Auth.SignupUserVK:output_type -> auth.AuthResponse
-	11, // [11:21] is the sub-list for method output_type
-	1,  // [1:11] is the sub-list for method input_type
+	0,  // 11: auth.Auth.SigninUserVK:input_type -> auth.SignupVKRequest
+	9,  // 12: auth.Auth.SignupUser:output_type -> auth.AuthResponse
+	9,  // 13: auth.Auth.SignInUser:output_type -> auth.AuthResponse
+	14, // 14: auth.Auth.LogOutUser:output_type -> auth.LogOutUserResponse
+	6,  // 15: auth.Auth.GetUser:output_type -> auth.UserResponse
+	9,  // 16: auth.Auth.ChangePassword:output_type -> auth.AuthResponse
+	9,  // 17: auth.Auth.ChangeAvatar:output_type -> auth.AuthResponse
+	6,  // 18: auth.Auth.ValidateAndGetUser:output_type -> auth.UserResponse
+	2,  // 19: auth.Auth.Enable2fa:output_type -> auth.Enable2faResponse
+	4,  // 20: auth.Auth.Disable2fa:output_type -> auth.Disable2faResponse
+	9,  // 21: auth.Auth.SignupUserVK:output_type -> auth.AuthResponse
+	9,  // 22: auth.Auth.SigninUserVK:output_type -> auth.AuthResponse
+	12, // [12:23] is the sub-list for method output_type
+	1,  // [1:12] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name
 	1,  // [1:1] is the sub-list for extension extendee
 	0,  // [0:1] is the sub-list for field type_name

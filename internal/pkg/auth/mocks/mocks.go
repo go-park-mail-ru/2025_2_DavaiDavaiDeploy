@@ -149,6 +149,22 @@ func (mr *MockAuthUsecaseMockRecorder) SignInUser(ctx, req any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInUser", reflect.TypeOf((*MockAuthUsecase)(nil).SignInUser), ctx, req)
 }
 
+// SignInVKUser mocks base method.
+func (m *MockAuthUsecase) SignInVKUser(ctx context.Context, vkid string) (models.User, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignInVKUser", ctx, vkid)
+	ret0, _ := ret[0].(models.User)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SignInVKUser indicates an expected call of SignInVKUser.
+func (mr *MockAuthUsecaseMockRecorder) SignInVKUser(ctx, vkid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInVKUser", reflect.TypeOf((*MockAuthUsecase)(nil).SignInVKUser), ctx, vkid)
+}
+
 // SignUpUser mocks base method.
 func (m *MockAuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	m.ctrl.T.Helper()
@@ -163,6 +179,22 @@ func (m *MockAuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput
 func (mr *MockAuthUsecaseMockRecorder) SignUpUser(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUpUser", reflect.TypeOf((*MockAuthUsecase)(nil).SignUpUser), ctx, req)
+}
+
+// SignUpVKUser mocks base method.
+func (m *MockAuthUsecase) SignUpVKUser(ctx context.Context, vkid, login string) (models.User, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignUpVKUser", ctx, vkid, login)
+	ret0, _ := ret[0].(models.User)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// SignUpVKUser indicates an expected call of SignUpVKUser.
+func (mr *MockAuthUsecaseMockRecorder) SignUpVKUser(ctx, vkid, login any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUpVKUser", reflect.TypeOf((*MockAuthUsecase)(nil).SignUpVKUser), ctx, vkid, login)
 }
 
 // ValidateAndGetUser mocks base method.
@@ -262,6 +294,20 @@ func (mr *MockAuthRepoMockRecorder) CreateUser(ctx, user any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockAuthRepo)(nil).CreateUser), ctx, user)
 }
 
+// CreateVKUser mocks base method.
+func (m *MockAuthRepo) CreateVKUser(ctx context.Context, user models.User, vkid string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateVKUser", ctx, user, vkid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateVKUser indicates an expected call of CreateVKUser.
+func (mr *MockAuthRepoMockRecorder) CreateVKUser(ctx, user, vkid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateVKUser", reflect.TypeOf((*MockAuthRepo)(nil).CreateVKUser), ctx, user, vkid)
+}
+
 // Disable2FA mocks base method.
 func (m *MockAuthRepo) Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error) {
 	m.ctrl.T.Helper()
@@ -334,6 +380,21 @@ func (m *MockAuthRepo) GetUserSecretCode(ctx context.Context, userID uuid.UUID) 
 func (mr *MockAuthRepoMockRecorder) GetUserSecretCode(ctx, userID any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserSecretCode", reflect.TypeOf((*MockAuthRepo)(nil).GetUserSecretCode), ctx, userID)
+}
+
+// GetVKUser mocks base method.
+func (m *MockAuthRepo) GetVKUser(ctx context.Context, vkid string) (models.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVKUser", ctx, vkid)
+	ret0, _ := ret[0].(models.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVKUser indicates an expected call of GetVKUser.
+func (mr *MockAuthRepoMockRecorder) GetVKUser(ctx, vkid any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVKUser", reflect.TypeOf((*MockAuthRepo)(nil).GetVKUser), ctx, vkid)
 }
 
 // IncrementUserVersion mocks base method.

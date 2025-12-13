@@ -148,6 +148,21 @@ func (mr *MockFilmUsecaseMockRecorder) GetUsersFavFilms(ctx, id any) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersFavFilms", reflect.TypeOf((*MockFilmUsecase)(nil).GetUsersFavFilms), ctx, id)
 }
 
+// GetUsersRecommendations mocks base method.
+func (m *MockFilmUsecase) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.MainPageFilm, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersRecommendations", ctx, userID)
+	ret0, _ := ret[0].([]models.MainPageFilm)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersRecommendations indicates an expected call of GetUsersRecommendations.
+func (mr *MockFilmUsecaseMockRecorder) GetUsersRecommendations(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersRecommendations", reflect.TypeOf((*MockFilmUsecase)(nil).GetUsersRecommendations), ctx, userID)
+}
+
 // RemoveFilm mocks base method.
 func (m *MockFilmUsecase) RemoveFilm(ctx context.Context, userID, filmID uuid.UUID) ([]models.FavFilm, error) {
 	m.ctrl.T.Helper()
@@ -456,18 +471,18 @@ func (mr *MockFilmRepoMockRecorder) GetSimilarFilms(ctx, filmID any) *gomock.Cal
 }
 
 // GetUpdates mocks base method.
-func (m *MockFilmRepo) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+func (m *MockFilmRepo) GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUpdates", ctx, offset)
+	ret := m.ctrl.Call(m, "GetUpdates", ctx, userID, offset)
 	ret0, _ := ret[0].([]models.News)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetUpdates indicates an expected call of GetUpdates.
-func (mr *MockFilmRepoMockRecorder) GetUpdates(ctx, offset any) *gomock.Call {
+func (mr *MockFilmRepoMockRecorder) GetUpdates(ctx, userID, offset any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdates", reflect.TypeOf((*MockFilmRepo)(nil).GetUpdates), ctx, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdates", reflect.TypeOf((*MockFilmRepo)(nil).GetUpdates), ctx, userID, offset)
 }
 
 // GetUserByLogin mocks base method.
@@ -498,6 +513,21 @@ func (m *MockFilmRepo) GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]mo
 func (mr *MockFilmRepoMockRecorder) GetUsersFavFilms(ctx, id any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersFavFilms", reflect.TypeOf((*MockFilmRepo)(nil).GetUsersFavFilms), ctx, id)
+}
+
+// GetUsersRecommendations mocks base method.
+func (m *MockFilmRepo) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUsersRecommendations", ctx, userID)
+	ret0, _ := ret[0].([]models.RecFilm)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUsersRecommendations indicates an expected call of GetUsersRecommendations.
+func (mr *MockFilmRepoMockRecorder) GetUsersRecommendations(ctx, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersRecommendations", reflect.TypeOf((*MockFilmRepo)(nil).GetUsersRecommendations), ctx, userID)
 }
 
 // RemoveFilm mocks base method.

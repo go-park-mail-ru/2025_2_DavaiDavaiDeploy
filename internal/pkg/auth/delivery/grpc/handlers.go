@@ -60,6 +60,42 @@ func (g GrpcAuthHandler) SignupUser(ctx context.Context, in *gen.SignupRequest) 
 	}, err
 }
 
+func (g GrpcAuthHandler) SignupVKUser(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+	req := models.VKUsersData{
+		Login: in.Login,
+		VkID:  in.VkID,
+	}
+	req.Sanitize()
+
+	user, token, err := g.auc.SignUpVKUser(ctx, req.VkID, *req.Login)
+	if err != nil {
+		switch err {
+		case auth.ErrorBadRequest:
+			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		case auth.ErrorConflict:
+			return nil, status.Errorf(codes.AlreadyExists, "%v", err)
+		default:
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+	}
+	user.Sanitize()
+
+	csrfToken := uuid.NewV4().String()
+
+	userResponse := &gen.UserResponse{
+		ID:      user.ID.String(),
+		Version: int32(user.Version),
+		Login:   user.Login,
+		Avatar:  user.Avatar,
+	}
+
+	return &gen.AuthResponse{
+		User:      userResponse,
+		JWTToken:  token,
+		CSRFToken: csrfToken,
+	}, err
+}
+
 func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) (*gen.AuthResponse, error) {
 	req := models.SignInInput{
 		Login:    in.Login,
@@ -69,6 +105,44 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 	req.Sanitize()
 
 	user, token, err := g.auc.SignInUser(ctx, req)
+	if err != nil {
+		switch err {
+		case auth.ErrorBadRequest:
+			return nil, status.Errorf(codes.InvalidArgument, "%v", err)
+		case auth.ErrorUnauthorized:
+			return nil, status.Errorf(codes.Unauthenticated, "%v", err)
+		case auth.ErrorPreconditionFailed:
+			return nil, status.Errorf(codes.FailedPrecondition, "%v", err)
+		default:
+			return nil, status.Errorf(codes.Internal, "%v", err)
+		}
+	}
+	user.Sanitize()
+
+	userResponse := &gen.UserResponse{
+		ID:      user.ID.String(),
+		Version: int32(user.Version),
+		Login:   user.Login,
+		Avatar:  user.Avatar,
+		Has2Fa:  user.Has2FA,
+	}
+
+	csrfToken := uuid.NewV4().String()
+
+	return &gen.AuthResponse{
+		User:      userResponse,
+		JWTToken:  token,
+		CSRFToken: csrfToken,
+	}, err
+}
+
+func (g GrpcAuthHandler) SignInVKUser(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+	req := models.VKUsersData{
+		VkID: in.VkID,
+	}
+	req.Sanitize()
+
+	user, token, err := g.auc.SignInVKUser(ctx, req.VkID)
 	if err != nil {
 		switch err {
 		case auth.ErrorBadRequest:

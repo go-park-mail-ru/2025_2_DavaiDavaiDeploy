@@ -19,6 +19,8 @@ type AuthUsecase interface {
 	Disable2FA(ctx context.Context, userID uuid.UUID, has2FA bool) (models.DisableTwoFactorResponse, error)
 	GenerateQRCode(login string) ([]byte, string, error)
 	VerifyOTPCode(ctx context.Context, login, secretCode string, userCode string) error
+	SignUpVKUser(ctx context.Context, vkid string, login string) (models.User, string, error)
+	SignInVKUser(ctx context.Context, vkid string) (models.User, string, error)
 }
 
 type AuthRepo interface {

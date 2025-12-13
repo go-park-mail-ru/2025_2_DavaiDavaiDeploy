@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/auth/delivery/grpc/gen"
@@ -11,7 +12,9 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -79,6 +82,171 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	user, err := a.client.SignupUser(r.Context(), &gen.SignupRequest{
 		Login:    req.Login,
 		Password: req.Password})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		case codes.AlreadyExists:
+			helpers.WriteError(w, http.StatusConflict)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    user.CSRFToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CookieName,
+		Value:    user.JWTToken,
+		HttpOnly: true,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	response := models.User{
+		ID:      uuid.FromStringOrNil(user.User.ID),
+		Version: int(user.User.Version),
+		Login:   user.User.Login,
+		Avatar:  user.User.Avatar,
+	}
+
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	var req models.VKAuthRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	req.Sanitize()
+
+	if req.AccessToken == "" {
+		log.LogHandlerError(logger, errors.New("Access Token is required"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	apiURL := "https://id.vk.ru/oauth2/user_info"
+
+	// Создаем форму для POST запроса
+	form := url.Values{}
+	form.Add("access_token", req.AccessToken)
+
+	// Создаем HTTP запрос
+	vkReq, err := http.NewRequestWithContext(r.Context(), "POST", apiURL, strings.NewReader(form.Encode()))
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("Unable to send request"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	vkReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(vkReq)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("Client error"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.LogHandlerError(logger, errors.New("VK API error: "+string(body)), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	var vkUser models.VKAuthResponse
+	err = json.NewDecoder(resp.Body).Decode(&vkUser)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("Decoding error"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	if vkUser.User.UserID == "" {
+		log.LogHandlerError(logger, errors.New("Unable to get users id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	if req.Login != nil {
+		user, err := a.client.SignupUserVK(r.Context(), &gen.SignupVKRequest{
+			Login: req.Login,
+			VkID:  vkUser.User.UserID,
+		})
+
+		if err != nil {
+			st, _ := status.FromError(err)
+			switch st.Code() {
+			case codes.InvalidArgument:
+				helpers.WriteError(w, http.StatusBadRequest)
+			case codes.AlreadyExists:
+				helpers.WriteError(w, http.StatusConflict)
+			default:
+				helpers.WriteError(w, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     CSRFCookieName,
+			Value:    user.CSRFToken,
+			HttpOnly: false,
+			Secure:   a.CookieSecure,
+			SameSite: a.CookieSamesite,
+			Expires:  time.Now().Add(12 * time.Hour),
+			Path:     "/",
+		})
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     CookieName,
+			Value:    user.JWTToken,
+			HttpOnly: true,
+			Secure:   a.CookieSecure,
+			SameSite: a.CookieSamesite,
+			Expires:  time.Now().Add(12 * time.Hour),
+			Path:     "/",
+		})
+
+		response := models.User{
+			ID:      uuid.FromStringOrNil(user.User.ID),
+			Version: int(user.User.Version),
+			Login:   user.User.Login,
+			Avatar:  user.User.Avatar,
+		}
+
+		w.Header().Set("X-CSRF-Token", user.CSRFToken)
+		helpers.WriteJSON(w, response)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		return
+	}
+
+	user, err := a.client.SigninUserVK(r.Context(), &gen.SignupVKRequest{
+		VkID: vkUser.User.UserID,
+	})
 
 	if err != nil {
 		st, _ := status.FromError(err)
