@@ -36,4 +36,4 @@ var CheckUserSecretCodeQuery string
 var CheckVKUserExistsQuery string
 
 //go:embed sql/createVKUserQuery.sql
-var createVKUserQuery string
+var CreateVKUserQuery string

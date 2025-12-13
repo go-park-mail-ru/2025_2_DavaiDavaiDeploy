@@ -31,4 +31,6 @@ type AuthRepo interface {
 	Disable2FA(ctx context.Context, id uuid.UUID) (models.DisableTwoFactorResponse, error)
 	GetUserByID(ctx context.Context, id uuid.UUID) (models.User, error)
 	GetUserSecretCode(ctx context.Context, userID uuid.UUID) string
+	CreateVKUser(ctx context.Context, user models.User, vkid string) error
+	CheckVKUserExists(ctx context.Context, vkid string) (bool, error)
 }

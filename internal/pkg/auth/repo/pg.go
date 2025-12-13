@@ -222,3 +222,33 @@ func (r *AuthRepository) GetUserSecretCode(ctx context.Context, userID uuid.UUID
 	logger.Info("successfully checked 2FA status")
 	return secretCode
 }
+
+func (r *AuthRepository) CheckVKUserExists(ctx context.Context, vkid string) (bool, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	var exists bool
+	err := r.db.QueryRow(ctx, CheckVKUserExistsQuery, vkid).Scan(&exists)
+
+	if err != nil {
+		logger.Error("failed to check user by vkid: " + err.Error())
+		return false, auth.ErrorInternalServerError
+	}
+
+	logger.Info("successfully checked user by vkid", slog.Bool("exists", exists))
+	return exists, nil
+}
+
+func (r *AuthRepository) CreateVKUser(ctx context.Context, user models.User, vkid string) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(
+		ctx,
+		CreateUserQuery,
+		user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt, vkid,
+	)
+	if err != nil {
+		logger.Error("failed to create vk user: " + err.Error())
+		return auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully created vk user")
+	return nil
+}
