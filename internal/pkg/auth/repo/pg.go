@@ -223,19 +223,28 @@ func (r *AuthRepository) GetUserSecretCode(ctx context.Context, userID uuid.UUID
 	return secretCode
 }
 
-func (r *AuthRepository) CheckVKUserExists(ctx context.Context, vkid string) (bool, error) {
+func (r *AuthRepository) GetVKUser(ctx context.Context, vkid string) (models.User, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	var exists bool
-	err := r.db.QueryRow(ctx, CheckVKUserExistsQuery, vkid).Scan(&exists)
-
+	var user models.User
+	err := r.db.QueryRow(
+		ctx,
+		CheckVKUserExistsQuery,
+		vkid,
+	).Scan(
+		&user.ID, &user.Version, &user.Login,
+		&user.PasswordHash, &user.Avatar, &user.CreatedAt, &user.UpdatedAt,
+	)
 	if err != nil {
-		logger.Error("failed to check user by vkid: " + err.Error())
-		return false, auth.ErrorInternalServerError
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("vk user not exists")
+			return models.User{}, auth.ErrorBadRequest
+		}
+		logger.Error("failed to scan vk user: " + err.Error())
+		return models.User{}, auth.ErrorInternalServerError
 	}
 
-	logger.Info("successfully checked user by vkid", slog.Bool("exists", exists))
-	return exists, nil
+	logger.Info("succesfully got vk user by id from db")
+	return user, nil
 }
 
 func (r *AuthRepository) CreateVKUser(ctx context.Context, user models.User, vkid string) error {

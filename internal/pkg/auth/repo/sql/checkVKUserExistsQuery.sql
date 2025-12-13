@@ -1,4 +1,3 @@
-SELECT EXISTS(
-    SELECT 1 FROM user_table 
-    WHERE vkid = $1
-);
+SELECT id, version, login, password_hash, avatar, created_at, updated_at 
+FROM user_table 
+WHERE vkid = $1
