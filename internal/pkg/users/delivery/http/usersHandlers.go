@@ -69,6 +69,7 @@ func (u *UserHandler) JWTMiddleware(next http.Handler) http.Handler {
 			default:
 				helpers.WriteError(w, http.StatusInternalServerError)
 			}
+			return
 		}
 		neededUser := models.User{
 			ID: uuid.FromStringOrNil(user.ID),
