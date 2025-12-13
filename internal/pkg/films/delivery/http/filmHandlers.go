@@ -55,9 +55,10 @@ func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	}
 	web := websocket.Upgrader{}
 	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
+	web.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := web.Upgrade(w, r, nil)
 	if err != nil {
-		log.LogHandlerError(logger, err, http.StatusUnauthorized)
+		log.LogHandlerError(logger, err, http.StatusForbidden)
 		return
 	}
 	c.hub.AddClient(userID, conn)
