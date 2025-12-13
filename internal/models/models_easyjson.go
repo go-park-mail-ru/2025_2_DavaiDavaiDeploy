@@ -256,7 +256,267 @@ func easyjsonD2b7633eEncode1(out *jwriter.Writer, in struct {
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels1(in *jlexer.Lexer, out *User) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels1(in *jlexer.Lexer, out *VKAuthResponse) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "user":
+			easyjsonD2b7633eDecode2(in, &out.User)
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeKinopoiskInternalModels1(out *jwriter.Writer, in VKAuthResponse) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"user\":"
+		out.RawString(prefix[1:])
+		easyjsonD2b7633eEncode2(out, in.User)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v VKAuthResponse) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonD2b7633eEncodeKinopoiskInternalModels1(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v VKAuthResponse) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonD2b7633eEncodeKinopoiskInternalModels1(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *VKAuthResponse) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonD2b7633eDecodeKinopoiskInternalModels1(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *VKAuthResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonD2b7633eDecodeKinopoiskInternalModels1(l, v)
+}
+func easyjsonD2b7633eDecode2(in *jlexer.Lexer, out *struct {
+	UserID    string `json:"user_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Avatar    string `json:"avatar"`
+	Sex       int    `json:"sex"`
+	Verified  bool   `json:"verified"`
+	Birthday  string `json:"birthday"`
+}) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "user_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.UserID = string(in.String())
+			}
+		case "first_name":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.FirstName = string(in.String())
+			}
+		case "last_name":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.LastName = string(in.String())
+			}
+		case "avatar":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Avatar = string(in.String())
+			}
+		case "sex":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Sex = int(in.Int())
+			}
+		case "verified":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Verified = bool(in.Bool())
+			}
+		case "birthday":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Birthday = string(in.String())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncode2(out *jwriter.Writer, in struct {
+	UserID    string `json:"user_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Avatar    string `json:"avatar"`
+	Sex       int    `json:"sex"`
+	Verified  bool   `json:"verified"`
+	Birthday  string `json:"birthday"`
+}) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"user_id\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.UserID))
+	}
+	{
+		const prefix string = ",\"first_name\":"
+		out.RawString(prefix)
+		out.String(string(in.FirstName))
+	}
+	{
+		const prefix string = ",\"last_name\":"
+		out.RawString(prefix)
+		out.String(string(in.LastName))
+	}
+	{
+		const prefix string = ",\"avatar\":"
+		out.RawString(prefix)
+		out.String(string(in.Avatar))
+	}
+	{
+		const prefix string = ",\"sex\":"
+		out.RawString(prefix)
+		out.Int(int(in.Sex))
+	}
+	{
+		const prefix string = ",\"verified\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.Verified))
+	}
+	{
+		const prefix string = ",\"birthday\":"
+		out.RawString(prefix)
+		out.String(string(in.Birthday))
+	}
+	out.RawByte('}')
+}
+func easyjsonD2b7633eDecodeKinopoiskInternalModels2(in *jlexer.Lexer, out *VKAuthRequest) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "login":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Login = string(in.String())
+			}
+		case "access_token":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.AccessToken = string(in.String())
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeKinopoiskInternalModels2(out *jwriter.Writer, in VKAuthRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"login\":"
+		out.RawString(prefix[1:])
+		out.String(string(in.Login))
+	}
+	{
+		const prefix string = ",\"access_token\":"
+		out.RawString(prefix)
+		out.String(string(in.AccessToken))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v VKAuthRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonD2b7633eEncodeKinopoiskInternalModels2(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v VKAuthRequest) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonD2b7633eEncodeKinopoiskInternalModels2(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *VKAuthRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonD2b7633eDecodeKinopoiskInternalModels2(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *VKAuthRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonD2b7633eDecodeKinopoiskInternalModels2(l, v)
+}
+func easyjsonD2b7633eDecodeKinopoiskInternalModels3(in *jlexer.Lexer, out *User) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -328,7 +588,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels1(in *jlexer.Lexer, out *User)
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels1(out *jwriter.Writer, in User) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels3(out *jwriter.Writer, in User) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -373,27 +633,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels1(out *jwriter.Writer, in User
 // MarshalJSON supports json.Marshaler interface
 func (v User) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels1(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v User) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels1(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *User) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels1(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *User) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels1(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels3(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels2(in *jlexer.Lexer, out *Urlset) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels4(in *jlexer.Lexer, out *Urlset) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -458,7 +718,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels2(in *jlexer.Lexer, out *Urlse
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels2(out *jwriter.Writer, in Urlset) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels4(out *jwriter.Writer, in Urlset) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -499,25 +759,25 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels2(out *jwriter.Writer, in Urls
 // MarshalJSON supports json.Marshaler interface
 func (v Urlset) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels2(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Urlset) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels2(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Urlset) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels2(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Urlset) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels2(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels4(l, v)
 }
 func easyjsonD2b7633eDecodeEncodingXml(in *jlexer.Lexer, out *xml.Name) {
 	isTopLevel := in.IsStart()
@@ -571,7 +831,7 @@ func easyjsonD2b7633eEncodeEncodingXml(out *jwriter.Writer, in xml.Name) {
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels3(in *jlexer.Lexer, out *URLItem) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels5(in *jlexer.Lexer, out *URLItem) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -625,7 +885,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels3(in *jlexer.Lexer, out *URLIt
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels3(out *jwriter.Writer, in URLItem) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels5(out *jwriter.Writer, in URLItem) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -660,27 +920,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels3(out *jwriter.Writer, in URLI
 // MarshalJSON supports json.Marshaler interface
 func (v URLItem) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels3(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v URLItem) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels3(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *URLItem) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels3(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *URLItem) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels3(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels5(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels4(in *jlexer.Lexer, out *TwoFactorRequest) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels6(in *jlexer.Lexer, out *TwoFactorRequest) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -712,7 +972,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels4(in *jlexer.Lexer, out *TwoFa
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels4(out *jwriter.Writer, in TwoFactorRequest) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels6(out *jwriter.Writer, in TwoFactorRequest) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -727,27 +987,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels4(out *jwriter.Writer, in TwoF
 // MarshalJSON supports json.Marshaler interface
 func (v TwoFactorRequest) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels4(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v TwoFactorRequest) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels4(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *TwoFactorRequest) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels4(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *TwoFactorRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels4(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels6(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels5(in *jlexer.Lexer, out *SignUpInput) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels7(in *jlexer.Lexer, out *SignUpInput) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -783,7 +1043,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels5(in *jlexer.Lexer, out *SignU
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels5(out *jwriter.Writer, in SignUpInput) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels7(out *jwriter.Writer, in SignUpInput) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -803,27 +1063,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels5(out *jwriter.Writer, in Sign
 // MarshalJSON supports json.Marshaler interface
 func (v SignUpInput) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels5(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v SignUpInput) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels5(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *SignUpInput) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels5(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *SignUpInput) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels5(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels7(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels6(in *jlexer.Lexer, out *SignInInput) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels8(in *jlexer.Lexer, out *SignInInput) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -873,7 +1133,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels6(in *jlexer.Lexer, out *SignI
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels6(out *jwriter.Writer, in SignInInput) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels8(out *jwriter.Writer, in SignInInput) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -898,27 +1158,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels6(out *jwriter.Writer, in Sign
 // MarshalJSON supports json.Marshaler interface
 func (v SignInInput) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels6(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels8(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v SignInInput) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels6(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels8(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *SignInInput) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels6(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels8(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *SignInInput) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels6(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels8(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels7(in *jlexer.Lexer, out *SearchResponse) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels9(in *jlexer.Lexer, out *SearchResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1002,7 +1262,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels7(in *jlexer.Lexer, out *Searc
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels7(out *jwriter.Writer, in SearchResponse) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels9(out *jwriter.Writer, in SearchResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1049,27 +1309,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels7(out *jwriter.Writer, in Sear
 // MarshalJSON supports json.Marshaler interface
 func (v SearchResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels7(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels9(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v SearchResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels7(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels9(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *SearchResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels7(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels9(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *SearchResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels7(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels9(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels8(in *jlexer.Lexer, out *RecFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels10(in *jlexer.Lexer, out *RecFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1198,7 +1458,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels8(in *jlexer.Lexer, out *RecFi
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels8(out *jwriter.Writer, in RecFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels10(out *jwriter.Writer, in RecFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1284,27 +1544,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels8(out *jwriter.Writer, in RecF
 // MarshalJSON supports json.Marshaler interface
 func (v RecFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels8(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v RecFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels8(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *RecFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels8(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *RecFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels8(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels10(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels9(in *jlexer.Lexer, out *PromoFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels11(in *jlexer.Lexer, out *PromoFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1394,7 +1654,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels9(in *jlexer.Lexer, out *Promo
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels9(out *jwriter.Writer, in PromoFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels11(out *jwriter.Writer, in PromoFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1454,27 +1714,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels9(out *jwriter.Writer, in Prom
 // MarshalJSON supports json.Marshaler interface
 func (v PromoFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels9(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v PromoFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels9(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *PromoFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels9(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *PromoFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels9(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels11(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels10(in *jlexer.Lexer, out *Pager) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels12(in *jlexer.Lexer, out *Pager) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1510,7 +1770,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels10(in *jlexer.Lexer, out *Page
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels10(out *jwriter.Writer, in Pager) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels12(out *jwriter.Writer, in Pager) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1530,27 +1790,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels10(out *jwriter.Writer, in Pag
 // MarshalJSON supports json.Marshaler interface
 func (v Pager) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels10(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels12(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Pager) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels10(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels12(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Pager) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels10(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels12(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Pager) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels10(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels12(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels11(in *jlexer.Lexer, out *News) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels13(in *jlexer.Lexer, out *News) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1610,7 +1870,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels11(in *jlexer.Lexer, out *News
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels11(out *jwriter.Writer, in News) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels13(out *jwriter.Writer, in News) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1645,27 +1905,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels11(out *jwriter.Writer, in New
 // MarshalJSON supports json.Marshaler interface
 func (v News) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels11(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels13(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v News) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels11(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels13(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *News) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels11(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels13(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *News) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels11(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels13(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels12(in *jlexer.Lexer, out *MainPageFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels14(in *jlexer.Lexer, out *MainPageFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1735,7 +1995,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels12(in *jlexer.Lexer, out *Main
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels12(out *jwriter.Writer, in MainPageFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels14(out *jwriter.Writer, in MainPageFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1780,27 +2040,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels12(out *jwriter.Writer, in Mai
 // MarshalJSON supports json.Marshaler interface
 func (v MainPageFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels12(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels14(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v MainPageFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels12(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels14(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MainPageFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels12(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels14(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *MainPageFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels12(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels14(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels13(in *jlexer.Lexer, out *MainPageActor) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels15(in *jlexer.Lexer, out *MainPageActor) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1844,7 +2104,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels13(in *jlexer.Lexer, out *Main
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels13(out *jwriter.Writer, in MainPageActor) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels15(out *jwriter.Writer, in MainPageActor) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1869,27 +2129,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels13(out *jwriter.Writer, in Mai
 // MarshalJSON supports json.Marshaler interface
 func (v MainPageActor) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels13(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels15(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v MainPageActor) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels13(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels15(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MainPageActor) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels13(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels15(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *MainPageActor) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels13(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels15(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels14(in *jlexer.Lexer, out *Genre) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels16(in *jlexer.Lexer, out *Genre) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1955,7 +2215,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels14(in *jlexer.Lexer, out *Genr
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels14(out *jwriter.Writer, in Genre) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels16(out *jwriter.Writer, in Genre) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1995,27 +2255,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels14(out *jwriter.Writer, in Gen
 // MarshalJSON supports json.Marshaler interface
 func (v Genre) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels14(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels16(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Genre) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels14(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels16(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Genre) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels14(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels16(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Genre) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels14(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels16(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels15(in *jlexer.Lexer, out *FilmPage) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels17(in *jlexer.Lexer, out *FilmPage) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2288,7 +2548,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels15(in *jlexer.Lexer, out *Film
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels15(out *jwriter.Writer, in FilmPage) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels17(out *jwriter.Writer, in FilmPage) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2453,27 +2713,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels15(out *jwriter.Writer, in Fil
 // MarshalJSON supports json.Marshaler interface
 func (v FilmPage) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels15(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels17(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FilmPage) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels15(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels17(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FilmPage) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels15(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels17(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FilmPage) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels15(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels17(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels16(in *jlexer.Lexer, out *FilmInCalendar) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels18(in *jlexer.Lexer, out *FilmInCalendar) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2551,7 +2811,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels16(in *jlexer.Lexer, out *Film
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels16(out *jwriter.Writer, in FilmInCalendar) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels18(out *jwriter.Writer, in FilmInCalendar) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2596,27 +2856,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels16(out *jwriter.Writer, in Fil
 // MarshalJSON supports json.Marshaler interface
 func (v FilmInCalendar) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels16(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels18(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FilmInCalendar) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels16(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels18(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FilmInCalendar) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels16(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels18(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FilmInCalendar) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels16(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels18(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels17(in *jlexer.Lexer, out *FilmFeedbackInput) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels19(in *jlexer.Lexer, out *FilmFeedbackInput) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2658,7 +2918,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels17(in *jlexer.Lexer, out *Film
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels17(out *jwriter.Writer, in FilmFeedbackInput) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels19(out *jwriter.Writer, in FilmFeedbackInput) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2683,27 +2943,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels17(out *jwriter.Writer, in Fil
 // MarshalJSON supports json.Marshaler interface
 func (v FilmFeedbackInput) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels17(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels19(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FilmFeedbackInput) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels17(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels19(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FilmFeedbackInput) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels17(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels19(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FilmFeedbackInput) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels17(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels19(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels18(in *jlexer.Lexer, out *FilmFeedback) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels20(in *jlexer.Lexer, out *FilmFeedback) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -2825,7 +3085,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels18(in *jlexer.Lexer, out *Film
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels18(out *jwriter.Writer, in FilmFeedback) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels20(out *jwriter.Writer, in FilmFeedback) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -2903,27 +3163,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels18(out *jwriter.Writer, in Fil
 // MarshalJSON supports json.Marshaler interface
 func (v FilmFeedback) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels18(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels20(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FilmFeedback) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels18(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels20(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FilmFeedback) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels18(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels20(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FilmFeedback) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels18(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels20(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels19(in *jlexer.Lexer, out *Film) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels21(in *jlexer.Lexer, out *Film) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3137,7 +3397,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels19(in *jlexer.Lexer, out *Film
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels19(out *jwriter.Writer, in Film) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels21(out *jwriter.Writer, in Film) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3257,27 +3517,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels19(out *jwriter.Writer, in Fil
 // MarshalJSON supports json.Marshaler interface
 func (v Film) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels19(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels21(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Film) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels19(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels21(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Film) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels19(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels21(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Film) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels19(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels21(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels20(in *jlexer.Lexer, out *FavFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels22(in *jlexer.Lexer, out *FavFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3351,7 +3611,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels20(in *jlexer.Lexer, out *FavF
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels20(out *jwriter.Writer, in FavFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels22(out *jwriter.Writer, in FavFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3401,27 +3661,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels20(out *jwriter.Writer, in Fav
 // MarshalJSON supports json.Marshaler interface
 func (v FavFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels20(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels22(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v FavFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels20(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels22(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *FavFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels20(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels22(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *FavFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels20(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels22(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels21(in *jlexer.Lexer, out *Error) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels23(in *jlexer.Lexer, out *Error) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3451,7 +3711,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels21(in *jlexer.Lexer, out *Erro
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels21(out *jwriter.Writer, in Error) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels23(out *jwriter.Writer, in Error) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3466,27 +3726,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels21(out *jwriter.Writer, in Err
 // MarshalJSON supports json.Marshaler interface
 func (v Error) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels21(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels23(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Error) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels21(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels23(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Error) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels21(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels23(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Error) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels21(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels23(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels22(in *jlexer.Lexer, out *EnableTwoFactorResponse) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels24(in *jlexer.Lexer, out *EnableTwoFactorResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3523,7 +3783,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels22(in *jlexer.Lexer, out *Enab
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels22(out *jwriter.Writer, in EnableTwoFactorResponse) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels24(out *jwriter.Writer, in EnableTwoFactorResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3543,27 +3803,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels22(out *jwriter.Writer, in Ena
 // MarshalJSON supports json.Marshaler interface
 func (v EnableTwoFactorResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels22(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels24(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v EnableTwoFactorResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels22(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels24(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *EnableTwoFactorResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels22(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels24(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *EnableTwoFactorResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels22(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels24(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels23(in *jlexer.Lexer, out *DisableTwoFactorResponse) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels25(in *jlexer.Lexer, out *DisableTwoFactorResponse) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3593,7 +3853,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels23(in *jlexer.Lexer, out *Disa
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels23(out *jwriter.Writer, in DisableTwoFactorResponse) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels25(out *jwriter.Writer, in DisableTwoFactorResponse) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3608,27 +3868,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels23(out *jwriter.Writer, in Dis
 // MarshalJSON supports json.Marshaler interface
 func (v DisableTwoFactorResponse) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels23(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels25(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v DisableTwoFactorResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels23(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels25(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *DisableTwoFactorResponse) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels23(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels25(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *DisableTwoFactorResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels23(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels25(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels24(in *jlexer.Lexer, out *CursorPager) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels26(in *jlexer.Lexer, out *CursorPager) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3668,7 +3928,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels24(in *jlexer.Lexer, out *Curs
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels24(out *jwriter.Writer, in CursorPager) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels26(out *jwriter.Writer, in CursorPager) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3692,25 +3952,25 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels24(out *jwriter.Writer, in Cur
 // MarshalJSON supports json.Marshaler interface
 func (v CursorPager) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels24(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels26(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CursorPager) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels24(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels26(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CursorPager) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels24(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels26(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CursorPager) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels24(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels26(l, v)
 }
 func easyjsonD2b7633eDecodeGoogleGolangOrgProtobufTypesKnownTimestamppb(in *jlexer.Lexer, out *timestamppb.Timestamp) {
 	isTopLevel := in.IsStart()
@@ -3770,7 +4030,7 @@ func easyjsonD2b7633eEncodeGoogleGolangOrgProtobufTypesKnownTimestamppb(out *jwr
 	}
 	out.RawByte('}')
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels25(in *jlexer.Lexer, out *Country) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels27(in *jlexer.Lexer, out *Country) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3824,7 +4084,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels25(in *jlexer.Lexer, out *Coun
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels25(out *jwriter.Writer, in Country) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels27(out *jwriter.Writer, in Country) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3854,27 +4114,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels25(out *jwriter.Writer, in Cou
 // MarshalJSON supports json.Marshaler interface
 func (v Country) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels25(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels27(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Country) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels25(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels27(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Country) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels25(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels27(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Country) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels25(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels27(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels26(in *jlexer.Lexer, out *Compilation) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels28(in *jlexer.Lexer, out *Compilation) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -3940,7 +4200,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels26(in *jlexer.Lexer, out *Comp
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels26(out *jwriter.Writer, in Compilation) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels28(out *jwriter.Writer, in Compilation) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -3980,27 +4240,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels26(out *jwriter.Writer, in Com
 // MarshalJSON supports json.Marshaler interface
 func (v Compilation) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels26(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels28(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Compilation) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels26(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels28(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Compilation) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels26(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels28(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Compilation) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels26(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels28(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels27(in *jlexer.Lexer, out *CompFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels29(in *jlexer.Lexer, out *CompFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -4080,7 +4340,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels27(in *jlexer.Lexer, out *Comp
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels27(out *jwriter.Writer, in CompFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels29(out *jwriter.Writer, in CompFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -4135,27 +4395,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels27(out *jwriter.Writer, in Com
 // MarshalJSON supports json.Marshaler interface
 func (v CompFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels27(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels29(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v CompFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels27(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels29(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *CompFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels27(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels29(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *CompFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels27(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels29(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels28(in *jlexer.Lexer, out *ChangePasswordInput) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels30(in *jlexer.Lexer, out *ChangePasswordInput) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -4191,7 +4451,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels28(in *jlexer.Lexer, out *Chan
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels28(out *jwriter.Writer, in ChangePasswordInput) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels30(out *jwriter.Writer, in ChangePasswordInput) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -4211,27 +4471,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels28(out *jwriter.Writer, in Cha
 // MarshalJSON supports json.Marshaler interface
 func (v ChangePasswordInput) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels28(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels30(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ChangePasswordInput) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels28(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels30(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ChangePasswordInput) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels28(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels30(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ChangePasswordInput) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels28(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels30(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels29(in *jlexer.Lexer, out *ActorPage) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels31(in *jlexer.Lexer, out *ActorPage) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -4333,7 +4593,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels29(in *jlexer.Lexer, out *Acto
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels29(out *jwriter.Writer, in ActorPage) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels31(out *jwriter.Writer, in ActorPage) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -4402,27 +4662,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels29(out *jwriter.Writer, in Act
 // MarshalJSON supports json.Marshaler interface
 func (v ActorPage) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels29(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels31(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ActorPage) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels29(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels31(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ActorPage) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels29(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels31(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ActorPage) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels29(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels31(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels30(in *jlexer.Lexer, out *ActorInFilm) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels32(in *jlexer.Lexer, out *ActorInFilm) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -4498,7 +4758,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels30(in *jlexer.Lexer, out *Acto
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels30(out *jwriter.Writer, in ActorInFilm) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels32(out *jwriter.Writer, in ActorInFilm) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -4543,27 +4803,27 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels30(out *jwriter.Writer, in Act
 // MarshalJSON supports json.Marshaler interface
 func (v ActorInFilm) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels30(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels32(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ActorInFilm) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels30(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels32(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ActorInFilm) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels30(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels32(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ActorInFilm) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels30(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels32(l, v)
 }
-func easyjsonD2b7633eDecodeKinopoiskInternalModels31(in *jlexer.Lexer, out *Actor) {
+func easyjsonD2b7633eDecodeKinopoiskInternalModels33(in *jlexer.Lexer, out *Actor) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -4685,7 +4945,7 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels31(in *jlexer.Lexer, out *Acto
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeKinopoiskInternalModels31(out *jwriter.Writer, in Actor) {
+func easyjsonD2b7633eEncodeKinopoiskInternalModels33(out *jwriter.Writer, in Actor) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -4755,23 +5015,23 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels31(out *jwriter.Writer, in Act
 // MarshalJSON supports json.Marshaler interface
 func (v Actor) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeKinopoiskInternalModels31(&w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels33(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Actor) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeKinopoiskInternalModels31(w, v)
+	easyjsonD2b7633eEncodeKinopoiskInternalModels33(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Actor) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeKinopoiskInternalModels31(&r, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels33(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Actor) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeKinopoiskInternalModels31(l, v)
+	easyjsonD2b7633eDecodeKinopoiskInternalModels33(l, v)
 }
