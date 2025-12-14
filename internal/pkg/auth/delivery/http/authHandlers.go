@@ -201,7 +201,7 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Login != nil {
-		user, err := a.client.SignupUserVK(r.Context(), &gen.SignupVKRequest{
+		user, err := a.client.SignUpUserVK(r.Context(), &gen.SignupVKRequest{
 			Login: req.Login,
 			VkID:  vkUser.User.UserID,
 		})
@@ -253,7 +253,7 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.client.SigninUserVK(r.Context(), &gen.SignupVKRequest{
+	user, err := a.client.SignInUserVK(r.Context(), &gen.SignupVKRequest{
 		VkID: vkUser.User.UserID,
 	})
 

@@ -943,8 +943,8 @@ const file_auth_proto_rawDesc = "" +
 	"\tEnable2fa\x12\x16.auth.Enable2faRequest\x1a\x17.auth.Enable2faResponse\"\x00\x12A\n" +
 	"\n" +
 	"Disable2fa\x12\x17.auth.Disable2faRequest\x1a\x18.auth.Disable2faResponse\"\x00\x12;\n" +
-	"\fSignupUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00\x12;\n" +
-	"\fSigninUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00B,Z*./internal/pkg/auth/delivery/grpc/gen/;genb\x06proto3"
+	"\fSignUpUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00\x12;\n" +
+	"\fSignInUserVK\x12\x15.auth.SignupVKRequest\x1a\x12.auth.AuthResponse\"\x00B,Z*./internal/pkg/auth/delivery/grpc/gen/;genb\x06proto3"
 
 var (
 	file_auth_proto_rawDescOnce sync.Once
@@ -988,8 +988,8 @@ var file_auth_proto_depIdxs = []int32{
 	15, // 7: auth.Auth.ValidateAndGetUser:input_type -> auth.ValidateAndGetUserRequest
 	1,  // 8: auth.Auth.Enable2fa:input_type -> auth.Enable2faRequest
 	3,  // 9: auth.Auth.Disable2fa:input_type -> auth.Disable2faRequest
-	0,  // 10: auth.Auth.SignupUserVK:input_type -> auth.SignupVKRequest
-	0,  // 11: auth.Auth.SigninUserVK:input_type -> auth.SignupVKRequest
+	0,  // 10: auth.Auth.SignUpUserVK:input_type -> auth.SignupVKRequest
+	0,  // 11: auth.Auth.SignInUserVK:input_type -> auth.SignupVKRequest
 	9,  // 12: auth.Auth.SignupUser:output_type -> auth.AuthResponse
 	9,  // 13: auth.Auth.SignInUser:output_type -> auth.AuthResponse
 	14, // 14: auth.Auth.LogOutUser:output_type -> auth.LogOutUserResponse
@@ -999,8 +999,8 @@ var file_auth_proto_depIdxs = []int32{
 	6,  // 18: auth.Auth.ValidateAndGetUser:output_type -> auth.UserResponse
 	2,  // 19: auth.Auth.Enable2fa:output_type -> auth.Enable2faResponse
 	4,  // 20: auth.Auth.Disable2fa:output_type -> auth.Disable2faResponse
-	9,  // 21: auth.Auth.SignupUserVK:output_type -> auth.AuthResponse
-	9,  // 22: auth.Auth.SigninUserVK:output_type -> auth.AuthResponse
+	9,  // 21: auth.Auth.SignUpUserVK:output_type -> auth.AuthResponse
+	9,  // 22: auth.Auth.SignInUserVK:output_type -> auth.AuthResponse
 	12, // [12:23] is the sub-list for method output_type
 	1,  // [1:12] is the sub-list for method input_type
 	1,  // [1:1] is the sub-list for extension type_name
