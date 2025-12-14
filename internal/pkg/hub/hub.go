@@ -71,7 +71,5 @@ func (h *Hub) sendNewsToClient(conn *websocket.Conn, news []models.News) {
 			conn.Close()
 			return
 		}
-
-		time.Sleep(5 * time.Millisecond)
 	}
 }

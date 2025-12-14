@@ -138,8 +138,7 @@ featuresEncoded['age_category_encoded'] = featuresEncoded['age_category'].map(ag
 featuresEncoded['country_encoded'] = featuresEncoded['country_id'].map(countryMapping)
 
 featuresFinal = featuresEncoded[
-    ['year', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'age_category_encoded', 'age_category_encoded', 'country_encoded', 'country_encoded']]
-
+    ['year', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'age_category_encoded', 'country_encoded']]
 scaler = StandardScaler()
 featuresScaled = scaler.fit_transform(featuresFinal)
 
