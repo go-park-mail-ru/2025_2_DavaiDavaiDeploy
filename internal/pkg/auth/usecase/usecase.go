@@ -75,7 +75,7 @@ func (uc *AuthUsecase) SignInVKUser(ctx context.Context, vkid string) (models.Us
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	vkUser, err := uc.authRepo.GetVKUser(ctx, vkid)
 	if err != nil {
-		return models.User{}, "", err
+		return models.User{}, "", auth.ErrorPreconditionFailed
 	}
 
 	token, err := uc.GenerateToken(vkUser.ID, vkUser.Login, vkUser.Version)
@@ -93,6 +93,12 @@ func (uc *AuthUsecase) SignUpVKUser(ctx context.Context, vkid string, login stri
 
 	id := uuid.NewV4()
 	defaultAvatar := "avatars/default.png"
+
+	is_registred, _ := uc.authRepo.CheckUserExists(ctx, login)
+	if is_registred {
+		logger.Error("Such login already taken")
+		return models.User{}, "", auth.ErrorBadRequest
+	}
 
 	user := models.User{
 		ID:           id,
