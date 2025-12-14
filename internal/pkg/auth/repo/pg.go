@@ -251,7 +251,7 @@ func (r *AuthRepository) CreateVKUser(ctx context.Context, user models.User, vki
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 	_, err := r.db.Exec(
 		ctx,
-		CreateUserQuery,
+		CreateVKUserQuery,
 		user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt, vkid,
 	)
 	if err != nil {
