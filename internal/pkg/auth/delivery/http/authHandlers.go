@@ -2,6 +2,7 @@ package authHandlers
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"io"
@@ -161,7 +162,15 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 
 	vkReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	client := &http.Client{Timeout: 10 * time.Second}
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		Timeout: 10 * time.Second,
+	}
+
 	resp, err := client.Do(vkReq)
 	if err != nil {
 		log.LogHandlerError(logger, err, http.StatusBadRequest)
