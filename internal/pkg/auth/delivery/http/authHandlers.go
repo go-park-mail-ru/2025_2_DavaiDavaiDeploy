@@ -211,10 +211,11 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 			switch st.Code() {
 			case codes.InvalidArgument:
 				helpers.WriteError(w, http.StatusBadRequest)
-			case codes.AlreadyExists:
-				helpers.WriteError(w, http.StatusConflict)
+			case codes.Unauthenticated:
+				helpers.WriteError(w, http.StatusUnauthorized)
+			case codes.FailedPrecondition:
+				helpers.WriteError(w, http.StatusPreconditionFailed)
 			default:
-				log.LogHandlerError(logger, err, http.StatusBadRequest)
 				helpers.WriteError(w, http.StatusInternalServerError)
 			}
 			return
@@ -262,10 +263,11 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 		switch st.Code() {
 		case codes.InvalidArgument:
 			helpers.WriteError(w, http.StatusBadRequest)
-		case codes.AlreadyExists:
-			helpers.WriteError(w, http.StatusConflict)
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		case codes.FailedPrecondition:
+			helpers.WriteError(w, http.StatusPreconditionFailed)
 		default:
-			log.LogHandlerError(logger, err, http.StatusBadRequest)
 			helpers.WriteError(w, http.StatusInternalServerError)
 		}
 		return
