@@ -148,11 +148,10 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 
 	apiURL := "https://id.vk.ru/oauth2/user_info"
 
-	// Создаем форму для POST запроса
 	form := url.Values{}
 	form.Add("access_token", req.AccessToken)
+	form.Add("client_id", os.Getenv("VK_CLIENT_ID"))
 
-	// Создаем HTTP запрос
 	vkReq, err := http.NewRequestWithContext(r.Context(), "POST", apiURL, strings.NewReader(form.Encode()))
 	if err != nil {
 		log.LogHandlerError(logger, errors.New("Unable to send request"), http.StatusBadRequest)
@@ -165,7 +164,7 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(vkReq)
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("Client error"), http.StatusBadRequest)
+		log.LogHandlerError(logger, err, http.StatusBadRequest)
 		helpers.WriteError(w, http.StatusBadRequest)
 		return
 	}
