@@ -1530,6 +1530,7 @@
                 "cover",
                 "description",
                 "duration",
+                "film_url",
                 "genre",
                 "genre_id",
                 "id",
@@ -1569,6 +1570,9 @@
                 },
                 "duration": {
                     "type": "integer"
+                },
+                "film_url": {
+                    "type": "string"
                 },
                 "genre": {
                     "type": "string"

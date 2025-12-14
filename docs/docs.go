@@ -1536,6 +1536,7 @@ const docTemplate = `{
                 "cover",
                 "description",
                 "duration",
+                "film_url",
                 "genre",
                 "genre_id",
                 "id",
@@ -1575,6 +1576,9 @@ const docTemplate = `{
                 },
                 "duration": {
                     "type": "integer"
+                },
+                "film_url": {
+                    "type": "string"
                 },
                 "genre": {
                     "type": "string"
