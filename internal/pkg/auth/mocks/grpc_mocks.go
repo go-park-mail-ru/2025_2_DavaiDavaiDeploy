@@ -182,24 +182,44 @@ func (mr *MockAuthClientMockRecorder) SignInUser(ctx, in any, opts ...any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInUser", reflect.TypeOf((*MockAuthClient)(nil).SignInUser), varargs...)
 }
 
-// SigninUserVK mocks base method.
-func (m *MockAuthClient) SigninUserVK(ctx context.Context, in *gen.SignupVKRequest, opts ...grpc.CallOption) (*gen.AuthResponse, error) {
+// SignInUserVK mocks base method.
+func (m *MockAuthClient) SignInUserVK(ctx context.Context, in *gen.SignupVKRequest, opts ...grpc.CallOption) (*gen.AuthResponse, error) {
 	m.ctrl.T.Helper()
 	varargs := []any{ctx, in}
 	for _, a := range opts {
 		varargs = append(varargs, a)
 	}
-	ret := m.ctrl.Call(m, "SigninUserVK", varargs...)
+	ret := m.ctrl.Call(m, "SignInUserVK", varargs...)
 	ret0, _ := ret[0].(*gen.AuthResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SigninUserVK indicates an expected call of SigninUserVK.
-func (mr *MockAuthClientMockRecorder) SigninUserVK(ctx, in any, opts ...any) *gomock.Call {
+// SignInUserVK indicates an expected call of SignInUserVK.
+func (mr *MockAuthClientMockRecorder) SignInUserVK(ctx, in any, opts ...any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SigninUserVK", reflect.TypeOf((*MockAuthClient)(nil).SigninUserVK), varargs...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInUserVK", reflect.TypeOf((*MockAuthClient)(nil).SignInUserVK), varargs...)
+}
+
+// SignUpUserVK mocks base method.
+func (m *MockAuthClient) SignUpUserVK(ctx context.Context, in *gen.SignupVKRequest, opts ...grpc.CallOption) (*gen.AuthResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "SignUpUserVK", varargs...)
+	ret0, _ := ret[0].(*gen.AuthResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignUpUserVK indicates an expected call of SignUpUserVK.
+func (mr *MockAuthClientMockRecorder) SignUpUserVK(ctx, in any, opts ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUpUserVK", reflect.TypeOf((*MockAuthClient)(nil).SignUpUserVK), varargs...)
 }
 
 // SignupUser mocks base method.
@@ -220,26 +240,6 @@ func (mr *MockAuthClientMockRecorder) SignupUser(ctx, in any, opts ...any) *gomo
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]any{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignupUser", reflect.TypeOf((*MockAuthClient)(nil).SignupUser), varargs...)
-}
-
-// SignupUserVK mocks base method.
-func (m *MockAuthClient) SignupUserVK(ctx context.Context, in *gen.SignupVKRequest, opts ...grpc.CallOption) (*gen.AuthResponse, error) {
-	m.ctrl.T.Helper()
-	varargs := []any{ctx, in}
-	for _, a := range opts {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "SignupUserVK", varargs...)
-	ret0, _ := ret[0].(*gen.AuthResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SignupUserVK indicates an expected call of SignupUserVK.
-func (mr *MockAuthClientMockRecorder) SignupUserVK(ctx, in any, opts ...any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	varargs := append([]any{ctx, in}, opts...)
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignupUserVK", reflect.TypeOf((*MockAuthClient)(nil).SignupUserVK), varargs...)
 }
 
 // ValidateAndGetUser mocks base method.
@@ -391,19 +391,34 @@ func (mr *MockAuthServerMockRecorder) SignInUser(arg0, arg1 any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInUser", reflect.TypeOf((*MockAuthServer)(nil).SignInUser), arg0, arg1)
 }
 
-// SigninUserVK mocks base method.
-func (m *MockAuthServer) SigninUserVK(arg0 context.Context, arg1 *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+// SignInUserVK mocks base method.
+func (m *MockAuthServer) SignInUserVK(arg0 context.Context, arg1 *gen.SignupVKRequest) (*gen.AuthResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SigninUserVK", arg0, arg1)
+	ret := m.ctrl.Call(m, "SignInUserVK", arg0, arg1)
 	ret0, _ := ret[0].(*gen.AuthResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// SigninUserVK indicates an expected call of SigninUserVK.
-func (mr *MockAuthServerMockRecorder) SigninUserVK(arg0, arg1 any) *gomock.Call {
+// SignInUserVK indicates an expected call of SignInUserVK.
+func (mr *MockAuthServerMockRecorder) SignInUserVK(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SigninUserVK", reflect.TypeOf((*MockAuthServer)(nil).SigninUserVK), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignInUserVK", reflect.TypeOf((*MockAuthServer)(nil).SignInUserVK), arg0, arg1)
+}
+
+// SignUpUserVK mocks base method.
+func (m *MockAuthServer) SignUpUserVK(arg0 context.Context, arg1 *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SignUpUserVK", arg0, arg1)
+	ret0, _ := ret[0].(*gen.AuthResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SignUpUserVK indicates an expected call of SignUpUserVK.
+func (mr *MockAuthServerMockRecorder) SignUpUserVK(arg0, arg1 any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignUpUserVK", reflect.TypeOf((*MockAuthServer)(nil).SignUpUserVK), arg0, arg1)
 }
 
 // SignupUser mocks base method.
@@ -419,21 +434,6 @@ func (m *MockAuthServer) SignupUser(arg0 context.Context, arg1 *gen.SignupReques
 func (mr *MockAuthServerMockRecorder) SignupUser(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignupUser", reflect.TypeOf((*MockAuthServer)(nil).SignupUser), arg0, arg1)
-}
-
-// SignupUserVK mocks base method.
-func (m *MockAuthServer) SignupUserVK(arg0 context.Context, arg1 *gen.SignupVKRequest) (*gen.AuthResponse, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SignupUserVK", arg0, arg1)
-	ret0, _ := ret[0].(*gen.AuthResponse)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SignupUserVK indicates an expected call of SignupUserVK.
-func (mr *MockAuthServerMockRecorder) SignupUserVK(arg0, arg1 any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SignupUserVK", reflect.TypeOf((*MockAuthServer)(nil).SignupUserVK), arg0, arg1)
 }
 
 // ValidateAndGetUser mocks base method.

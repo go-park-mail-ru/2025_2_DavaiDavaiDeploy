@@ -60,7 +60,7 @@ func (g GrpcAuthHandler) SignupUser(ctx context.Context, in *gen.SignupRequest) 
 	}, err
 }
 
-func (g GrpcAuthHandler) SignupVKUser(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+func (g GrpcAuthHandler) SignUpUserVK(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
 	req := models.VKUsersData{
 		Login: in.Login,
 		VkID:  in.VkID,
@@ -136,7 +136,7 @@ func (g GrpcAuthHandler) SignInUser(ctx context.Context, in *gen.SignInRequest) 
 	}, err
 }
 
-func (g GrpcAuthHandler) SignInVKUser(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
+func (g GrpcAuthHandler) SignInUserVK(ctx context.Context, in *gen.SignupVKRequest) (*gen.AuthResponse, error) {
 	req := models.VKUsersData{
 		VkID: in.VkID,
 	}
