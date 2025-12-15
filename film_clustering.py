@@ -127,18 +127,46 @@ def constrained_kmeans(features, n_clusters, min_size):
 films = loadFilmsData()
 
 features = films[['rating', 'year', 'genre_id', 'age_category', 'country_id', 'duration']].copy()
+genre_order = [
+    'Драмы', 'Мелодрамы', 'Ромком', 'Комедии', 'Семейные', 
+    'Приключения', 'Боевики', 'Криминал', 'Триллеры', 'Детективы',
+    'Вестерны', 'Исторические', 'Биографии', 'Документальные', 'Спортивные',
+    'Мультфильмы', 'Аниме', 'Дорамы', 'Короткометражки', 'Музыкальные',
+    'Ужасы', 'Мистика', 'Фантастика', 'Фэнтези'
+]
 
-genreMapping = {genre: i for i, genre in enumerate(features['genre_id'].unique())}
+available_genres = features['genre_id'].unique()
+
+genreMapping = {}
+for i, genre in enumerate(genre_order):
+    if genre in available_genres:
+        genreMapping[genre] = i  
+
+country_order = [
+    'Великобритания', 'США', 'Канада', 'Новая Зеландия', 'Германия',
+    'Франция', 'Россия', 'СССР', 'Япония', 'Индия'
+]
+available_countries = features['country_id'].unique()
+countryMapping = {}
+for i, country in enumerate(country_order):
+    if country in available_countries:
+        countryMapping[country] = i 
+
 ageRatingMapping = {age: i for i, age in enumerate(features['age_category'].unique())}
-countryMapping = {country: i for i, country in enumerate(features['country_id'].unique())}
-
 featuresEncoded = features.copy()
 featuresEncoded['genre_encoded'] = featuresEncoded['genre_id'].map(genreMapping)
 featuresEncoded['age_category_encoded'] = featuresEncoded['age_category'].map(ageRatingMapping)
 featuresEncoded['country_encoded'] = featuresEncoded['country_id'].map(countryMapping)
 
+for col in ['genre_encoded', 'country_encoded']:
+    if featuresEncoded[col].isna().any():
+        mean_val = featuresEncoded[col].mean()
+        featuresEncoded[col] = featuresEncoded[col].fillna(mean_val)
+        print(f"Заполнено NaN в {col}: {featuresEncoded[col].isna().sum()} значений")
+
 featuresFinal = featuresEncoded[
     ['year', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'genre_encoded', 'age_category_encoded', 'country_encoded']]
+
 scaler = StandardScaler()
 featuresScaled = scaler.fit_transform(featuresFinal)
 
@@ -146,43 +174,7 @@ clusterLabels = constrained_kmeans(featuresScaled, n_clusters=48, min_size=7)
 
 films['cluster'] = clusterLabels
 
-print(f"Найдено {len(np.unique(clusterLabels))} кластеров")
-print("Распределение по кластерам:")
-print(films['cluster'].value_counts().sort_index())
 
-plt.figure(figsize=(12, 8))
-
-from sklearn.decomposition import PCA
-
-pca = PCA(n_components=2)
-features2D = pca.fit_transform(featuresScaled)
-
-plt.subplot(1, 2, 1)
-scatter = plt.scatter(features2D[:, 0], features2D[:, 1], c=clusterLabels, cmap='viridis', alpha=0.7)
-plt.colorbar(scatter)
-plt.title('Кластеризация фильмов (2D проекция)')
-plt.xlabel('PCA Component 1')
-plt.ylabel('PCA Component 2')
-
-plt.subplot(1, 2, 2)
-clusterCounts = films['cluster'].value_counts().sort_index()
-plt.bar(clusterCounts.index, clusterCounts.values)
-plt.title('Количество фильмов в каждом кластере')
-plt.xlabel('Номер кластера')
-plt.ylabel('Количество фильмов')
-
-plt.tight_layout()
-plt.show()
-
-cluster_1_films = films[films['cluster'] == 0]
-cluster_3_films = films[films['cluster'] == 3]
-
-print("0 кластер")
-for index, film in cluster_1_films.iterrows():
-    print(f"{film['title']} | {film['rating']} | {film['year']} | {film['genre_id']} | {film['age_category']}")
-print("")
-print("6 кластер")
-for index, film in cluster_3_films.iterrows():
-    print(f"{film['title']} | {film['rating']} | {film['year']} | {film['genre_id']} | {film['age_category']}")
+cluster_counts = films['cluster'].value_counts().sort_index()
 
 save_clusters_to_db(films)
