@@ -687,8 +687,8 @@ func (re *RecommendationEngine) clusterBasedRecommendation(n int) []models.RecFi
 }
 
 func (re *RecommendationEngine) hybridRecommendation(contentRecs, clusterRecs []models.RecFilm, n int) []models.RecFilm {
-	contentWeight := 0.7
-	clusterWeight := 0.3
+	contentWeight := 1.0
+	clusterWeight := 0.0
 
 	var films []models.RecFilm
 	var scores []float64
