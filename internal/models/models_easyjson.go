@@ -678,6 +678,12 @@ func easyjsonD2b7633eDecodeKinopoiskInternalModels4(in *jlexer.Lexer, out *User)
 			} else {
 				out.Has2FA = bool(in.Bool())
 			}
+		case "is_foreign":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.IsForeign = bool(in.Bool())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -726,6 +732,11 @@ func easyjsonD2b7633eEncodeKinopoiskInternalModels4(out *jwriter.Writer, in User
 		const prefix string = ",\"has_2fa\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Has2FA))
+	}
+	{
+		const prefix string = ",\"is_foreign\":"
+		out.RawString(prefix)
+		out.Bool(bool(in.IsForeign))
 	}
 	out.RawByte('}')
 }
