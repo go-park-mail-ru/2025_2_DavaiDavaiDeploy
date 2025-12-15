@@ -467,14 +467,13 @@ func (re *RecommendationEngine) calculateFeatures() {
 	for i, film := range re.films {
 		var features []float64
 
-		normalizedRating := (film.Rating - 1) / 9.0
-		features = append(features, normalizedRating)
-
 		normalizedYear := float64(film.Year-minYear) / float64(maxYear-minYear)
 		features = append(features, normalizedYear)
 
 		genreEncoded := float64(genreMapping[film.GenreID]) / maxGenreEncoded
-		features = append(features, genreEncoded)
+		for j := 0; j < 8; j++ {
+			features = append(features, genreEncoded)
+		}
 
 		ageEncoded := float64(ageMapping[film.AgeCategory]) / maxAgeEncoded
 		features = append(features, ageEncoded)
@@ -593,7 +592,7 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 	for i, film := range re.films {
 		if film.UserRating > 0 {
 			normalizedRating := float64(film.UserRating-1) / 9.0
-			for j, _ := range re.films {
+			for j := range re.films {
 				userPreferences[j] += re.similarityMatrix[i][j] * normalizedRating
 			}
 		}
