@@ -142,8 +142,7 @@ featuresFinal = featuresEncoded[
 scaler = StandardScaler()
 featuresScaled = scaler.fit_transform(featuresFinal)
 
-af = KMeans(n_clusters=35, random_state=42)
-clusterLabels = constrained_kmeans(featuresScaled, n_clusters=7, min_size=7)
+clusterLabels = constrained_kmeans(featuresScaled, n_clusters=48, min_size=7)
 
 films['cluster'] = clusterLabels
 
