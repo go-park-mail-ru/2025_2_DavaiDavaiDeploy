@@ -9023,6 +9023,390 @@ WHERE EXISTS (SELECT 1 FROM film WHERE id = '5025562d-fc03-4837-bdf9-355b4695b83
 
 
 
+BEGIN;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'actor_russian_original_unique') THEN
+    ALTER TABLE actor ADD CONSTRAINT actor_russian_original_unique UNIQUE (russian_name, original_name);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'film_title_year_unique') THEN
+    ALTER TABLE film ADD CONSTRAINT film_title_year_unique UNIQUE (title, year);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'actor_film_unique') THEN
+    ALTER TABLE actor_in_film ADD CONSTRAINT actor_film_unique UNIQUE (actor_id, film_id);
+  END IF;
+END $$;
+
+INSERT INTO actor (id, russian_name, original_name, photo, height,
+                  birth_date, death_date, zodiac_sign, birth_place, marital_status)
+VALUES
+  ('ac3fc173-f5e8-433f-aaaf-fda4b3af7fbf', 'Тиэко Байсё', 'Chieko Baisho', 'actors/pic1530.webp', 159, '1941-06-29', NULL, 'Рак', 'Токио, Японская империя (Япония)', 'Замужем'),
+  ('bea96068-5473-4f76-a805-b95e04725525', 'Такуя Кимура', 'Takuya Kimura', 'actors/pic1531.webp', 176, '1972-11-13', NULL, 'Скорпион', 'Токио, Япония', 'Женат'),
+  ('54cdea03-f530-4a57-9e6a-8098343b136c', 'Акихиро Мива', 'Akihiro Miwa', 'actors/pic1532.webp', 170, '1935-05-15', NULL, 'Телец', 'Нагасаки, Японская империя (Япония)', 'Не состоит в отношениях'),
+  ('e29276ec-0331-4e7e-9529-49ce3ecb75c9', 'Тацуя Гасюин', 'Tatsuya Gashuin', 'actors/pic1533.webp', 163, '1950-12-10', NULL, 'Стрелец', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('62ef2f1b-b983-4728-bb89-a34400ceb068', 'Рюносукэ Камики', 'Ryunosuke Kamiki', 'actors/pic1534.webp', 168, '1993-05-19', NULL, 'Телец', 'Сайтама, Япония', 'Не состоит в отношениях'),
+  ('9a4cd0ab-6122-4751-9f1b-7a9e8ebb6988', 'Монэ Камисираиси', 'Mone Kamishiraishi', 'actors/pic1535.webp', 152, '1998-01-27', NULL, 'Водолей', 'Кагосима, Япония', 'Не состоит в отношениях'),
+  ('a695845e-47c1-444e-a532-c35eb345349c', 'Рё Нарита', 'Ryo Narita', 'actors/pic1536.webp', 181, '1993-11-22', NULL, 'Стрелец', 'Сайтама (префектура), Япония', 'Не состоит в отношениях'),
+  ('545d1165-ae34-4c5d-8a26-cf7f9606a005', 'Аои Юки', 'Aoi Yuki', 'actors/pic1537.webp', 145, '1992-03-27', NULL, 'Овен', 'Самму, Тиба (префектура), Япония', 'Не состоит в отношениях'),
+  ('5dde7135-175e-40f3-9057-9a5a646bf17a', 'Нобунага Симадзаки', 'Nobunaga Shimazaki', 'actors/pic1538.webp', 174, '1988-12-06', NULL, 'Стрелец', 'Сиогама, Мияги, Япония', 'Не состоит в отношениях'),
+  ('ad418fe8-8c33-4a27-809a-352dd5a45580', 'Норико Хидака', 'Noriko Hidaka', 'actors/pic1539.webp', 170, '1962-05-31', NULL, 'Близнецы', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('df77b4bd-609d-495f-911a-197ab96498a5', 'Тика Сакамото', 'Chika Sakamoto', 'actors/pic1540.webp', 154, '1959-08-17', NULL, 'Лев', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('3028bc2e-5957-4e47-97e9-ee6efeec8f12', 'Хитоси Такаги', 'Hitoshi Takagi', 'actors/pic1541.webp', 172, '1925-02-26', '2004-02-11', 'Рыбы', NULL, 'Не был женат'),
+  ('8ea3fa1e-fd7e-4409-9279-75f26a98fb0a', 'Таниэ Китабаяси', 'Tanie Kitabayashi', 'actors/pic1542.webp', 170, '1911-05-21', '2010-04-27', 'Близнецы', 'Токио, Япония', 'Не был женат'),
+  ('9e325706-894a-422b-815f-19cd885c6571', 'Суми Симамото', 'Sumi Shimamoto', 'actors/pic1543.webp', 163, '1954-12-08', NULL, 'Стрелец', 'Коти, Япония', 'Замужем'),
+  ('5326cf4f-d5da-4fb3-9e51-2c00c304d864', 'Минами Такаяма', 'Minami Takayama', 'actors/pic1544.webp', 155, '1964-05-05', NULL, 'Телец', 'Токио, Япония', 'Замужем'),
+  ('6f543646-c642-48b7-9246-1e554495c43d', 'Рэи Сакума', 'Rei Sakuma', 'actors/pic1545.webp', 170, '1965-01-05', NULL, 'Козерог', 'Токио, Япония', 'Замужем'),
+  ('dbc811af-127f-492d-9df6-541d700e3f20', 'Каппэи Ямагути', 'Kappei Yamaguchi', 'actors/pic1546.webp', 160, '1965-05-23', NULL, 'Близнецы', 'Фукуока, Япония', 'Не состоит в отношениях'),
+  ('00237ddd-9d0b-400d-b0f6-7349a108aeef', 'Кэйко Тода', 'Keiko Toda', 'actors/pic1547.webp', 154, '1957-09-12', NULL, 'Дева', 'Нагоя, Япония', 'Замужем'),
+  ('f41c32cb-73b9-4f54-bf0b-5008b53993db', 'Миэко Нобусава', 'Mieko Nobusawa', 'actors/pic1548.webp', 170, '1947-05-16', NULL, 'Телец', NULL, 'Не состоит в отношениях'),
+  ('6dcbcd41-5c88-494f-87af-df351934ccd9', 'Юриа Нара', 'Yuria Nara', 'actors/pic1549.webp', 170, '1999-12-21', NULL, 'Стрелец', 'Осака, Япония', 'Не состоит в отношениях'),
+  ('f4dbd506-012f-4b5c-87ae-8a95529099a5', 'Хироки Дои', 'Hiroki Doi', 'actors/pic1550.webp', 170, '1999-08-10', NULL, 'Лев', 'Хиросима, Япония', 'Не состоит в отношениях'),
+  ('4bbd7146-1e28-4b9f-9f8e-676695d5047b', 'Томоко Ямагути', 'Tomoko Yamaguchi', 'actors/pic1551.webp', 170, '1964-10-20', NULL, 'Весы', 'Моока, Тотиги, Япония', 'Замужем'),
+  ('1ab6d227-ecc9-4a3a-9208-30db5b8beea4', 'Кадзусигэ Нагасима', 'Kazushige Nagashima', 'actors/pic1552.webp', 183, '1966-01-26', NULL, 'Водолей', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('aebee26b-6fd2-46d7-9400-a5e12c0834ae', 'Юки Амами', 'Yuki Amami', 'actors/pic1553.webp', 171, '1967-08-08', NULL, 'Лев', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('44a68d46-6d51-427d-aca7-61973a694808', 'Хидэаки Анно', 'Hideaki Anno', 'actors/pic1554.webp', 180, '1960-05-22', NULL, 'Близнецы', 'Убэ, Ямагути, Япония', 'Женат'),
+  ('359132f9-b09c-44c5-ac40-5f95a6b1a094', 'Миори Такимото', 'Miori Takimoto', 'actors/pic1555.webp', 162, '1991-10-16', NULL, 'Весы', 'Тоттори, Япония', 'Не состоит в отношениях'),
+  ('94492acb-68f6-4e97-898d-c26be531451b', 'Мансаи Номура', 'Mansai Nomura', 'actors/pic1556.webp', 172, '1966-04-05', NULL, 'Овен', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('3026489f-146d-4c02-b34d-1ede7375e91b', 'Стив Элперт', 'Stephen Alpert', 'actors/pic1557.webp', 170, '1950-04-19', NULL, 'Овен', NULL, 'Не состоит в отношениях'),
+  ('8a4662ba-ebd7-4e75-85a9-970bf8fe9a19', 'Дзюн Кунимура', 'Jun Kunimura', 'actors/pic1558.webp', 169, '1955-11-16', NULL, 'Скорпион', 'Кумамото, Япония', 'Не состоит в отношениях'),
+  ('c73480c9-01ce-464d-88a7-78cf25bcad9a', 'Махито Цудзимура', 'Mahito Tsujimura', 'actors/pic1559.webp', 144, '1930-04-14', '2018-11-27', 'Овен', 'Токио, Япония', 'Не был женат'),
+  ('eb553247-f497-4b44-bc25-152b48835cff', 'Хисако Кёда', 'Hisako Kyoda', 'actors/pic1560.webp', 144, '1935-02-22', NULL, 'Рыбы', 'Токио, Японская империя (Япония)', 'Не состоит в отношениях'),
+  ('bf9f56c4-d0c0-4e84-af8f-7e6aa91895e1', 'Горо Ная', 'Goro Naya', 'actors/pic1561.webp', 170, '1929-11-17', '2013-03-05', 'Скорпион', 'Хакодате, Хоккайдо, Японская империя (Япония)', 'Был женат'),
+  ('92183905-ce78-4779-b338-ebbcd79e7b87', 'Итиро Нагаи', 'Ichiro Nagai', 'actors/pic1562.webp', 160, '1931-05-10', '2014-01-27', 'Телец', 'Икеда, Осака (префектура), Японская империя (Япония)', 'Не был женат'),
+  ('057aaeee-3aaf-40e4-8a80-0b118c5a4af9', 'Кэйко Ёкодзава', 'Keiko Yokozawa', 'actors/pic1563.webp', 170, '1952-09-02', NULL, 'Дева', 'Маки, Ниигата (префектура), Япония', 'Не состоит в отношениях'),
+  ('bd6d56f0-b17c-4ea5-a98b-2d4921bd8e2d', 'Маюми Танака', 'Mayumi Tanaka', 'actors/pic1564.webp', 170, '1955-01-15', NULL, 'Козерог', 'Токио, Япония', 'Замужем'),
+  ('617aadeb-8d8a-4179-9b8a-d6e899eb76ca', 'Сукэкиё Камэяма', 'Sukekiyo Kameyama', 'actors/pic1565.webp', 173, '1954-11-09', '2013-01-26', 'Скорпион', 'Исиномаки, Мияги, Япония', 'Не был женат'),
+  ('780a93b7-3718-419f-b09a-c12f1ed16910', 'Котоэ Хацуи', 'Kotoe Hatsui', 'actors/pic1566.webp', 170, '1929-01-08', '1990-09-21', 'Козерог', 'Иокогама, Канагава, Япония', 'Не был женат'),
+  ('d4d59c05-4b15-41ea-a22e-97eb47d23c5e', 'Ёсито Ясухара', 'Yoshito Yasuhara', 'actors/pic1567.webp', 168, '1949-11-17', NULL, 'Скорпион', 'Хёго, Япония', 'Не состоит в отношениях'),
+  ('64472a56-dbfa-4888-8616-a018afc9fbf7', 'Ацуко Танака', 'Atsuko Tanaka', 'actors/pic1568.webp', 164, '1962-11-14', '2024-08-20', 'Скорпион', 'Маэбаси, Гумма, Япония', 'Не был женат'),
+  ('cb3e2a43-a3cc-40dd-b7a0-a87c24f79146', 'Акио Оцука', 'Akio Ootsuka', 'actors/pic1569.webp', 182, '1959-11-24', NULL, 'Стрелец', 'Токио, Япония', 'Женат'),
+  ('fc616014-8609-43ea-b3e3-4da52db0f1d2', 'Коити Ямадэра', 'Koichi Yamadera', 'actors/pic1570.webp', 176, '1961-06-17', NULL, 'Близнецы', 'Сиогама, Мияги, Япония', 'Женат'),
+  ('820c659f-b866-455c-83c3-4863ac6568fc', 'Ютака Накано', 'Yutaka Nakano', 'actors/pic1571.webp', 170, '1951-01-10', NULL, 'Козерог', 'Канагава, Япония', 'Не состоит в отношениях'),
+  ('f75dedcf-cfcd-4aab-8f55-99448be9f6a2', 'Тамио Оки', 'Tamio Oki', 'actors/pic1572.webp', 170, '1928-01-02', '2017-12-14', 'Козерог', 'Токио, Японская империя (Япония)', 'Не был женат'),
+  ('86900615-d6fb-4709-aadc-6ed671a481d7', 'Мираи Сида', 'Mirai Shida', 'actors/pic1573.webp', 150, '1993-05-10', NULL, 'Телец', 'Канагава, Япония', 'Не состоит в отношениях'),
+  ('690c8423-71d6-482d-9606-16c9660847ba', 'Тацуя Фудзивара', 'Tatsuya Fujiwara', 'actors/pic1574.webp', 178, '1982-05-15', NULL, 'Телец', 'Титибу, Сайтама (префектура), Япония', 'Женат'),
+  ('dac8783f-9100-4565-8a30-3c6c3249918c', 'Синобу Отакэ', 'Shinobu Ootake', 'actors/pic1575.webp', 158, '1957-07-17', NULL, 'Рак', 'Токио, Япония', 'Замужем'),
+  ('a66f1f91-3e63-4e05-a471-329feb269cb9', 'Кэйко Такэсита', 'Keiko Takeshita', 'actors/pic1576.webp', 157, '1953-09-15', NULL, 'Дева', 'Нагоя, Япония', 'Не состоит в отношениях'),
+  ('7cf0352b-eedc-4fe3-aae1-a9c184ba03fa', 'Сюитиро Морияма', 'Shuichiro Moriyama', 'actors/pic1577.webp', 173, '1934-07-26', '2021-02-08', 'Лев', 'Нагоя, Японская империя (Япония)', 'Не был женат'),
+  ('45f89187-b3bc-4c18-ab3a-f6a01eb29c98', 'Токико Като', 'Tokiko Kato', 'actors/pic1578.webp', 170, '1943-12-27', NULL, 'Козерог', 'Харбин, Маньчжурия (Китай)', 'Не состоит в отношениях'),
+  ('13f168a4-c546-41eb-8727-537222230ba1', 'Бунси Кацура VI', 'Bunshi Katsura VI', 'actors/pic1579.webp', 170, '1943-07-16', NULL, 'Рак', 'Сакаи, Осака (префектура), Японская империя (Япония)', 'Не состоит в отношениях'),
+  ('53aea4c2-cbe2-4097-a1fe-ea690b903690', 'Цунэхико Камидзё', 'Tsunehiko Kamijo', 'actors/pic1580.webp', 176, '1940-03-07', '2025-07-22', 'Рыбы', 'Нагано, Японская империя (Япония)', 'Не был женат'),
+  ('7924cac7-1b53-41ff-b06b-9e25a5e566b3', 'Акэми Окамура', 'Akemi Okamura', 'actors/pic1581.webp', 170, '1969-03-12', NULL, 'Рыбы', 'Токио, Япония', 'Не состоит в отношениях'),
+  ('e835bf25-be2e-4168-9b39-1486eda7a245', 'Сёта Сомэтани', 'Shota Sometani', 'actors/pic1582.webp', 172, '1992-09-03', NULL, 'Дева', 'Токио, Япония', 'Женат'),
+  ('4b0e6916-772c-4dbc-8bd8-89f477907dd0', 'Кодзи Якусё', 'Koji Yakusho', 'actors/pic1583.webp', 179, '1956-01-01', NULL, 'Козерог', 'Исахая, Нагасаки (префектура), Япония', 'Женат'),
+  ('8336788c-20ac-4f7d-9f0e-4f6843c909bb', 'Кумико Асо', 'Kumiko Aso', 'actors/pic1584.webp', 162, '1978-06-17', NULL, 'Близнецы', 'Самбу, Тиба (префектура), Япония', 'Замужем'),
+  ('40e00fef-c6cd-4558-b155-8832860a20bb', 'Судзу Хиросэ', 'Suzu Hirose', 'actors/pic1585.webp', 160, '1998-06-19', NULL, 'Близнецы', 'Сидзуока, Япония', 'Не состоит в отношениях'),
+  ('774daef8-af80-4a78-a860-8c4cc98c6d9a', 'Мамору Мияно', 'Mamoru Miyano', 'actors/pic1586.webp', 182, '1983-06-08', NULL, 'Близнецы', 'Сайтама, Япония', 'Не состоит в отношениях')
+ON CONFLICT (russian_name, original_name) DO NOTHING;
+
+INSERT INTO film (id, title, original_title, cover, poster,
+                 short_description, description, age_category,
+                 budget, worldwide_fees, year, country_id, genre_id,
+                 slogan, duration, release_date)
+VALUES
+  ('39914058-b470-42ea-b536-2bbfca3a6fa5', 'Ходячий замок', 'Howl no Ugoku Shiro', 'films/pic473.webp', 'posters/pic473.webp', 'Злая колдунья превращает юную Софи в старушку. Волшебная сказка о силе любви по мотивам книги Дианы Уинн Джонс', 'Злая ведьма заточила 18-летнюю Софи в тело старухи. Девушка-бабушка бежит из города куда глаза глядят и встречает удивительный дом на ножках, где знакомится с могущественным волшебником Хаулом и демоном Кальцифером. Кальцифер должен служить Хаулу по договору, условия которого он не может разглашать. Девушка и демон решают помочь друг другу избавиться от злых чар.', '6+', 10000000, 20000000, 2004, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', 'def389ec-f5f8-c3d0-f8f1-1f1bff5ed1f3', NULL, 119, '2004-06-01'),
+  ('fa17b0ea-3919-4cde-a7f5-32bfb820f872', 'Твоё имя', 'Kimi no na wa.', 'films/pic474.webp', 'posters/pic474.webp', 'Нежная сказка о первой любви, которая преодолевает пространство и время. Аниме — рекордсмен бокс-офиса', 'Токийский парень Таки и провинциальная девушка Мицуха обнаруживают, что между ними существует странная связь. Во сне они меняются телами и проживают жизни друг друга. Но однажды эта способность исчезает так же внезапно, как появилась. Таки решает во что бы то ни стало отыскать Мицуху.', '12+', 50000000, 250000000, 2016, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '8bdf34f7-afe3-7e8b-f3fc-dfe6fa098ef8', 'Я ищу тебя, хотя не знаю, кто ты', 110, '2016-06-01'),
+  ('350536ea-7dfe-475f-ba28-a6e4710e98ee', 'Мой сосед Тоторо', 'Tonari no Totoro', 'films/pic475.webp', 'posters/pic475.webp', 'Сестренки знакомятся с обаятельным духом леса. История о вере в чудо, ставшая визитной карточкой студии Ghibli', 'Сестры Сацуки и Мэй переезжают вместе с папой в деревенский дом. Однажды девочки обнаруживают, что по соседству с ними живут лесные духи — хранители леса во главе со своим могущественным и добрым повелителем Тоторо. Постепенно Тоторо становится другом девочек, помогая им в их повседневных приключениях.', '6+', 1000000, 8000000, 1988, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '1bd7cd20-f9f2-f7f4-fcf5-5f5f3f9f15f7', NULL, 86, '1988-06-01'),
+  ('dd6f188d-f7c2-4db0-997d-2224a3163dd7', 'Ведьмина служба доставки', 'Majo no takkyûbin', 'films/pic476.webp', 'posters/pic476.webp', 'Маленькая колдунья-курьер лишается дара в незнакомом городке. Воздушная сказка о взрослении и первой любви', 'Молодая ведьма Кики по достижении 13 лет должна прожить среди людей определённое время. Вместе с котом Дзидзи она отправляется в город, где знакомится с добрым пекарем, который помогает ей начать собственное дело - экстренную службу доставки. Новая работа знакомит Кики со множеством различных людей и предоставляет возможность обрести новых друзей и совершить массу всевозможных проделок.', '6+', 150000000, 1200000000, 1989, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '1bd7cd20-f9f2-f7f4-fcf5-5f5f3f9f15f7', 'I was feeling blue, but I''m better now.', 103, '1989-06-01'),
+  ('14d06938-38de-4cb5-b871-1c22823b2627', 'Рыбка Поньо на утесе', 'Gake no ue no Ponyo', 'films/pic477.webp', 'posters/pic477.webp', 'Дружба мальчика и рыбки становится причиной тайфуна и удивительных превращений. Японский вариант «Русалочки»', 'Маленькая любопытная рыбка Поньо — дочь колдуна и прекрасной морской богини — уплывает из дома, чтобы понаблюдать за жизнью людей. Поньо застревает в банке и оказывается выброшенной на берег, где её подбирает пятилетний Сосукэ. Малыши привязываются друг к другу, и теперь у Поньо только одно желание — стать человеком.', '6+', 10000000, 30000000, 2008, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '1bd7cd20-f9f2-f7f4-fcf5-5f5f3f9f15f7', 'Добро пожаловать в мир, где возможно всё', 101, '2008-06-01'),
+  ('1522bce5-aeea-4649-b2a6-d3af2e434205', 'Ветер крепчает', 'Kaze tachinu', 'films/pic478.webp', 'posters/pic478.webp', 'Юноша становится авиаконструктором накануне Второй мировой. Зрелый шедевр Хаяо Миядзаки о творчестве и свободе', 'Мальчик Дзиро мечтает о полетах и красивых самолетах, способных обогнать ветер. Вот только пилотом ему не стать — он с рождения близорук. Но Дзиро не расстается с мечтой о небе, он начинает придумывать идеальный самолет и со временем становится одним из лучших авиаконструкторов мира. На пути к успеху он не только встретит много интересных людей, переживет Великое землетрясение в Токио и жестокие войны, но и обретет любовь своей жизни – прекрасную Наоко.', '12+', 150000000, 750000000, 2013, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '8bdf34f7-afe3-7e8b-f3fc-dfe6fa098ef8', 'Ikineba. (We must live.)', 126, '2013-06-01'),
+  ('f5874411-f6d4-4229-8e9a-c217bd116409', 'Навсикая из долины ветров', 'Kaze no tani no Naushika', 'films/pic479.webp', 'posters/pic479.webp', 'В далеком будущем храбрая девушка спасает планету. Экологический фэнтези-постапокалипсис раннего Хаяо Миядзаки', 'Будущее. После ядерной войны Землю постигла ужасная экологическая катастрофа. Поверхность планеты почти целиком покрывают леса, испускающие в атмосферу ядовитые споры растений. Оставшиеся в живых люди живут в зонах, ещё не покрытых лесами, и периодически сталкиваются с чудовищными насекомообразными монстрами. Долина ветров — одно из царств, образовавшихся на руинах прежних государств. Им управляет отважная принцесса Навсикая. Но мирное существование Долины ветров нарушается, когда маленькая страна сталкивается с воинственными соседями, которые стремятся воссоздать опасное оружие, способное окончательно уничтожить планету.', '16+', 20000000, 100000000, 1984, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '8bdf34f7-afe3-7e8b-f3fc-dfe6fa098ef8', 'Miyazaki''s epic masterpiece', 117, '1984-06-01'),
+  ('3b8345f5-a454-41ae-b066-26b6529d523c', 'Небесный замок Лапута', 'Tenkuu no Shiro Laputa', 'films/pic480.webp', 'posters/pic480.webp', 'Девочка обладает волшебным кристаллом, который указывает путь к летающему острову. Первый фильм студии Ghibli', 'Альтернативная реальность, соответствующая началу XX века. В руках девочки по имени Сита находится Летающий Камень. За ним охотятся агенты правительства и пираты, потому что Камень представляет огромную ценность. Пытаясь скрыться от преследователей, Сита встречает Падзу, своего ровесника, работающего в шахтерском городке. Вместе дети выясняют, что Камень — ключ к таинственному летающему острову Лапута.', '12+', 100000000, 1000000000, 1986, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '1bd7cd20-f9f2-f7f4-fcf5-5f5f3f9f15f7', NULL, 124, '1986-06-01'),
+  ('0e39dac4-c1f7-4e1b-b0b1-ea17f29b0a11', 'Призрак в доспехах', 'Koukaku Kidoutai', 'films/pic481.webp', 'posters/pic481.webp', 'Полицейская-киборг преследует таинственного хакера. Культовый киберпанк, вдохновивший создателей «Матрицы»', '2029 год. Благодаря значительным достижениям в кибернетике люди могут заменять свои конечности роботизированными частями. Майор Мотоко Кусанаги из 9-го отдела службы безопасности ведёт расследование, связанное с таинственным хакером, который называет себя Кукловод.', '18+', 5000000, 15000000, 1995, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', 'cdf278db-e4f7-b2cf-f7f0-0f0afe4dc0f2', 'It found a voice... now it needs a body.', 82, '1995-06-01'),
+  ('299c536b-b28a-4bef-9fae-fcfe6f866abd', 'Ариэтти из страны лилипутов', 'Karigurashi no Arietti', 'films/pic482.webp', 'posters/pic482.webp', 'Девочка-дюймовочка заводит дружбу с соседским мальчишкой. Филигранный дебют лучшего ученика Хаяо Миядзаки', 'История маленьких существ, которые живут рядом с людьми, одалживая вещи по чуть-чуть. Их существование хранится в секрете, но юная Ариэтти нарушает запрет. Её обнаруживает 14-летний Сё, и они становятся лучшими друзьями.', '0+', 20000000, 40000000, 2010, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '8f3e4f27-0ff9-fefb-3ffc-2c2f0f6f82f4', 'Волшебный мир, скрытый от наших глаз', 90, '2010-06-01'),
+  ('50355883-0bf1-492d-9d57-c0894c86156b', 'Порко Россо', 'Kurenai no buta', 'films/pic483.webp', 'posters/pic483.webp', 'Пилот-свинья охотится за воздушными пиратами. Самое взрослое аниме Хаяо Миядзаки с отсылками к «Касабланке»', 'Марко Пагот, отважный пилот и герой Первой мировой войны, потерял веру в человечество. Это стало проклятием, которое превратило его в человекообразную свинью, и теперь Марко известен как Порко Россо. Порко занялся охотой на воздушных пиратов, грабящих суда и яхты, но однажды ему самому предстоит стать мишенью. Сможет ли он избежать преследования и вернуть человеческий облик?', '16+', 80000000, 400000000, 1992, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', 'def389ec-f5f8-c3d0-f8f1-1f1bff5ed1f3', NULL, 94, '1992-06-01'),
+  ('afeed4c1-1be0-4020-bb27-a0e689f6b3cb', 'Ученик чудовища', 'Bakemono no ko', 'films/pic484.webp', 'posters/pic484.webp', 'Подросток попадает в мир зверолюдей и начинает учиться боевым искусствам. Фэнтези о взрослении и поиске себя', '9-летний мальчик Рэн остался без родителей, сбежал от опекунов и скитался по улицам Токио. Там он встречает великого воина Медвежута — похожее на медведя чудище, явившееся из параллельного мира, чтобы найти себе ученика. Им и становится Рэн. В мире чудовищ мальчик получает имя Девята и под началом Медвежута начинает тренировки, чтобы стать мастером боевых искусств.', '18+', 1000000, 10000000, 2015, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15', '8bdf34f7-afe3-7e8b-f3fc-dfe6fa098ef8', 'In a world of beasts, he found a family.', 119, '2015-06-01')
+ON CONFLICT (title, year) DO NOTHING;
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description)
+SELECT
+  gen_random_uuid(),
+  actor_id,
+  film_id,
+  character,
+  description
+FROM (
+VALUES
+  ((SELECT id FROM actor WHERE russian_name = 'Тиэко Байсё' AND (original_name = 'Chieko Baisho' OR (original_name IS NULL AND 'Chieko Baisho' IS NULL))), (SELECT id FROM film WHERE title = 'Ходячий замок' AND year = 2004), 'Sophie Hatter (Sofi), озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Такуя Кимура' AND (original_name = 'Takuya Kimura' OR (original_name IS NULL AND 'Takuya Kimura' IS NULL))), (SELECT id FROM film WHERE title = 'Ходячий замок' AND year = 2004), 'Howl (Hauru), озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Акихиро Мива' AND (original_name = 'Akihiro Miwa' OR (original_name IS NULL AND 'Akihiro Miwa' IS NULL))), (SELECT id FROM film WHERE title = 'Ходячий замок' AND year = 2004), 'Arechi no Majo, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тацуя Гасюин' AND (original_name = 'Tatsuya Gashuin' OR (original_name IS NULL AND 'Tatsuya Gashuin' IS NULL))), (SELECT id FROM film WHERE title = 'Ходячий замок' AND year = 2004), 'Calcifer (Karushifa), озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Рюносукэ Камики' AND (original_name = 'Ryunosuke Kamiki' OR (original_name IS NULL AND 'Ryunosuke Kamiki' IS NULL))), (SELECT id FROM film WHERE title = 'Ходячий замок' AND year = 2004), 'Markl (Marukuru), озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Рюносукэ Камики' AND (original_name = 'Ryunosuke Kamiki' OR (original_name IS NULL AND 'Ryunosuke Kamiki' IS NULL))), (SELECT id FROM film WHERE title = 'Твоё имя' AND year = 2016), 'Taki Tachibana, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Монэ Камисираиси' AND (original_name = 'Mone Kamishiraishi' OR (original_name IS NULL AND 'Mone Kamishiraishi' IS NULL))), (SELECT id FROM film WHERE title = 'Твоё имя' AND year = 2016), 'Mitsuha Miyamizu, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Рё Нарита' AND (original_name = 'Ryo Narita' OR (original_name IS NULL AND 'Ryo Narita' IS NULL))), (SELECT id FROM film WHERE title = 'Твоё имя' AND year = 2016), 'Katsuhiko Teshigawara, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Аои Юки' AND (original_name = 'Aoi Yuki' OR (original_name IS NULL AND 'Aoi Yuki' IS NULL))), (SELECT id FROM film WHERE title = 'Твоё имя' AND year = 2016), 'Sayaka Natori, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Нобунага Симадзаки' AND (original_name = 'Nobunaga Shimazaki' OR (original_name IS NULL AND 'Nobunaga Shimazaki' IS NULL))), (SELECT id FROM film WHERE title = 'Твоё имя' AND year = 2016), 'Tsukasa Fujii, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Норико Хидака' AND (original_name = 'Noriko Hidaka' OR (original_name IS NULL AND 'Noriko Hidaka' IS NULL))), (SELECT id FROM film WHERE title = 'Мой сосед Тоторо' AND year = 1988), 'Satsuki, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тика Сакамото' AND (original_name = 'Chika Sakamoto' OR (original_name IS NULL AND 'Chika Sakamoto' IS NULL))), (SELECT id FROM film WHERE title = 'Мой сосед Тоторо' AND year = 1988), 'Mei, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Хитоси Такаги' AND (original_name = 'Hitoshi Takagi' OR (original_name IS NULL AND 'Hitoshi Takagi' IS NULL))), (SELECT id FROM film WHERE title = 'Мой сосед Тоторо' AND year = 1988), 'Totoro, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Таниэ Китабаяси' AND (original_name = 'Tanie Kitabayashi' OR (original_name IS NULL AND 'Tanie Kitabayashi' IS NULL))), (SELECT id FROM film WHERE title = 'Мой сосед Тоторо' AND year = 1988), 'Granny, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Суми Симамото' AND (original_name = 'Sumi Shimamoto' OR (original_name IS NULL AND 'Sumi Shimamoto' IS NULL))), (SELECT id FROM film WHERE title = 'Мой сосед Тоторо' AND year = 1988), 'Yasuko Kusakabe, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Минами Такаяма' AND (original_name = 'Minami Takayama' OR (original_name IS NULL AND 'Minami Takayama' IS NULL))), (SELECT id FROM film WHERE title = 'Ведьмина служба доставки' AND year = 1989), 'Kiki / Ursula, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Рэи Сакума' AND (original_name = 'Rei Sakuma' OR (original_name IS NULL AND 'Rei Sakuma' IS NULL))), (SELECT id FROM film WHERE title = 'Ведьмина служба доставки' AND year = 1989), 'Jiji, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Каппэи Ямагути' AND (original_name = 'Kappei Yamaguchi' OR (original_name IS NULL AND 'Kappei Yamaguchi' IS NULL))), (SELECT id FROM film WHERE title = 'Ведьмина служба доставки' AND year = 1989), 'Tombo, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кэйко Тода' AND (original_name = 'Keiko Toda' OR (original_name IS NULL AND 'Keiko Toda' IS NULL))), (SELECT id FROM film WHERE title = 'Ведьмина служба доставки' AND year = 1989), 'Osono, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Миэко Нобусава' AND (original_name = 'Mieko Nobusawa' OR (original_name IS NULL AND 'Mieko Nobusawa' IS NULL))), (SELECT id FROM film WHERE title = 'Ведьмина служба доставки' AND year = 1989), 'Kokiri - Kiki''s Mother, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Юриа Нара' AND (original_name = 'Yuria Nara' OR (original_name IS NULL AND 'Yuria Nara' IS NULL))), (SELECT id FROM film WHERE title = 'Рыбка Поньо на утесе' AND year = 2008), 'Ponyo, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Хироки Дои' AND (original_name = 'Hiroki Doi' OR (original_name IS NULL AND 'Hiroki Doi' IS NULL))), (SELECT id FROM film WHERE title = 'Рыбка Поньо на утесе' AND year = 2008), 'Sôsuke, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Томоко Ямагути' AND (original_name = 'Tomoko Yamaguchi' OR (original_name IS NULL AND 'Tomoko Yamaguchi' IS NULL))), (SELECT id FROM film WHERE title = 'Рыбка Поньо на утесе' AND year = 2008), 'Risa, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кадзусигэ Нагасима' AND (original_name = 'Kazushige Nagashima' OR (original_name IS NULL AND 'Kazushige Nagashima' IS NULL))), (SELECT id FROM film WHERE title = 'Рыбка Поньо на утесе' AND year = 2008), 'Kôichi, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Юки Амами' AND (original_name = 'Yuki Amami' OR (original_name IS NULL AND 'Yuki Amami' IS NULL))), (SELECT id FROM film WHERE title = 'Рыбка Поньо на утесе' AND year = 2008), 'Granmamare, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Хидэаки Анно' AND (original_name = 'Hideaki Anno' OR (original_name IS NULL AND 'Hideaki Anno' IS NULL))), (SELECT id FROM film WHERE title = 'Ветер крепчает' AND year = 2013), 'Jirô Horikoshi, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Миори Такимото' AND (original_name = 'Miori Takimoto' OR (original_name IS NULL AND 'Miori Takimoto' IS NULL))), (SELECT id FROM film WHERE title = 'Ветер крепчает' AND year = 2013), 'Naoko Satomi, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Мансаи Номура' AND (original_name = 'Mansai Nomura' OR (original_name IS NULL AND 'Mansai Nomura' IS NULL))), (SELECT id FROM film WHERE title = 'Ветер крепчает' AND year = 2013), 'Giovanni Battista Caproni, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Стив Элперт' AND (original_name = 'Stephen Alpert' OR (original_name IS NULL AND 'Stephen Alpert' IS NULL))), (SELECT id FROM film WHERE title = 'Ветер крепчает' AND year = 2013), 'Castorp, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Дзюн Кунимура' AND (original_name = 'Jun Kunimura' OR (original_name IS NULL AND 'Jun Kunimura' IS NULL))), (SELECT id FROM film WHERE title = 'Ветер крепчает' AND year = 2013), 'Hattori, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Суми Симамото' AND (original_name = 'Sumi Shimamoto' OR (original_name IS NULL AND 'Sumi Shimamoto' IS NULL))), (SELECT id FROM film WHERE title = 'Навсикая из долины ветров' AND year = 1984), 'Nausicaa, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Махито Цудзимура' AND (original_name = 'Mahito Tsujimura' OR (original_name IS NULL AND 'Mahito Tsujimura' IS NULL))), (SELECT id FROM film WHERE title = 'Навсикая из долины ветров' AND year = 1984), 'Jihl / Muzu, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Хисако Кёда' AND (original_name = 'Hisako Kyoda' OR (original_name IS NULL AND 'Hisako Kyoda' IS NULL))), (SELECT id FROM film WHERE title = 'Навсикая из долины ветров' AND year = 1984), 'Oh-Baba, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Горо Ная' AND (original_name = 'Goro Naya' OR (original_name IS NULL AND 'Goro Naya' IS NULL))), (SELECT id FROM film WHERE title = 'Навсикая из долины ветров' AND year = 1984), 'Yupa, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Итиро Нагаи' AND (original_name = 'Ichiro Nagai' OR (original_name IS NULL AND 'Ichiro Nagai' IS NULL))), (SELECT id FROM film WHERE title = 'Навсикая из долины ветров' AND year = 1984), 'Mito, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кэйко Ёкодзава' AND (original_name = 'Keiko Yokozawa' OR (original_name IS NULL AND 'Keiko Yokozawa' IS NULL))), (SELECT id FROM film WHERE title = 'Небесный замок Лапута' AND year = 1986), 'Sheeta, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Маюми Танака' AND (original_name = 'Mayumi Tanaka' OR (original_name IS NULL AND 'Mayumi Tanaka' IS NULL))), (SELECT id FROM film WHERE title = 'Небесный замок Лапута' AND year = 1986), 'Pazu, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Сукэкиё Камэяма' AND (original_name = 'Sukekiyo Kameyama' OR (original_name IS NULL AND 'Sukekiyo Kameyama' IS NULL))), (SELECT id FROM film WHERE title = 'Небесный замок Лапута' AND year = 1986), 'Anli, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Котоэ Хацуи' AND (original_name = 'Kotoe Hatsui' OR (original_name IS NULL AND 'Kotoe Hatsui' IS NULL))), (SELECT id FROM film WHERE title = 'Небесный замок Лапута' AND year = 1986), 'Dola, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ёсито Ясухара' AND (original_name = 'Yoshito Yasuhara' OR (original_name IS NULL AND 'Yoshito Yasuhara' IS NULL))), (SELECT id FROM film WHERE title = 'Небесный замок Лапута' AND year = 1986), 'Lui, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ацуко Танака' AND (original_name = 'Atsuko Tanaka' OR (original_name IS NULL AND 'Atsuko Tanaka' IS NULL))), (SELECT id FROM film WHERE title = 'Призрак в доспехах' AND year = 1995), 'Motoko Kusanagi, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Акио Оцука' AND (original_name = 'Akio Ootsuka' OR (original_name IS NULL AND 'Akio Ootsuka' IS NULL))), (SELECT id FROM film WHERE title = 'Призрак в доспехах' AND year = 1995), 'Batou, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Коити Ямадэра' AND (original_name = 'Koichi Yamadera' OR (original_name IS NULL AND 'Koichi Yamadera' IS NULL))), (SELECT id FROM film WHERE title = 'Призрак в доспехах' AND year = 1995), 'Togusa, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ютака Накано' AND (original_name = 'Yutaka Nakano' OR (original_name IS NULL AND 'Yutaka Nakano' IS NULL))), (SELECT id FROM film WHERE title = 'Призрак в доспехах' AND year = 1995), 'Ishikawa, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тамио Оки' AND (original_name = 'Tamio Oki' OR (original_name IS NULL AND 'Tamio Oki' IS NULL))), (SELECT id FROM film WHERE title = 'Призрак в доспехах' AND year = 1995), 'Aramaki, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Мираи Сида' AND (original_name = 'Mirai Shida' OR (original_name IS NULL AND 'Mirai Shida' IS NULL))), (SELECT id FROM film WHERE title = 'Ариэтти из страны лилипутов' AND year = 2010), 'Arrietty, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Рюносукэ Камики' AND (original_name = 'Ryunosuke Kamiki' OR (original_name IS NULL AND 'Ryunosuke Kamiki' IS NULL))), (SELECT id FROM film WHERE title = 'Ариэтти из страны лилипутов' AND year = 2010), 'Shou, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тацуя Фудзивара' AND (original_name = 'Tatsuya Fujiwara' OR (original_name IS NULL AND 'Tatsuya Fujiwara' IS NULL))), (SELECT id FROM film WHERE title = 'Ариэтти из страны лилипутов' AND year = 2010), 'Spiller, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Синобу Отакэ' AND (original_name = 'Shinobu Ootake' OR (original_name IS NULL AND 'Shinobu Ootake' IS NULL))), (SELECT id FROM film WHERE title = 'Ариэтти из страны лилипутов' AND year = 2010), 'Homily, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кэйко Такэсита' AND (original_name = 'Keiko Takeshita' OR (original_name IS NULL AND 'Keiko Takeshita' IS NULL))), (SELECT id FROM film WHERE title = 'Ариэтти из страны лилипутов' AND year = 2010), 'Sadako, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Сюитиро Морияма' AND (original_name = 'Shuichiro Moriyama' OR (original_name IS NULL AND 'Shuichiro Moriyama' IS NULL))), (SELECT id FROM film WHERE title = 'Порко Россо' AND year = 1992), 'Kurenai no Buta, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Токико Като' AND (original_name = 'Tokiko Kato' OR (original_name IS NULL AND 'Tokiko Kato' IS NULL))), (SELECT id FROM film WHERE title = 'Порко Россо' AND year = 1992), 'Jina-sama, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Бунси Кацура VI' AND (original_name = 'Bunshi Katsura VI' OR (original_name IS NULL AND 'Bunshi Katsura VI' IS NULL))), (SELECT id FROM film WHERE title = 'Порко Россо' AND year = 1992), 'Pikkoro-oyaji, озвучка (в титрах: Bunshi Katsura)', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Цунэхико Камидзё' AND (original_name = 'Tsunehiko Kamijo' OR (original_name IS NULL AND 'Tsunehiko Kamijo' IS NULL))), (SELECT id FROM film WHERE title = 'Порко Россо' AND year = 1992), 'Manmayuto no shachô, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Акэми Окамура' AND (original_name = 'Akemi Okamura' OR (original_name IS NULL AND 'Akemi Okamura' IS NULL))), (SELECT id FROM film WHERE title = 'Порко Россо' AND year = 1992), 'Fio Pikkoro, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Сёта Сомэтани' AND (original_name = 'Shota Sometani' OR (original_name IS NULL AND 'Shota Sometani' IS NULL))), (SELECT id FROM film WHERE title = 'Ученик чудовища' AND year = 2015), 'Kyuta, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кодзи Якусё' AND (original_name = 'Koji Yakusho' OR (original_name IS NULL AND 'Koji Yakusho' IS NULL))), (SELECT id FROM film WHERE title = 'Ученик чудовища' AND year = 2015), 'Kumatetsu, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кумико Асо' AND (original_name = 'Kumiko Aso' OR (original_name IS NULL AND 'Kumiko Aso' IS NULL))), (SELECT id FROM film WHERE title = 'Ученик чудовища' AND year = 2015), 'Kyuta''s Mother, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Судзу Хиросэ' AND (original_name = 'Suzu Hirose' OR (original_name IS NULL AND 'Suzu Hirose' IS NULL))), (SELECT id FROM film WHERE title = 'Ученик чудовища' AND year = 2015), 'Kaede, озвучка', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Мамору Мияно' AND (original_name = 'Mamoru Miyano' OR (original_name IS NULL AND 'Mamoru Miyano' IS NULL))), (SELECT id FROM film WHERE title = 'Ученик чудовища' AND year = 2015), 'Ichirohiko, озвучка', NULL)
+) AS t(actor_id, film_id, character, description)
+WHERE actor_id IS NOT NULL AND film_id IS NOT NULL
+AND NOT EXISTS (
+  SELECT 1 FROM actor_in_film aif
+  WHERE aif.actor_id = t.actor_id
+    AND aif.film_id = t.film_id
+);
+
+COMMIT;
+
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '39914058-b470-42ea-b536-2bbfca3a6fa5'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Волшебство с глубоким смыслом', 'Визуально потрясающе, но сюжет местами слишком запутанный. Хаул прекрасен!', 8),
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Не самый лучший Миядзаки', 'После "Унесенных призраками" ожидал большего. Красиво, но не цепляет так сильно.', 7),
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Любимый фильм!', 'Смотрю каждый год. Софи - пример стойкости. Музыка волшебная.', 10),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Перегруженный символизм', 'Много аллегорий, которые не всегда понятны. Для фанатов студии Ghibli.', 6),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Хорошая сказка для взрослых', 'Антивоенный посыл актуален всегда. Анимация на высоте.', 8)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '39914058-b470-42ea-b536-2bbfca3a6fa5');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'fa17b0ea-3919-4cde-a7f5-32bfb820f872'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Переоцененный хит', 'Красиво, но слишком много хайпа вокруг. Сюжетные дыры заметны при втором просмотре.', 7),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Слезы счастья и грусти', 'Плакала три раза за просмотр. Такая чистая история любви! RADWIMPS - гениальны.', 10),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Хороший, но не шедевр', 'Первая половина затянута, вторая - захватывает. Визуал на высоте.', 8),
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Фильм перевернул представление об аниме', 'До этого скептически относился к аниме. "Твоё имя" изменило всё.', 9),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Не впечатлило', 'Ожидал большего после отзывов. Мелодраматично и предсказуемо.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'fa17b0ea-3919-4cde-a7f5-32bfb820f872');
+
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '350536ea-7dfe-475f-ba28-a6e4710e98ee'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Идеальный детский фильм', 'Смотрели с детьми 4 и 6 лет - обожают! Никакого насилия, только доброта.', 10),
+    ('a7b8c9d0-e1f2-3456-789a-789012345678', 'Ностальгия по простому', 'Напоминает о том, каким должно быть настоящее детство. Тоторо - символ воображения.', 9),
+    ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'Скучновато для взрослых', 'Нет динамичного сюжета. Детям понравится, взрослым может не хватить действия.', 6),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Успокаивающая терапия', 'Смотрю, когда нужно снять стресс. Атмосфера уюта и безопасности.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '350536ea-7dfe-475f-ba28-a6e4710e98ee');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '350536ea-7dfe-475f-ba28-a6e4710e98ee'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Идеально для детей', 'Дочка смотрела 10 раз! Добрый, светлый, без агрессии.', 9),
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Ностальгия по детству', 'Фильм о самом важном - семье, воображении, природе. Просто и гениально.', 10),
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Слишком просто', 'Нет динамичного сюжета. Для малышей подойдет, взрослым может быть скучно.', 6),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Тоторо - культовая икона', 'Даже спустя 30 лет не теряет актуальности. Атмосфера уюта.', 8),
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Хорошая сказка на ночь', 'Успокаивающий, медитативный. Не шедевр, но приятный просмотр.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '350536ea-7dfe-475f-ba28-a6e4710e98ee');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'dd6f188d-f7c2-4db0-997d-2224a3163dd7'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'История взросления', 'Кики такая узнаваемая! Каждый проходил через потерю веры в себя.', 8),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Мило, но не более', 'Милая история, но не запомнилась среди других работ Ghibli.', 6),
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Лучший фильм о самостоятельности', 'Смотрела в переходном возрасте - многое поняла о себе.', 9),
+    ('a7b8c9d0-e1f2-3456-789a-789012345678', 'Европейская атмосфера', 'Красиво показан вымышленный европейский городок. Уютно.', 7),
+    ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'Не хватает драйва', 'Медленный темп. Хотелось больше волшебства и приключений.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'dd6f188d-f7c2-4db0-997d-2224a3163dd7');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '1522bce5-aeea-4649-b2a6-d3af2e434205'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Взрослое кино от Миядзаки', 'Необычно видеть у него такой серьезный, почти биографический фильм.', 8),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Слишком медленно', 'Красиво, но затянуто. Не хватает магии других его работ.', 6),
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Противоречивые чувства', 'С одной стороны - шедевр анимации, с другой - странная романтизация войны.', 7),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Фильм о творчестве', 'Пронзительная история о том, как мечта сталкивается с реальностью.', 9),
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Не для всех', 'Понравится ценителям авиации и истории. Многим будет скучновато.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '1522bce5-aeea-4649-b2a6-d3af2e434205');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'f5874411-f6d4-4229-8e9a-c217bd116409'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Первый шедевр Миядзаки', 'Удивительно, как в 1984 году уже было такое видение!', 9),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Актуально как никогда', 'Экологический посыл звучит еще громче сегодня.', 8),
+    ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'Мрачновато для Ghibli', 'Темнее других его работ. Не рекомендую смотреть с маленькими детьми.', 7),
+    ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'Культовая классика', 'Основа для всего последующего творчества Миядзаки.', 9),
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Технически устарело', 'Идеи гениальны, но анимация уже выглядит устаревшей.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'f5874411-f6d4-4229-8e9a-c217bd116409');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '3b8345f5-a454-41ae-b066-26b6529d523c'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Начало легенды', 'Первый фильм Ghibli уже показал, на что способна студия.', 8),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Приключения в духе Жюля Верна', 'Старомодное, но очаровательное приключение.', 7),
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Не самое лучшее', 'Среди ранних работ Миядзаки есть и более сильные фильмы.', 6),
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Классика стеампанка', 'Летающие острова, пираты, тайны - что еще нужно?', 8),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Заложил основы', 'Многие темы потом развивались в других фильмах.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '3b8345f5-a454-41ae-b066-26b6529d523c');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '0e39dac4-c1f7-4e1b-b0b1-ea17f29b0a11'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'Взрослый и умный киберпанк', 'Философские вопросы об идентичности в цифровую эпоху.', 9),
+    ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'Сложно для первого просмотра', 'Пришлось смотреть дважды, чтобы понять все слои.', 8),
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Влияние на "Матрицу" очевидно', 'Без этого фильма не было бы многих современных шедевров.', 9),
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Мрачно и медленно', 'Слишком много философствования, мало действия.', 5),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Технический прорыв для 1995', 'Анимация до сих пор выглядит впечатляюще.', 8)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '0e39dac4-c1f7-4e1b-b0b1-ea17f29b0a11');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '299c536b-b28a-4bef-9fae-fcfe6f866abd'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Тонкая и нежная работа', 'Йонебаяси достойно продолжает традиции Ghibli.', 8),
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Слишком просто и мило', 'Не хватает глубины Миядзаки, но смотреть приятно.', 7),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Идеально для семейного просмотра', 'Красиво, добро, никакого насилия. Дети в восторге.', 9),
+    ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'Визуальное наслаждение', 'Проработанные детали мира "заемщиков" восхищают.', 8),
+    ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'Не запоминается', 'Смотрел пару лет назад, уже почти ничего не помню.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '299c536b-b28a-4bef-9fae-fcfe6f866abd');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '50355883-0bf1-492d-9d57-c0894c86156b'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Самый недооцененный Миядзаки', 'Взрослая, ироничная, меланхоличная история.', 9),
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Не для детей', 'Фильм о взрослых проблемах: война, любовь, разочарование.', 8),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Свинья-пилот - гениально!', 'Необычный главный герой и атмосфера 1930-х годов.', 8),
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Слишком нишевый', 'Понравится не всем, нужен определенный настрой.', 7),
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Лучший саундтрек', 'Итальянская музыка создает неповторимую атмосферу.', 9)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '50355883-0bf1-492d-9d57-c0894c86156b');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'afeed4c1-1be0-4020-bb27-a0e689f6b3cb'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Сильный фильм о взрослении', 'Медвежут - великолепный ментор. Эмоциональная история.', 8),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Хосода в своем стиле', 'Узнаваемый подход к фэнтези и семейным отношениям.', 7),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Слишком длинно', 'Можно было бы сократить на 20 минут без потери смысла.', 6),
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Мир чудовищ проработан', 'Каждый персонаж в мире зверей имеет характер.', 8),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Не для маленьких детей', 'Рейтинг 18+ оправдан. Есть напряженные моменты.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'afeed4c1-1be0-4020-bb27-a0e689f6b3cb');
+-- ========================================
+-- Total films: 12
+-- Total actors: 57
+-- Actor pictures from: 1530 to 1586
+-- Film pictures from: 473 to 484
+-- End of generated SQL
+-- ========================================
+
+
 UPDATE film SET created_at = CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '7 days');
 
 UPDATE film 
@@ -9829,3 +10213,38 @@ WHERE title IN (
     'Сын полка'
 
 );
+
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Ходячий замок' THEN 'https://vkvideo.ru/video-234602828_456239026'
+        WHEN 'Твоё имя' THEN 'https://vkvideo.ru/video-194145340_456240086'
+        WHEN 'Мой сосед Тоторо' THEN 'https://vkvideo.ru/video-231692755_456239017'
+        WHEN 'Ведьмина служба доставки' THEN 'https://rutube.ru/video/59028fef840c6d74a970a2c8512767a2/'
+        WHEN 'Рыбка Поньо на утесе' THEN 'https://vkvideo.ru/video-234441186_456239021'
+        WHEN 'Ветер крепчает' THEN 'https://vkvideo.ru/video-20270177_167607351'
+        WHEN 'Навсикая из долины ветров' THEN 'https://rutube.ru/video/ff86bc85d6febe8032e7d399045d4029/'
+        WHEN 'Небесный замок Лапута' THEN 'https://rutube.ru/video/e87136611f4624073c6c9635d2b8fedf/'
+        WHEN 'Призрак в доспехах' THEN 'https://vkvideo.ru/video-231964133_456239221'
+        WHEN 'Ариэтти из страны лилипутов' THEN 'https://vkvideo.ru/video620215158_456240597'
+        WHEN 'Порко Россо' THEN 'https://vkvideo.ru/video-38890380_163535876'
+        WHEN 'Ученик чудовища' THEN 'https://vkvideo.ru/video-189724571_456254238'
+
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Ходячий замок',
+    'Твоё имя',
+    'Мой сосед Тоторо',
+    'Ведьмина служба доставки',
+    'Рыбка Поньо на утесе',
+    'Ветер крепчает',
+    'Навсикая из долины ветров',
+    'Небесный замок Лапута',
+    'Призрак в доспехах',
+    'Ариэтти из страны лилипутов',
+    'Порко Россо',
+    'Ученик чудовища'
+);
+
