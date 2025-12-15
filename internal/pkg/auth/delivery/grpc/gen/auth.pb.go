@@ -316,6 +316,7 @@ type UserResponse struct {
 	Login         string                 `protobuf:"bytes,3,opt,name=Login,proto3" json:"Login,omitempty"`
 	Avatar        string                 `protobuf:"bytes,4,opt,name=Avatar,proto3" json:"Avatar,omitempty"`
 	Has2Fa        bool                   `protobuf:"varint,5,opt,name=Has2fa,proto3" json:"Has2fa,omitempty"`
+	IsForeign     bool                   `protobuf:"varint,6,opt,name=IsForeign,proto3" json:"IsForeign,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -381,6 +382,13 @@ func (x *UserResponse) GetAvatar() string {
 func (x *UserResponse) GetHas2Fa() bool {
 	if x != nil {
 		return x.Has2Fa
+	}
+	return false
+}
+
+func (x *UserResponse) GetIsForeign() bool {
+	if x != nil {
+		return x.IsForeign
 	}
 	return false
 }
@@ -890,13 +898,14 @@ const file_auth_proto_rawDesc = "" +
 	"\x06Has2fa\x18\x02 \x01(\bR\x06Has2fa\",\n" +
 	"\x12Disable2faResponse\x12\x16\n" +
 	"\x06Has2fa\x18\x01 \x01(\bR\x06Has2fa\"\x0f\n" +
-	"\rEmptyResponse\"~\n" +
+	"\rEmptyResponse\"\x9c\x01\n" +
 	"\fUserResponse\x12\x0e\n" +
 	"\x02ID\x18\x01 \x01(\tR\x02ID\x12\x18\n" +
 	"\aVersion\x18\x02 \x01(\x05R\aVersion\x12\x14\n" +
 	"\x05Login\x18\x03 \x01(\tR\x05Login\x12\x16\n" +
 	"\x06Avatar\x18\x04 \x01(\tR\x06Avatar\x12\x16\n" +
-	"\x06Has2fa\x18\x05 \x01(\bR\x06Has2fa\"A\n" +
+	"\x06Has2fa\x18\x05 \x01(\bR\x06Has2fa\x12\x1c\n" +
+	"\tIsForeign\x18\x06 \x01(\bR\tIsForeign\"A\n" +
 	"\rSignupRequest\x12\x14\n" +
 	"\x05Login\x18\x01 \x01(\tR\x05Login\x12\x1a\n" +
 	"\bPassword\x18\x02 \x01(\tR\bPassword\"~\n" +

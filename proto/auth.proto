@@ -49,6 +49,7 @@ message UserResponse {
   string Login = 3;
   string Avatar = 4;
   bool Has2fa = 5;
+  bool IsForeign = 6;
 }
 
 message SignupRequest {

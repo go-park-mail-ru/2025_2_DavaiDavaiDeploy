@@ -441,11 +441,12 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		neededUser := models.User{
-			ID:      uuid.FromStringOrNil(user.ID),
-			Version: int(user.Version),
-			Login:   user.Login,
-			Avatar:  user.Avatar,
-			Has2FA:  user.Has2Fa,
+			ID:        uuid.FromStringOrNil(user.ID),
+			Version:   int(user.Version),
+			Login:     user.Login,
+			Avatar:    user.Avatar,
+			Has2FA:    user.Has2Fa,
+			IsForeign: user.IsForeign,
 		}
 		ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 		next.ServeHTTP(w, r.WithContext(ctx))

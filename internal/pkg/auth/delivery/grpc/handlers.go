@@ -286,11 +286,12 @@ func (g GrpcAuthHandler) ValidateAndGetUser(ctx context.Context, in *gen.Validat
 	user.Sanitize()
 
 	return &gen.UserResponse{
-		ID:      user.ID.String(),
-		Version: int32(user.Version),
-		Login:   user.Login,
-		Avatar:  user.Avatar,
-		Has2Fa:  user.Has2FA,
+		ID:        user.ID.String(),
+		Version:   int32(user.Version),
+		Login:     user.Login,
+		Avatar:    user.Avatar,
+		Has2Fa:    user.Has2FA,
+		IsForeign: user.IsForeign,
 	}, err
 }
 
