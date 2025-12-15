@@ -118,10 +118,11 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := models.User{
-		ID:      uuid.FromStringOrNil(user.User.ID),
-		Version: int(user.User.Version),
-		Login:   user.User.Login,
-		Avatar:  user.User.Avatar,
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		IsForeign: false,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
@@ -242,10 +243,11 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 		})
 
 		response := models.User{
-			ID:      uuid.FromStringOrNil(user.User.ID),
-			Version: int(user.User.Version),
-			Login:   user.User.Login,
-			Avatar:  user.User.Avatar,
+			ID:        uuid.FromStringOrNil(user.User.ID),
+			Version:   int(user.User.Version),
+			Login:     user.User.Login,
+			Avatar:    user.User.Avatar,
+			IsForeign: true,
 		}
 
 		w.Header().Set("X-CSRF-Token", user.CSRFToken)
@@ -294,10 +296,11 @@ func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := models.User{
-		ID:      uuid.FromStringOrNil(user.User.ID),
-		Version: int(user.User.Version),
-		Login:   user.User.Login,
-		Avatar:  user.User.Avatar,
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		IsForeign: true,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
@@ -376,11 +379,12 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := models.User{
-		ID:      uuid.FromStringOrNil(user.User.ID),
-		Version: int(user.User.Version),
-		Login:   user.User.Login,
-		Avatar:  user.User.Avatar,
-		Has2FA:  user.User.Has2Fa,
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		Has2FA:    user.User.Has2Fa,
+		IsForeign: false,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
