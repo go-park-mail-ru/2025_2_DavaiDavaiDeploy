@@ -376,6 +376,39 @@ func (uc *FilmUsecase) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([
 	return mainPageFilms, nil
 }
 
+func (uc *FilmUsecase) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+
+	recFilms, err := uc.filmRepo.GetUsersRecommendations(ctx, userID)
+	if err != nil {
+		return []models.MainPageFilm{}, err
+	}
+
+	if len(recFilms) == 0 {
+		logger.Error("no films")
+		return []models.MainPageFilm{}, films.ErrorNotFound
+	}
+
+	engine := NewRecommendationEngine(recFilms)
+	answer := engine.RecommendFilms(10)
+	var result []models.MainPageFilm
+	for _, recFilm := range answer {
+		genreTitle, _ := uc.filmRepo.GetGenreTitle(ctx, recFilm.GenreID)
+
+		mainPageFilm := models.MainPageFilm{
+			ID:     recFilm.ID,
+			Cover:  recFilm.Cover,
+			Title:  recFilm.Title,
+			Rating: recFilm.Rating,
+			Year:   recFilm.Year,
+			Genre:  genreTitle,
+		}
+		result = append(result, mainPageFilm)
+	}
+
+	return result[:6], nil
+}
+
 type RecommendationEngine struct {
 	films            []models.RecFilm
 	similarityMatrix [][]float64
