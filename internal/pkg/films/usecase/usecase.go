@@ -385,104 +385,118 @@ func NewRecommendationEngine(films []models.RecFilm) *RecommendationEngine {
 	engine := &RecommendationEngine{
 		films: films,
 	}
-
 	engine.calculateFeatures()
 	engine.buildSimilarityMatrix()
 	return engine
 }
 
-func (uc *FilmUsecase) GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.MainPageFilm, error) {
-	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-
-	recFilms, err := uc.filmRepo.GetUsersRecommendations(ctx, userID)
-	if err != nil {
-		return []models.MainPageFilm{}, err
-	}
-
-	if len(recFilms) == 0 {
-		logger.Error("no films")
-		return []models.MainPageFilm{}, films.ErrorNotFound
-	}
-
-	engine := NewRecommendationEngine(recFilms)
-	answer := engine.RecommendFilms(10)
-	var result []models.MainPageFilm
-	for _, recFilm := range answer {
-		genreTitle, _ := uc.filmRepo.GetGenreTitle(ctx, recFilm.GenreID)
-
-		mainPageFilm := models.MainPageFilm{
-			ID:     recFilm.ID,
-			Cover:  recFilm.Cover,
-			Title:  recFilm.Title,
-			Rating: recFilm.Rating,
-			Year:   recFilm.Year,
-			Genre:  genreTitle,
-		}
-		result = append(result, mainPageFilm)
-	}
-
-	return result[:6], nil
-}
-
 func (re *RecommendationEngine) calculateFeatures() {
-	uniqueGenres := make(map[uuid.UUID]bool)
-	uniqueAges := make(map[string]bool)
-	uniqueCountries := make(map[uuid.UUID]bool)
-
-	for _, film := range re.films {
-		uniqueGenres[film.GenreID] = true
-		uniqueAges[film.AgeCategory] = true
-		uniqueCountries[film.CountryID] = true
+	genreOrder := map[string]int{
+		// Нуар
+		"7acf23e6-9fd2-6d7a-f2fb-cfd5f987df77": 1,
+		// Исторические
+		"9cef45a8-b1f4-8f9c-f4fd-efd7fb1a9ff9": 2,
+		// Документальные
+		"6fbf12d5-8fc1-5c69-e1ea-bec4f876cf66": 3,
+		// Биографии
+		"2b7cf0e1-4c9d-4825-a7f6-7a80e4328e22": 4,
+		// Драмы
+		"8bdf34f7-afe3-7e8b-f3fc-dfe6fa098ef8": 5,
+		// Мелодрамы
+		"def389ec-f5f8-c3d0-f8f1-1f1bff5ed1f3": 6,
+		// Музыкальные
+		"fbf5ab0e-f7f0-e5f2-faf3-3f3d1f7ff3f5": 7,
+		// Ромком
+		"2ce8de21-faf3-f8f5-fdf6-6f6f4f0f26f8": 8,
+		// Комедии
+		"adf056b9-c2f5-90ad-f5fe-ffe8fc2baff0": 9,
+		// Короткометражки
+		"bef167ca-d3f6-a1be-f6ff-fff9fd3cbff1": 10,
+		// Спортивные
+		"4efa0f23-fcf5-faf7-fff8-8f8f6f2f48f0": 11,
+		// Семейные
+		"3df9ef22-fbf4-f9f6-fef7-7f7f5f1f37f9": 12,
+		// Мультфильмы
+		"0ac6bc1f-f8f1-f6f3-fbf4-4f4e2f8f04f6": 13,
+		// Аниме
+		"1ad0ef80-7a2a-43ca-b759-d5c1ff9ccacd": 14,
+		// Приключения
+		"1bd7cd20-f9f2-f7f4-fcf5-5f5f3f9f15f7": 15,
+		// Детективы
+		"5eaf01c4-7fb0-4b58-d0f9-adb3f765bf55": 16,
+		// Вестерны
+		"4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44": 17,
+		// Боевики
+		"3c8df0a2-5d9e-4936-b8f7-8b91f5439f33": 18,
+		// Криминал
+		"cdf278db-e4f7-b2cf-f7f0-0f0afe4dc0f2": 19,
+		// Триллеры
+		"5f0b1f24-fdf6-fbf8-0ff9-9f9f7f3f59f1": 20,
+		// Ужасы
+		"6f1c2f25-fef7-fcf9-1ffa-0a0f8f4f60f2": 21,
+		// Мистика
+		"eaf49afd-f6f9-d4e1-f9f2-2f2c0f6fe2f4": 22,
+		// Фэнтези
+		"8f3e4f27-0ff9-fefb-3ffc-2c2f0f6f82f4": 23,
+		// Фантастика
+		"7f2d3f26-fff8-fdfa-2ffb-1b1f9f5f71f3": 24,
 	}
 
-	genreMapping := make(map[uuid.UUID]int)
-	ageMapping := make(map[string]int)
-	countryMapping := make(map[uuid.UUID]int)
-
-	genreIdx := 0
-	for genreID := range uniqueGenres {
-		genreMapping[genreID] = genreIdx
-		genreIdx += 1
+	countryOrder := map[string]int{
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12": 1,  // США
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a18": 2,  // Великобритания
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a20": 3,  // Канада
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a11": 4,  // Франция
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a14": 5,  // Германия
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a15": 6,  // Япония
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a19": 7,  // Индия
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a17": 8,  // Россия
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a16": 9,  // СССР
+		"a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a13": 10, // Новая Зеландия
 	}
 
-	ageOrder := []string{"0+", "6+", "12+", "16+", "18+"}
-	for idx, age := range ageOrder {
-		if uniqueAges[age] {
-			ageMapping[age] = idx
-		}
-	}
-
-	countryIdx := 0
-	for countryID := range uniqueCountries {
-		countryMapping[countryID] = countryIdx
-		countryIdx += 1
+	ageOrder := map[string]int{
+		"0+":  0,
+		"6+":  1,
+		"12+": 2,
+		"16+": 3,
+		"18+": 4,
 	}
 
 	minYear, maxYear := re.findMinMaxYear()
 	minDuration, maxDuration := re.findMinMaxDuration()
-	maxGenreEncoded := float64(len(genreMapping) - 1)
-	maxAgeEncoded := float64(len(ageMapping) - 1)
-	maxCountryEncoded := float64(len(countryMapping) - 1)
+
+	maxGenreOrder := 24.0
+	maxAgeOrder := 4.0
+	maxCountryOrder := 10.0
 
 	for i, film := range re.films {
 		var features []float64
 
-		normalizedYear := float64(film.Year-minYear) / float64(maxYear-minYear)
-		features = append(features, normalizedYear)
-
-		genreEncoded := float64(genreMapping[film.GenreID]) / maxGenreEncoded
-		for j := 0; j < 8; j++ {
-			features = append(features, genreEncoded)
+		genreNum := float64(genreOrder[film.GenreID.String()])
+		if genreNum == 0 {
+			genreNum = 12.5
 		}
 
-		ageEncoded := float64(ageMapping[film.AgeCategory]) / maxAgeEncoded
-		features = append(features, ageEncoded)
+		normalizedGenre := genreNum / maxGenreOrder
+		for j := 0; j < 10; j++ {
+			features = append(features, normalizedGenre)
+		}
+
+		ageNum := float64(ageOrder[film.AgeCategory])
+		features = append(features, ageNum/maxAgeOrder)
+
+		normalizedYear := float64(film.Year-minYear) / float64(maxYear-minYear)
+		features = append(features, normalizedYear)
 
 		normalizedDuration := float64(film.Duration-minDuration) / float64(maxDuration-minDuration)
 		features = append(features, normalizedDuration)
 
-		countryEncoded := float64(countryMapping[film.CountryID]) / maxCountryEncoded
-		features = append(features, countryEncoded)
+		countryNum := float64(countryOrder[film.CountryID.String()])
+		if countryNum == 0 {
+			countryNum = 5.5
+		}
+		features = append(features, countryNum/maxCountryOrder)
 
 		re.films[i].Features = features
 	}
@@ -530,7 +544,7 @@ func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 			if i == j {
 				similarity[i][j] = 1.0
 			} else {
-				similarity[i][j] = re.cosineSimilarity(re.films[i].Features, re.films[j].Features)
+				similarity[i][j] = re.weightedSimilarity(re.films[i].Features, re.films[j].Features)
 			}
 		}
 	}
@@ -539,22 +553,33 @@ func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 	return similarity
 }
 
-func (re *RecommendationEngine) cosineSimilarity(a, b []float64) float64 {
-	if len(a) != len(b) {
+func (re *RecommendationEngine) weightedSimilarity(a, b []float64) float64 {
+	if len(a) != len(b) || len(a) != 14 {
 		return 0
 	}
 
-	var dotProduct, normA, normB float64
-	for i := range a {
-		dotProduct += a[i] * b[i]
-		normA += a[i] * a[i]
-		normB += b[i] * b[i]
+	var weightedDot, weightedNormA, weightedNormB float64
+
+	genreWeights := 10.0
+	otherWeight := 1.0
+
+	weights := []float64{
+		genreWeights, genreWeights, genreWeights, genreWeights, genreWeights,
+		genreWeights, genreWeights, genreWeights, genreWeights, genreWeights,
+		otherWeight, otherWeight, otherWeight, otherWeight,
 	}
 
-	if normA == 0 || normB == 0 {
+	for idx := range a {
+		weightedDot += a[idx] * b[idx] * weights[idx]
+		weightedNormA += a[idx] * a[idx] * weights[idx]
+		weightedNormB += b[idx] * b[idx] * weights[idx]
+	}
+
+	if weightedNormA == 0 || weightedNormB == 0 {
 		return 0
 	}
-	similarity := dotProduct / (math.Sqrt(normA) * math.Sqrt(normB))
+
+	similarity := weightedDot / (math.Sqrt(weightedNormA) * math.Sqrt(weightedNormB))
 
 	if similarity < 0 {
 		return 0
@@ -567,12 +592,7 @@ func (re *RecommendationEngine) cosineSimilarity(a, b []float64) float64 {
 }
 
 func (re *RecommendationEngine) RecommendFilms(n int) []models.RecFilm {
-	contentRecs := re.contentBasedRecommendation(n)
-	clusterRecs := re.clusterBasedRecommendation(n)
-
-	hybridRecs := re.hybridRecommendation(contentRecs, clusterRecs, n)
-
-	return hybridRecs
+	return re.contentBasedRecommendation(n)
 }
 
 func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFilm {
@@ -625,123 +645,6 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 		return unratedFilms[:n]
 	}
 	return unratedFilms
-}
-
-func (re *RecommendationEngine) clusterBasedRecommendation(n int) []models.RecFilm {
-	clusterRatings := make(map[int][]float64)
-	for _, film := range re.films {
-		if film.UserRating > 0 {
-			clusterRatings[film.ClusterID] = append(clusterRatings[film.ClusterID], film.UserRating)
-		}
-	}
-	if len(clusterRatings) == 0 {
-		return re.getPopularFilms(n)
-	}
-
-	// вес для каждого кластера
-	clusterWeights := make(map[int]float64)
-	for clusterID, ratings := range clusterRatings {
-		var sum float64
-		for _, rating := range ratings {
-			sum += rating
-		}
-		avgRating := sum / float64(len(ratings))
-		clusterWeights[clusterID] = avgRating * float64(len(ratings))
-	}
-
-	var clusters []int
-	for clusterID := range clusterWeights {
-		clusters = append(clusters, clusterID)
-	}
-
-	sort.Slice(clusters, func(i, j int) bool {
-		return clusterWeights[clusters[i]] > clusterWeights[clusters[j]]
-	})
-
-	var recommendations []models.RecFilm
-	for _, clusterID := range clusters {
-		if len(recommendations) >= n {
-			break
-		}
-		var clusterFilms []models.RecFilm
-		for _, film := range re.films {
-			if film.ClusterID == clusterID && film.UserRating == 0 {
-				clusterFilms = append(clusterFilms, film)
-			}
-		}
-		sort.Slice(clusterFilms, func(i, j int) bool {
-			return clusterFilms[i].Rating > clusterFilms[j].Rating
-		})
-		needed := n - len(recommendations)
-		if needed > len(clusterFilms) {
-			needed = len(clusterFilms)
-		}
-		recommendations = append(recommendations, clusterFilms[:needed]...)
-	}
-
-	if len(recommendations) == 0 {
-		return re.getPopularFilms(n)
-	}
-
-	return recommendations
-}
-
-func (re *RecommendationEngine) hybridRecommendation(contentRecs, clusterRecs []models.RecFilm, n int) []models.RecFilm {
-	contentWeight := 1.0
-	clusterWeight := 0.0
-
-	var films []models.RecFilm
-	var scores []float64
-
-	for i, film := range contentRecs {
-		positionWeight := 1.0 - float64(i)/float64(len(contentRecs))
-		score := contentWeight * positionWeight
-		found := false
-		for j, existingFilm := range films {
-			if existingFilm.ID == film.ID {
-				scores[j] += score
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			films = append(films, film)
-			scores = append(scores, score)
-		}
-	}
-
-	for i, film := range clusterRecs {
-		positionWeight := 1.0 - float64(i)/float64(len(clusterRecs))
-		score := clusterWeight * positionWeight
-		found := false
-		for j, existingFilm := range films {
-			if existingFilm.ID == film.ID {
-				scores[j] += score
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			films = append(films, film)
-			scores = append(scores, score)
-		}
-	}
-
-	for i := 0; i < len(films); i++ {
-		for j := i + 1; j < len(films); j++ {
-			if scores[j] > scores[i] {
-				films[i], films[j] = films[j], films[i]
-				scores[i], scores[j] = scores[j], scores[i]
-			}
-		}
-	}
-
-	if len(films) > n {
-		return films[:n]
-	}
-	return films
 }
 
 func (re *RecommendationEngine) getPopularFilms(n int) []models.RecFilm {
