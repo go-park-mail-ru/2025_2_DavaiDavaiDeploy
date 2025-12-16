@@ -650,10 +650,16 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 		}
 	}
 
-	fmt.Println("\n=== TOP 100 FILMS BY SCORE ===")
 	limit := 100
 	if len(unratedFilms) < limit {
 		limit = len(unratedFilms)
+	}
+
+	fmt.Println("\n=== TOP 100 FILMS BY SCORE ===")
+	for i := 0; i < limit; i++ {
+		fmt.Printf("%3d. Score: %.4f | Film: '%s' (GenreID: %s, Year: %d, Rating: %.1f)\n",
+			i+1, scores[i], unratedFilms[i].Title,
+			unratedFilms[i].GenreID.String(), unratedFilms[i].Year, unratedFilms[i].Rating)
 	}
 
 	if len(unratedFilms) > n {
