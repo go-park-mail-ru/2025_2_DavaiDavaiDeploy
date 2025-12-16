@@ -9661,6 +9661,281 @@ WHERE EXISTS (SELECT 1 FROM film WHERE id = 'efb8fd28-ccec-4c1d-ac4a-265703bad6f
 -- ========================================
 
 
+BEGIN;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'actor_russian_original_unique') THEN
+    ALTER TABLE actor ADD CONSTRAINT actor_russian_original_unique UNIQUE (russian_name, original_name);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'film_title_year_unique') THEN
+    ALTER TABLE film ADD CONSTRAINT film_title_year_unique UNIQUE (title, year);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'actor_film_unique') THEN
+    ALTER TABLE actor_in_film ADD CONSTRAINT actor_film_unique UNIQUE (actor_id, film_id);
+  END IF;
+END $$;
+
+INSERT INTO actor (id, russian_name, original_name, photo, height,
+                  birth_date, death_date, zodiac_sign, birth_place, marital_status)
+VALUES
+  ('df86a447-d791-45d1-9b5f-ad59feabd7b3', 'Курт Рассел', 'Kurt Russell', 'actors/pic1622.webp', 176, '1951-03-17', NULL, 'Рыбы', 'Спрингфилд, Массачусетс, США', 'Женат'),
+  ('37eb9a77-6906-4e40-80a2-db08be7e6702', 'Сэмюэл Л. Джексон', 'Samuel L. Jackson', 'actors/pic1623.webp', 189, '1948-12-21', NULL, 'Стрелец', 'Вашингтон, округ Колумбия, США', 'Женат'),
+  ('e735e838-fff3-4798-acfd-9696005dac2f', 'Дженнифер Джейсон Ли', 'Jennifer Jason Leigh', 'actors/pic1624.webp', 160, '1962-02-05', NULL, 'Водолей', 'Лос-Анджелес, Калифорния, США', 'Замужем'),
+  ('0804542e-b801-4de4-9958-b85dcd3bc546', 'Уолтон Гоггинс', 'Walton Goggins', 'actors/pic1625.webp', 178, '1971-11-10', NULL, 'Скорпион', 'Бирмингем, Алабама, США', 'Женат'),
+  ('71c095b6-be2f-48e2-8de9-7eabf3557fe3', 'Тим Рот', 'Tim Roth', 'actors/pic1626.webp', 173, '1961-05-14', NULL, 'Телец', 'Лондон, Англия, Великобритания', 'Женат'),
+  ('ab9b6852-5e4c-4731-9ca5-b32acd4ec53c', 'Тим Блейк Нельсон', 'Tim Blake Nelson', 'actors/pic1627.webp', 165, '1964-05-11', NULL, 'Телец', 'Талса, Оклахома, США', 'Женат'),
+  ('4f07ae05-1c69-44fe-a90e-15d032cbf38f', 'Скотт Хейз', 'Scott Haze', 'actors/pic1628.webp', 183, '1982-12-31', NULL, 'Козерог', 'Даллас, Техас, США', 'Не состоит в отношениях'),
+  ('39c5cdc3-f594-4ee4-a29e-4c08674bba56', 'Гэвин Льюис', 'Gavin Lewis', 'actors/pic1629.webp', 178, '2003-10-27', NULL, 'Скорпион', 'Юта, США', 'Не состоит в отношениях'),
+  ('798b8357-0e4a-43e2-b9c3-88d222a1993f', 'Трэйси Эдкинс', 'Trace Adkins', 'actors/pic1630.webp', 200, '1962-01-13', NULL, 'Козерог', 'Спрингхилл, Луизиана, США', 'Женат'),
+  ('47da65d3-fccf-401c-baab-b10116ec03fe', 'Стивен Дорфф', 'Stephen Dorff', 'actors/pic1631.webp', 173, '1973-07-29', NULL, 'Лев', 'Атланта, Джорджия, США', 'Не состоит в отношениях'),
+  ('a8c182a2-794b-4879-9caa-4252ff513bd6', 'Джеймс Франко', 'James Franco', 'actors/pic1632.webp', 180, '1978-04-19', NULL, 'Овен', 'Пало-Альто, Калифорния, США', 'Не состоит в отношениях'),
+  ('436f1343-0020-4c44-b945-ecf903ee7419', 'Гарри Меллинг', 'Harry Melling', 'actors/pic1633.webp', 175, '1989-03-13', NULL, 'Рыбы', 'Лондон, Англия, Великобритания', 'Не состоит в отношениях'),
+  ('6b92232a-3fb7-4ecf-9fe0-2045425a9704', 'Лиам Нисон', 'Liam Neeson', 'actors/pic1634.webp', 193, '1952-06-07', NULL, 'Близнецы', 'Беллимен, Северная Ирландия, Великобритания', 'Женат'),
+  ('05ff8da4-e40b-4552-a562-930ec1c46537', 'Том Уэйтс', 'Tom Waits', 'actors/pic1635.webp', 180, '1949-12-07', NULL, 'Стрелец', 'Помона, Калифорния, США', 'Женат'),
+  ('fdb2dc90-6212-40f3-892c-afd9ac35ef68', 'Клинт Иствуд', 'Clint Eastwood', 'actors/pic1636.webp', 193, '1930-05-31', NULL, 'Близнецы', 'Сан-Франциско, Калифорния, США', 'Женат'),
+  ('9c4cfb3d-aa23-4866-a97d-b8054db7fac6', 'Ли Ван Клиф', 'Lee Van Cleef', 'actors/pic1637.webp', 187, '1925-01-09', '1989-12-16', 'Козерог', 'Сомервиль, Нью-Джерси, США', 'Был женат'),
+  ('66e5e2d8-b3f3-4879-a49e-c785d2e57dbf', 'Джан Мария Волонте', 'Gian Maria Volontè', 'actors/pic1638.webp', 187, '1933-04-09', '1994-12-06', 'Овен', 'Милан, Италия', 'Был женат'),
+  ('2e490fc8-d126-4eca-a937-66c20b8d1320', 'Мара Крупп', 'Mara Krupp', 'actors/pic1639.webp', 170, '1935-10-26', NULL, 'Скорпион', 'Италия', 'Не состоит в отношениях'),
+  ('1446edcc-011a-44fa-b90d-b4a65c21bd17', 'Луиджи Пистилли', 'Luigi Pistilli', 'actors/pic1640.webp', 170, '1929-07-19', '1996-04-21', 'Рак', 'Гроссето, Италия', 'Не был женат'),
+  ('400c3030-0ea8-4e26-83a4-d4e6af04861a', 'Брэд Питт', 'Brad Pitt', 'actors/pic1641.webp', 180, '1963-12-18', NULL, 'Стрелец', 'Шоуни, Оклахома, США', 'Женат'),
+  ('830f4261-a484-4d72-9e12-3f0adf4f9583', 'Кейси Аффлек', 'Casey Affleck', 'actors/pic1642.webp', 175, '1975-08-12', NULL, 'Лев', 'Фолмут, Массачусетс, США', 'Женат'),
+  ('d03a352d-8a26-49db-aa16-e8f2876fd173', 'Сэм Рокуэлл', 'Sam Rockwell', 'actors/pic1643.webp', 173, '1968-11-05', NULL, 'Скорпион', 'Дэли-Сити, Калифорния, США', 'Не состоит в отношениях'),
+  ('ce807514-ff6f-4c99-9830-a15fbd48bb8d', 'Пол Шнайдер', 'Paul Schneider', 'actors/pic1644.webp', 182, '1976-03-16', NULL, 'Рыбы', 'Ашвилл, Северная Каролина, США', 'Женат'),
+  ('a5e46444-33c4-4a0b-8805-070b8e0aa615', 'Джереми Реннер', 'Jeremy Renner', 'actors/pic1645.webp', 174, '1971-01-07', NULL, 'Козерог', 'Модесто, Калифорния, США', 'Женат'),
+  ('3712871e-3b1d-4738-adf9-0fe5d05c77c6', 'Юл Бриннер', 'Yul Brynner', 'actors/pic1646.webp', 173, '1920-07-11', '1985-10-10', 'Рак', 'Владивосток, Дальневосточная Республика', 'Был женат'),
+  ('fd58aecc-3e62-4bca-b852-bb99b997574c', 'Стив МакКуин', 'Steve McQueen', 'actors/pic1647.webp', 177, '1930-03-24', '1980-11-07', 'Овен', 'Бич Гроув, Индиана, США', 'Был женат'),
+  ('4402b956-f908-4455-9d31-77aff85d834d', 'Чарльз Бронсон', 'Charles Bronson', 'actors/pic1648.webp', 174, '1921-11-03', '2003-08-30', 'Скорпион', 'Эренфелд, Пенсильвания, США', 'Был женат'),
+  ('8df9fcf3-029b-4582-9f40-ce86f01b86c8', 'Джеймс Коберн', 'James Coburn', 'actors/pic1649.webp', 187, '1928-08-31', '2002-11-18', 'Дева', 'Лорел, Небраска, США', 'Был женат'),
+  ('8b9d9b2c-cc57-47dc-9522-0f2af3623ebb', 'Илай Уоллак', 'Eli Wallach', 'actors/pic1650.webp', 170, '1915-12-07', '2014-06-24', 'Стрелец', 'Бруклин, Нью-Йорк, США', 'Был женат'),
+  ('d179a070-ed8c-489b-bc5f-661bcb119c62', 'Ингер Стивенс', 'Inger Stevens', 'actors/pic1651.webp', 166, '1934-10-18', '1970-04-30', 'Весы', 'Стокгольм, Швеция', 'Была замужем'),
+  ('0dd421c2-6c86-4a27-b597-5af5620c7958', 'Эд Бегли', 'Ed Begley', 'actors/pic1652.webp', 170, '1901-03-25', '1970-04-28', 'Овен', 'Хартфорд, Коннектикут, США', 'Был женат'),
+  ('c2caaaa9-5614-4c42-9412-be635a69cf80', 'Пэт Хингл', 'Pat Hingle', 'actors/pic1653.webp', 178, '1924-07-19', '2009-01-03', 'Рак', 'Майами, Флорида, США', 'Не был женат'),
+  ('dbcb3a4b-0f79-4589-a796-675f864e8f0d', 'Бен Джонсон', 'Ben Johnson', 'actors/pic1654.webp', 188, '1918-06-13', '1996-04-08', 'Близнецы', 'Форакер, Оклахома, США', 'Был женат'),
+  ('f3558e19-ef33-445d-9706-de90b95a7cb4', 'Гленн Форд', 'Glenn Ford', 'actors/pic1655.webp', 179, '1916-05-01', '2006-08-30', 'Телец', 'Сент-Кристин-д''Овернь, Квебек, Канада', 'Был женат'),
+  ('73234622-560a-4882-b163-c1553de3ad64', 'Ван Хефлин', 'Van Heflin', 'actors/pic1656.webp', 182, '1908-12-13', '1971-07-23', 'Стрелец', 'Уолтерс, Оклахома, США', 'Был женат'),
+  ('e400c9cb-34cd-4353-ac68-2deec642cedb', 'Фелиция Фарр', 'Felicia Farr', 'actors/pic1657.webp', 170, '1932-10-04', NULL, 'Весы', 'Вестчестер-Каунти, Нью-Йорк, США', 'Замужем'),
+  ('64bd8e77-6bd7-49e2-94fc-22b54f374dd6', 'Леора Дэна', 'Leora Dana', 'actors/pic1658.webp', 170, '1923-04-01', '1983-12-13', 'Овен', 'Нью-Йорк, США', 'Была замужем'),
+  ('603fada3-7f09-4140-aaf7-2d1517652376', 'Генри Джонс', 'Henry Jones', 'actors/pic1659.webp', 178, '1912-08-01', '1999-05-17', 'Лев', 'Филадельфия, Пенсильвания, США', 'Не был женат')
+ON CONFLICT (russian_name, original_name) DO NOTHING;
+
+INSERT INTO film (id, title, original_title, cover, poster,
+                 short_description, description, age_category,
+                 budget, worldwide_fees, year, country_id, genre_id,
+                 slogan, duration, release_date)
+VALUES
+  ('5a05e2c5-41e3-46e3-9d20-236a6e7d3b7a', 'Омерзительная восьмерка', 'The Hateful Eight', 'films/pic492.webp', 'posters/pic492.webp', 'Снег и несколько ублюдков на Диком Западе. Эффектная сатира на американские ценности от Квентина Тарантино', 'США после Гражданской войны. Легендарный охотник за головами Джон Рут по кличке Вешатель конвоирует заключенную. По пути к ним прибиваются еще несколько путешественников. Снежная буря вынуждает компанию искать укрытие в лавке на отшибе, где уже расположилось весьма пёстрое общество: генерал конфедератов, мексиканец, ковбой… И один из них — не тот, за кого себя выдает.', '18+', 200000000, 100000000, 2015, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'Без хорошей причины сюда не лезут', 168, '2015-06-01'),
+  ('b85bb125-9d26-4815-8011-a0a03a8712cf', 'Старый Генри', 'Old Henry', 'films/pic493.webp', 'posters/pic493.webp', 'Фермер с темным прошлым защищает дом и сына от банды головорезов. Суровый ретровестерн, отмеченный в Венеции', 'Генри и его сын приютили раненого человека с сумкой, набитой деньгами. Когда по кровавому следу приходит банда вооруженных убийц, им приходится держать оборону. Каждый выстрел Генри убеждает бандитов, что тихий фермер не всю жизнь возделывал землю. Тень тёмного прошлого поглотит всех, кто направит свой револьвер на него.', '18+', 50000000, 500000000, 2021, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'Прошлое не изменишь', 99, '2021-06-01'),
+  ('4d69f287-6a74-4b74-8e9a-038df41b7b5c', 'Баллада Бастера Скраггса', 'The Ballad of Buster Scruggs', 'films/pic494.webp', 'posters/pic494.webp', 'События разворачиваются на Диком Западе в маленьких захолустных городках среди бескрайних американских прерий и высокогорных равнин. В этом суровом мире, где каждый сам за себя, царит один закон: выживает сильнейший.', 'События разворачиваются на Диком Западе в маленьких захолустных городках среди бескрайних американских прерий и высокогорных равнин. В этом суровом мире, где каждый сам за себя, царит один закон: выживает сильнейший.', NULL, 100000000, 300000000, 2018, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'How the West Was Won (more or less)', 133, '2018-06-01'),
+  ('f50bec30-9bac-403c-95f8-2c6bc18d788d', 'На несколько долларов больше', 'Per qualche dollaro in più', 'films/pic495.webp', 'posters/pic495.webp', 'Заработать несколько лишних долларов честным путем на диком Западе не проблема, если у тебя есть проверенный кольт и разрешение властей на отстрел бандитов. Этим путем и идут бок о бок профессиональные охотники за головами негодяев «Человек без имени» и полковник Мортимер, общая цель которых - преступная банда мексиканца Индио.', 'Заработать несколько лишних долларов честным путем на диком Западе не проблема, если у тебя есть проверенный кольт и разрешение властей на отстрел бандитов. Этим путем и идут бок о бок профессиональные охотники за головами негодяев «Человек без имени» и полковник Мортимер, общая цель которых - преступная банда мексиканца Индио.', '16+', 200000000, 400000000, 1965, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'It''s the second motion picture of its kind! It won''t be the last!', 130, '1965-06-01'),
+  ('247d6ac8-775e-4028-9f24-e2349b8d0017', 'Как трусливый Роберт Форд убил Джесси Джеймса', 'The Assassination of Jesse James by the Coward Robert Ford', 'films/pic496.webp', 'posters/pic496.webp', 'Миссури, сентябрь 1881 года. В банду знаменитого Джесси Джеймса вступает молодой Роберт Форд, который не отличается особой смелостью. Для парня Джесси — настоящая легенда, которой он поклоняется. Однако со временем отношение Роберта к своему кумиру постепенно меняется не в лучшую сторону. Позже жестокий Джеймс, за которым власти ведут охоту, начинает убивать членов банды, избавляясь от ненужных свидетелей. Форд, загнанный в угол и возмущённый поведением главаря, решается на его убийство.', 'Миссури, сентябрь 1881 года. В банду знаменитого Джесси Джеймса вступает молодой Роберт Форд, который не отличается особой смелостью. Для парня Джесси — настоящая легенда, которой он поклоняется. Однако со временем отношение Роберта к своему кумиру постепенно меняется не в лучшую сторону. Позже жестокий Джеймс, за которым власти ведут охоту, начинает убивать членов банды, избавляясь от ненужных свидетелей. Форд, загнанный в угол и возмущённый поведением главаря, решается на его убийство.', '18+', 10000000, 50000000, 2007, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'В тени легенды находится самое большое предательство Америки', 160, '2007-06-01'),
+  ('c61a29f2-3532-4705-a784-12b460672582', 'Великолепная семерка', 'The Magnificent Seven', 'films/pic497.webp', 'posters/pic497.webp', 'В маленькой деревушке крестьяне годами страдают от бесчинств местных бандитов. Их главарь Калвера держит в страхе всю округу, мучая жителей постоянными поборами и наказаниями. И однажды крестьяне решают нанять себе защитников — семерых вооруженных всадников. Великолепная семерка быстро наводит порядок, но Калвере все же удается бежать. И тогда поимка злодея и его соратников становится делом чести великолепной семерки.', 'В маленькой деревушке крестьяне годами страдают от бесчинств местных бандитов. Их главарь Калвера держит в страхе всю округу, мучая жителей постоянными поборами и наказаниями. И однажды крестьяне решают нанять себе защитников — семерых вооруженных всадников. Великолепная семерка быстро наводит порядок, но Калвере все же удается бежать. И тогда поимка злодея и его соратников становится делом чести великолепной семерки.', '16+', 300000000, 3000000000, 1960, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'The Magnificent One!', 128, '1960-06-01'),
+  ('118b7635-89a1-4499-a5dd-954572a419ab', 'Вздерни их повыше', 'Hang ''Em High', 'films/pic498.webp', 'posters/pic498.webp', 'Джеда Купера ошибочно приняли за грабителя и убийцу, угнавшего чужой скот. Продажный судья Уилсон приговорил героя к «суду линча» через повешение. Раненый Ковбой чудом остался жив, только потому, что местный шериф подрезал веревку...', 'Джеда Купера ошибочно приняли за грабителя и убийцу, угнавшего чужой скот. Продажный судья Уилсон приговорил героя к «суду линча» через повешение. Раненый Ковбой чудом остался жив, только потому, что местный шериф подрезал веревку...', '16+', 100000000, 500000000, 1968, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'Eastwood is Judge, Jury and Executioner!', 114, '1968-06-01'),
+  ('be8242e3-896f-4cae-8b1e-1246e4337023', 'В 3:10 на Юму', '3:10 to Yuma', 'films/pic499.webp', 'posters/pic499.webp', 'Известный грабитель Бен Вейд и его банда напали на перевозивший золото дилижанс. Захватив добычу, Вейд велит переходить границу поодиночке - банда разъезжается, но сам он задерживается в городе, где его арестовывают. Необходимо срочно перевезти Вейда в более надежное место. Доставить его до поезда, отходящего в 3:10 на Юму, вызывается обыкновенный фермер Дэн Эванс. У него есть несколько часов, прежде чем банда соберется вновь и попытается отбить своего главаря.', 'Известный грабитель Бен Вейд и его банда напали на перевозивший золото дилижанс. Захватив добычу, Вейд велит переходить границу поодиночке - банда разъезжается, но сам он задерживается в городе, где его арестовывают. Необходимо срочно перевезти Вейда в более надежное место. Доставить его до поезда, отходящего в 3:10 на Юму, вызывается обыкновенный фермер Дэн Эванс. У него есть несколько часов, прежде чем банда соберется вновь и попытается отбить своего главаря.', '12+', 100000000, 1000000000, 1957, 'a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12', '4d9ef0b3-6eaf-4a47-c9f8-9ca2f654af44', 'Drink the whisky... Love the woman... Try to stay alive till the 3:10 pulls out of town!', 92, '1957-06-01')
+ON CONFLICT (title, year) DO NOTHING;
+
+INSERT INTO actor_in_film (id, actor_id, film_id, character, description)
+SELECT
+  gen_random_uuid(),
+  actor_id,
+  film_id,
+  character,
+  description
+FROM (
+VALUES
+  ((SELECT id FROM actor WHERE russian_name = 'Курт Рассел' AND (original_name = 'Kurt Russell' OR (original_name IS NULL AND 'Kurt Russell' IS NULL))), (SELECT id FROM film WHERE title = 'Омерзительная восьмерка' AND year = 2015), 'John Ruth', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Сэмюэл Л. Джексон' AND (original_name = 'Samuel L. Jackson' OR (original_name IS NULL AND 'Samuel L. Jackson' IS NULL))), (SELECT id FROM film WHERE title = 'Омерзительная восьмерка' AND year = 2015), 'Major Marquis Warren', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Дженнифер Джейсон Ли' AND (original_name = 'Jennifer Jason Leigh' OR (original_name IS NULL AND 'Jennifer Jason Leigh' IS NULL))), (SELECT id FROM film WHERE title = 'Омерзительная восьмерка' AND year = 2015), 'Daisy Domergue', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Уолтон Гоггинс' AND (original_name = 'Walton Goggins' OR (original_name IS NULL AND 'Walton Goggins' IS NULL))), (SELECT id FROM film WHERE title = 'Омерзительная восьмерка' AND year = 2015), 'Sheriff Chris Mannix', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тим Рот' AND (original_name = 'Tim Roth' OR (original_name IS NULL AND 'Tim Roth' IS NULL))), (SELECT id FROM film WHERE title = 'Омерзительная восьмерка' AND year = 2015), 'Oswaldo Mobray', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тим Блейк Нельсон' AND (original_name = 'Tim Blake Nelson' OR (original_name IS NULL AND 'Tim Blake Nelson' IS NULL))), (SELECT id FROM film WHERE title = 'Старый Генри' AND year = 2021), 'Henry', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Скотт Хейз' AND (original_name = 'Scott Haze' OR (original_name IS NULL AND 'Scott Haze' IS NULL))), (SELECT id FROM film WHERE title = 'Старый Генри' AND year = 2021), 'Curry', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Гэвин Льюис' AND (original_name = 'Gavin Lewis' OR (original_name IS NULL AND 'Gavin Lewis' IS NULL))), (SELECT id FROM film WHERE title = 'Старый Генри' AND year = 2021), 'Wyatt', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Трэйси Эдкинс' AND (original_name = 'Trace Adkins' OR (original_name IS NULL AND 'Trace Adkins' IS NULL))), (SELECT id FROM film WHERE title = 'Старый Генри' AND year = 2021), 'Al', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Стивен Дорфф' AND (original_name = 'Stephen Dorff' OR (original_name IS NULL AND 'Stephen Dorff' IS NULL))), (SELECT id FROM film WHERE title = 'Старый Генри' AND year = 2021), 'Ketchum', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Тим Блейк Нельсон' AND (original_name = 'Tim Blake Nelson' OR (original_name IS NULL AND 'Tim Blake Nelson' IS NULL))), (SELECT id FROM film WHERE title = 'Баллада Бастера Скраггса' AND year = 2018), 'Buster Scruggs (segment ''The Ballad of Buster Scruggs'')', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Джеймс Франко' AND (original_name = 'James Franco' OR (original_name IS NULL AND 'James Franco' IS NULL))), (SELECT id FROM film WHERE title = 'Баллада Бастера Скраггса' AND year = 2018), 'Cowboy (segment ''Near Algodones'')', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Гарри Меллинг' AND (original_name = 'Harry Melling' OR (original_name IS NULL AND 'Harry Melling' IS NULL))), (SELECT id FROM film WHERE title = 'Баллада Бастера Скраггса' AND year = 2018), 'Artist (segment ''Meal Ticket'')', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Лиам Нисон' AND (original_name = 'Liam Neeson' OR (original_name IS NULL AND 'Liam Neeson' IS NULL))), (SELECT id FROM film WHERE title = 'Баллада Бастера Скраггса' AND year = 2018), 'Impresario (segment ''Meal Ticket'')', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Том Уэйтс' AND (original_name = 'Tom Waits' OR (original_name IS NULL AND 'Tom Waits' IS NULL))), (SELECT id FROM film WHERE title = 'Баллада Бастера Скраггса' AND year = 2018), 'Prospector (segment ''All Gold Canyon'')', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Клинт Иствуд' AND (original_name = 'Clint Eastwood' OR (original_name IS NULL AND 'Clint Eastwood' IS NULL))), (SELECT id FROM film WHERE title = 'На несколько долларов больше' AND year = 1965), 'Monco', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ли Ван Клиф' AND (original_name = 'Lee Van Cleef' OR (original_name IS NULL AND 'Lee Van Cleef' IS NULL))), (SELECT id FROM film WHERE title = 'На несколько долларов больше' AND year = 1965), 'Col. Douglas Mortimer', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Джан Мария Волонте' AND (original_name = 'Gian Maria Volontè' OR (original_name IS NULL AND 'Gian Maria Volontè' IS NULL))), (SELECT id FROM film WHERE title = 'На несколько долларов больше' AND year = 1965), 'El Indio (The Indian)', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Мара Крупп' AND (original_name = 'Mara Krupp' OR (original_name IS NULL AND 'Mara Krupp' IS NULL))), (SELECT id FROM film WHERE title = 'На несколько долларов больше' AND year = 1965), 'Mary - Hotel Manager''s Beautiful Wife (в титрах: Mara Krup)', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Луиджи Пистилли' AND (original_name = 'Luigi Pistilli' OR (original_name IS NULL AND 'Luigi Pistilli' IS NULL))), (SELECT id FROM film WHERE title = 'На несколько долларов больше' AND year = 1965), 'Groggy, Member of Indio''s Gang', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Брэд Питт' AND (original_name = 'Brad Pitt' OR (original_name IS NULL AND 'Brad Pitt' IS NULL))), (SELECT id FROM film WHERE title = 'Как трусливый Роберт Форд убил Джесси Джеймса' AND year = 2007), 'Jesse James', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Кейси Аффлек' AND (original_name = 'Casey Affleck' OR (original_name IS NULL AND 'Casey Affleck' IS NULL))), (SELECT id FROM film WHERE title = 'Как трусливый Роберт Форд убил Джесси Джеймса' AND year = 2007), 'Robert Ford', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Сэм Рокуэлл' AND (original_name = 'Sam Rockwell' OR (original_name IS NULL AND 'Sam Rockwell' IS NULL))), (SELECT id FROM film WHERE title = 'Как трусливый Роберт Форд убил Джесси Джеймса' AND year = 2007), 'Charley Ford', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Пол Шнайдер' AND (original_name = 'Paul Schneider' OR (original_name IS NULL AND 'Paul Schneider' IS NULL))), (SELECT id FROM film WHERE title = 'Как трусливый Роберт Форд убил Джесси Джеймса' AND year = 2007), 'Dick Liddil', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Джереми Реннер' AND (original_name = 'Jeremy Renner' OR (original_name IS NULL AND 'Jeremy Renner' IS NULL))), (SELECT id FROM film WHERE title = 'Как трусливый Роберт Форд убил Джесси Джеймса' AND year = 2007), 'Wood Hite', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Юл Бриннер' AND (original_name = 'Yul Brynner' OR (original_name IS NULL AND 'Yul Brynner' IS NULL))), (SELECT id FROM film WHERE title = 'Великолепная семерка' AND year = 1960), 'Chris Larabee Adams', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Стив МакКуин' AND (original_name = 'Steve McQueen' OR (original_name IS NULL AND 'Steve McQueen' IS NULL))), (SELECT id FROM film WHERE title = 'Великолепная семерка' AND year = 1960), 'Vin Tanner', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Чарльз Бронсон' AND (original_name = 'Charles Bronson' OR (original_name IS NULL AND 'Charles Bronson' IS NULL))), (SELECT id FROM film WHERE title = 'Великолепная семерка' AND year = 1960), 'Bernardo O''Reilly', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Джеймс Коберн' AND (original_name = 'James Coburn' OR (original_name IS NULL AND 'James Coburn' IS NULL))), (SELECT id FROM film WHERE title = 'Великолепная семерка' AND year = 1960), 'Britt', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Илай Уоллак' AND (original_name = 'Eli Wallach' OR (original_name IS NULL AND 'Eli Wallach' IS NULL))), (SELECT id FROM film WHERE title = 'Великолепная семерка' AND year = 1960), 'Calvera', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Клинт Иствуд' AND (original_name = 'Clint Eastwood' OR (original_name IS NULL AND 'Clint Eastwood' IS NULL))), (SELECT id FROM film WHERE title = 'Вздерни их повыше' AND year = 1968), 'Marshal Jed Cooper', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ингер Стивенс' AND (original_name = 'Inger Stevens' OR (original_name IS NULL AND 'Inger Stevens' IS NULL))), (SELECT id FROM film WHERE title = 'Вздерни их повыше' AND year = 1968), 'Rachel Warren', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Эд Бегли' AND (original_name = 'Ed Begley' OR (original_name IS NULL AND 'Ed Begley' IS NULL))), (SELECT id FROM film WHERE title = 'Вздерни их повыше' AND year = 1968), 'Captain Wilson', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Пэт Хингл' AND (original_name = 'Pat Hingle' OR (original_name IS NULL AND 'Pat Hingle' IS NULL))), (SELECT id FROM film WHERE title = 'Вздерни их повыше' AND year = 1968), 'Judge Fenton', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Бен Джонсон' AND (original_name = 'Ben Johnson' OR (original_name IS NULL AND 'Ben Johnson' IS NULL))), (SELECT id FROM film WHERE title = 'Вздерни их повыше' AND year = 1968), 'Marshal Dave Bliss', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Гленн Форд' AND (original_name = 'Glenn Ford' OR (original_name IS NULL AND 'Glenn Ford' IS NULL))), (SELECT id FROM film WHERE title = 'В 3:10 на Юму' AND year = 1957), 'Ben Wade', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Ван Хефлин' AND (original_name = 'Van Heflin' OR (original_name IS NULL AND 'Van Heflin' IS NULL))), (SELECT id FROM film WHERE title = 'В 3:10 на Юму' AND year = 1957), 'Dan Evans', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Фелиция Фарр' AND (original_name = 'Felicia Farr' OR (original_name IS NULL AND 'Felicia Farr' IS NULL))), (SELECT id FROM film WHERE title = 'В 3:10 на Юму' AND year = 1957), 'Emmy', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Леора Дэна' AND (original_name = 'Leora Dana' OR (original_name IS NULL AND 'Leora Dana' IS NULL))), (SELECT id FROM film WHERE title = 'В 3:10 на Юму' AND year = 1957), 'Mrs. Alice Evans', NULL),
+  ((SELECT id FROM actor WHERE russian_name = 'Генри Джонс' AND (original_name = 'Henry Jones' OR (original_name IS NULL AND 'Henry Jones' IS NULL))), (SELECT id FROM film WHERE title = 'В 3:10 на Юму' AND year = 1957), 'Alex Potter', NULL)
+) AS t(actor_id, film_id, character, description)
+WHERE actor_id IS NOT NULL AND film_id IS NOT NULL
+AND NOT EXISTS (
+  SELECT 1 FROM actor_in_film aif
+  WHERE aif.actor_id = t.actor_id
+    AND aif.film_id = t.film_id
+);
+
+COMMIT;
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '5a05e2c5-41e3-46e3-9d20-236a6e7d3b7a'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Тарантино в форме', 'Диалоги просто огонь! Типичный Тарантино с его фирменным юмором и насилием.', 8),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Слишком театрально', 'Почти весь фильм в одном помещении. На любителя.', 6),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Великолепные актеры', 'Сэмюэл Л. Джексон и Курт Рассел на высоте!', 9),
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Затянуто', '168 минут для такой истории - многовато.', 5),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Вестерн для интеллектуалов', 'Люблю, как Тарантино играет с жанром.', 8)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '5a05e2c5-41e3-46e3-9d20-236a6e7d3b7a');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'b85bb125-9d26-4815-8011-a0a03a8712cf'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Неожиданно хорош', 'Современный вестерн, который не стыдно смотреть.', 8),
+    ('a7b8c9d0-e1f2-3456-789a-789012345678', 'Простой, но эффективный', 'Классическая история с интересным поворотом.', 7),
+    ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'Тим Блейк Нельсон великолепен', 'Его игра стоит просмотра.', 9),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Предсказуемо', 'Сюжет можно угадать с первых минут.', 5),
+    ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'Хороший низкобюджетный вестерн', 'Атмосфера Дикого Запада передана отлично.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'b85bb125-9d26-4815-8011-a0a03a8712cf');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '4d69f287-6a74-4b74-8e9a-038df41b7b5c'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'Необычный формат', 'Истории разные по качеству, но в целом интересно.', 8),
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Коэны в ударе', 'Черный юмор и философские размышления.', 9),
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Истории неровные', 'Некоторые эпизоды сильные, другие - слабые.', 6),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Визуальный шедевр', 'Каждая сцена как картина.', 10),
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Не для всех', 'Медленный темп и специфичный юмор.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '4d69f287-6a74-4b74-8e9a-038df41b7b5c');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'f50bec30-9bac-403c-95f8-2c6bc18d788d'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Классика спагетти-вестерна', 'Иствуд, Ван Клиф - легенды!', 9),
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Лучше первой части', 'Сюжет интереснее, персонажи глубже.', 8),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Немного устарел', 'Молодежи может показаться скучным.', 6),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Музыка Морриконе!', 'Саундтрек сам по себе шедевр.', 10),
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Образцовый вестерн', 'Как делать жанровое кино.', 9)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'f50bec30-9bac-403c-95f8-2c6bc18d788d');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '247d6ac8-775e-4028-9f24-e2349b8d0017'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Медленно, но красиво', 'Визуально потрясающий фильм.', 8),
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Брэд Питт в роли', 'Один из его лучших драматических образов.', 9),
+    ('a7b8c9d0-e1f2-3456-789a-789012345678', 'Слишком долгий', '160 минут - это испытание.', 5),
+    ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'Психологическая драма', 'Не ждите экшна, это фильм о характерах.', 7),
+    ('f2a3b4c5-d6e7-8901-2f34-23456789abcd', 'Атмосфера XIX века', 'Чувствуется эпоха в каждой детали.', 8)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '247d6ac8-775e-4028-9f24-e2349b8d0017');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'c61a29f2-3532-4705-a784-12b460672582'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('a3b4c5d6-e7f8-9012-3f45-3456789abcde', 'Вечная классика', 'Смотрел уже 10 раз и буду смотреть еще.', 10),
+    ('b4c5d6e7-f8a9-0123-4f56-456789abcdef', 'Актерская легенда', 'Бриннер, МакКуин, Бронсон - мечта!', 9),
+    ('c5d6e7f8-a9b0-1234-5f67-56789abcdef0', 'Немного наивно', 'По современным меркам слишком просто.', 6),
+    ('d6e7f8a9-b0c1-2345-6f78-6789abcdef01', 'Идеальный вестерн', 'Есть все: харизматичные герои, злодей, перестрелки.', 9),
+    ('e7f8a9b0-c1d2-3456-7f89-789abcdef012', 'Музыка Элмера Бернстайна', 'Тема семерки - один из лучших саундтреков.', 10)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'c61a29f2-3532-4705-a784-12b460672582');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    '118b7635-89a1-4499-a5dd-954572a419ab'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('f8a9b0c1-d2e3-4567-8f90-89abcdef0123', 'Ранний Иствуд', 'Уже видна будущая звезда.', 8),
+    ('a9b0c1d2-e3f4-5678-9f01-9abcdef01234', 'Противоречивая тема', 'Интересный взгляд на правосудие на Диком Западе.', 7),
+    ('a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'Средний вестерн', 'Не лучшая работа Иствуда, но смотреть можно.', 6),
+    ('b2c3d4e5-f6a7-8901-bcde-f23456789012', 'Моральные дилеммы', 'Фильм заставляет задуматься о мести и справедливости.', 8),
+    ('c3d4e5f6-a7b8-9012-cdef-345678901234', 'Классика 60-х', 'Для ценителей жанра.', 7)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = '118b7635-89a1-4499-a5dd-954572a419ab');
+
+INSERT INTO film_feedback (user_id, film_id, title, text, rating)
+SELECT 
+    user_id::uuid,
+    'be8242e3-896f-4cae-8b1e-1246e4337023'::uuid,
+    title,
+    text,
+    rating
+FROM (VALUES
+    ('d4e5f6a7-b8c9-0123-def4-456789012345', 'Классика 50-х', 'Гленн Форд великолепен в роли харизматичного злодея.', 8),
+    ('e5f6a7b8-c9d0-1234-ef56-567890123456', 'Интеллектуальный вестерн', 'Больше психологии, меньше стрельбы.', 7),
+    ('f6a7b8c9-d0e1-2345-f678-678901234567', 'Ремейк лучше оригинала', 'Фильм 2007 года интереснее.', 5),
+    ('a7b8c9d0-e1f2-3456-789a-789012345678', 'Напряженное противостояние', 'Химия между Фордом и Хефлином.', 8),
+    ('b8c9d0e1-f2a3-4567-89ab-890123456789', 'Историческая ценность', 'Интересно смотреть, как снимали вестерны раньше.', 6)
+) AS vals(user_id, title, text, rating)
+WHERE EXISTS (SELECT 1 FROM film WHERE id = 'be8242e3-896f-4cae-8b1e-1246e4337023');
+-- ========================================
+-- Total films: 8
+-- Total actors: 38
+-- Actor pictures from: 1622 to 1659
+-- Film pictures from: 492 to 499
+-- End of generated SQL
+-- ========================================
+
+
 
 UPDATE film SET created_at = CURRENT_TIMESTAMP - (RANDOM() * INTERVAL '7 days');
 
@@ -10524,5 +10799,30 @@ WHERE title IN (
     'Стив Джобс',
     'Легенда №17',
     'Пеле: Рождение легенды'
+);
+
+UPDATE film 
+SET film_url = 
+    CASE title
+        WHEN 'Омерзительная восьмерка' THEN 'https://vkvideo.ru/video-227447161_456239639'
+        WHEN 'Старый Генри' THEN 'https://vkvideo.ru/video824810750_456248687'
+        WHEN 'Баллада Бастера Скраггса' THEN 'https://vkvideo.ru/video-176397446_456245357'
+        WHEN 'На несколько долларов больше' THEN 'https://vkvideo.ru/video-162947134_456248831'
+        WHEN 'Как трусливый Роберт Форд убил Джесси Джеймса' THEN 'https://vkvideo.ru/video-32047627_162740176'
+        WHEN 'Великолепная семерка' THEN 'https://vkvideo.ru/video-113292812_456243321'
+        WHEN 'Вздерни их повыше' THEN 'https://vkvideo.ru/video-233519874_456239197'
+        WHEN 'В 3:10 на Юму' THEN 'https://vkvideo.ru/video-106427901_456241696'
+
+    END,
+    updated_at = CURRENT_TIMESTAMP
+WHERE title IN (
+    'Омерзительная восьмерка',
+    'Старый Генри',
+    'Баллада Бастера Скраггса',
+    'На несколько долларов больше',
+    'Как трусливый Роберт Форд убил Джесси Джеймса',
+    'Великолепная семерка',
+    'Вздерни их повыше',
+    'В 3:10 на Юму'
 );
 
