@@ -558,6 +558,15 @@ func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 		}
 	}
 
+	fmt.Println("\n=== FULL SIMILARITY MATRIX ===")
+	for i := 0; i < n; i++ {
+		fmt.Printf("Row %d: ", i)
+		for j := 0; j < n; j++ {
+			fmt.Printf("%.3f ", similarity[i][j])
+		}
+		fmt.Println()
+	}
+
 	re.similarityMatrix = similarity
 	return similarity
 }
@@ -639,6 +648,12 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 				scores[i], scores[j] = scores[j], scores[i]
 			}
 		}
+	}
+
+	fmt.Println("\n=== TOP 100 FILMS BY SCORE ===")
+	limit := 100
+	if len(unratedFilms) < limit {
+		limit = len(unratedFilms)
 	}
 
 	if len(unratedFilms) > n {
