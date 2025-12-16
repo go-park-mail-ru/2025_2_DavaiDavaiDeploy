@@ -22,6 +22,31 @@ jobs:
       - name: Run govulncheck
         uses: golang/govulncheck-action@v1
 
+  linters-act: 
+    name: linters
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+      - uses: actions/checkout@v3 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+  tests-act:
+    name: tests 
+    needs: linters-act 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./...
+
   deploy:
     name: Deploy MyApp
     needs: govulncheck
