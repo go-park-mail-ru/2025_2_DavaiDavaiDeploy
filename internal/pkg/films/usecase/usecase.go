@@ -545,6 +545,7 @@ func (re *RecommendationEngine) findMinMaxYear() (int, int) {
 
 func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 	n := len(re.films)
+	fmt.Println(n)
 	similarity := make([][]float64, n)
 
 	for i := 0; i < n; i++ {

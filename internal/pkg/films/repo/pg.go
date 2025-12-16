@@ -575,6 +575,6 @@ func (r *FilmRepository) GetUsersRecommendations(ctx context.Context, userID uui
 		}
 		films = append(films, film)
 	}
-	logger.Info("succesfully got films from db")
+	logger.Info(fmt.Sprintf("succesfully got %d films from db", len(films)))
 	return films, nil
 }
