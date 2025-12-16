@@ -286,6 +286,7 @@ func TestGetUserByLogin(t *testing.T) {
 	login := "testuser"
 	avatar := "/static/default.jpg"
 	has2FA := false
+	isForeign := false
 	createdAt := time.Now()
 	updatedAt := time.Now()
 
@@ -296,6 +297,7 @@ func TestGetUserByLogin(t *testing.T) {
 		PasswordHash: []byte("hash"),
 		Avatar:       avatar,
 		Has2FA:       has2FA,
+		IsForeign:    isForeign,
 		CreatedAt:    createdAt,
 		UpdatedAt:    updatedAt,
 	}
@@ -311,8 +313,8 @@ func TestGetUserByLogin(t *testing.T) {
 			name:  "Success",
 			login: login,
 			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
-				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "has_2fa", "created_at", "updated_at"}).
-					AddRow(userID, 1, login, []byte("hash"), avatar, has2FA, createdAt, updatedAt).
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "has_2fa", "created_at", "updated_at", "is_foreign"}).
+					AddRow(userID, 1, login, []byte("hash"), avatar, has2FA, createdAt, updatedAt, isForeign).
 					ToPgxRows()
 				rows.Next()
 				mockPool.EXPECT().
@@ -355,6 +357,7 @@ func TestGetUserByLogin(t *testing.T) {
 				assert.Equal(t, tt.wantUser.Version, user.Version)
 				assert.Equal(t, tt.wantUser.Avatar, user.Avatar)
 				assert.Equal(t, tt.wantUser.Has2FA, user.Has2FA)
+				assert.Equal(t, tt.wantUser.IsForeign, user.IsForeign)
 			}
 		})
 	}
@@ -669,6 +672,146 @@ func TestGetUserSecretCode(t *testing.T) {
 			secret := repo.GetUserSecretCode(testContext(), tt.userID)
 
 			assert.Equal(t, tt.wantSecret, secret)
+		})
+	}
+}
+
+// Тесты для новых методов VK
+func TestGetVKUser(t *testing.T) {
+	userID := uuid.NewV4()
+	vkid := "123456789"
+	avatar := "/static/default.jpg"
+	createdAt := time.Now()
+	updatedAt := time.Now()
+
+	expectedUser := models.User{
+		ID:           userID,
+		Version:      1,
+		Login:        "vkuser",
+		PasswordHash: []byte("hash"),
+		Avatar:       avatar,
+		CreatedAt:    createdAt,
+		UpdatedAt:    updatedAt,
+	}
+
+	tests := []struct {
+		name       string
+		vkid       string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantUser   models.User
+		wantErr    bool
+	}{
+		{
+			name: "Success",
+			vkid: vkid,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				rows := pgxpoolmock.NewRows([]string{"id", "version", "login", "password_hash", "avatar", "created_at", "updated_at"}).
+					AddRow(userID, 1, "vkuser", []byte("hash"), avatar, createdAt, updatedAt).
+					ToPgxRows()
+				rows.Next()
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckVKUserExistsQuery, vkid).
+					Return(rows)
+			},
+			wantUser: expectedUser,
+			wantErr:  false,
+		},
+		{
+			name: "Error_UserNotFound",
+			vkid: vkid,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					QueryRow(gomock.Any(), CheckVKUserExistsQuery, vkid).
+					Return(errorRow{err: pgx.ErrNoRows})
+			},
+			wantUser: models.User{},
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			user, err := repo.GetVKUser(testContext(), tt.vkid)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.wantUser.ID, user.ID)
+				assert.Equal(t, tt.wantUser.Login, user.Login)
+				assert.Equal(t, tt.wantUser.Version, user.Version)
+				assert.Equal(t, tt.wantUser.Avatar, user.Avatar)
+			}
+		})
+	}
+}
+
+func TestCreateVKUser(t *testing.T) {
+	userID := uuid.NewV4()
+	vkid := "123456789"
+	user := models.User{
+		ID:           userID,
+		Login:        "vkuser",
+		PasswordHash: []byte("hash"),
+		Version:      1,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	tests := []struct {
+		name       string
+		user       models.User
+		vkid       string
+		repoMocker func(*pgxpoolmock.MockPgxPool)
+		wantErr    bool
+	}{
+		{
+			name: "Success",
+			user: user,
+			vkid: vkid,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), CreateVKUserQuery, user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt, vkid).
+					Return(nil, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "Error_DatabaseError",
+			user: user,
+			vkid: vkid,
+			repoMocker: func(mockPool *pgxpoolmock.MockPgxPool) {
+				mockPool.EXPECT().
+					Exec(gomock.Any(), CreateVKUserQuery, user.ID, user.Login, user.PasswordHash, user.CreatedAt, user.UpdatedAt, vkid).
+					Return(nil, errors.New("database error"))
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockPool := pgxpoolmock.NewMockPgxPool(ctrl)
+			tt.repoMocker(mockPool)
+
+			repo := NewAuthRepository(mockPool)
+			err := repo.CreateVKUser(testContext(), tt.user, tt.vkid)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
 		})
 	}
 }
