@@ -47,14 +47,21 @@ func NewFilmHandler(client gen.FilmsClient, hub *hub.Hub) *FilmHandler {
 // @Router       /ws [get]
 func (c *FilmHandler) Subscribe(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
-	web := websocket.Upgrader{}
-	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
-	conn, err := web.Upgrade(w, r, nil)
-	if err != nil {
-		log.LogHandlerError(logger, err, http.StatusUnauthorized)
+	userID, ok := r.Context().Value(users.UserKey).(uuid.UUID)
+	if !ok {
+		log.LogHandlerError(logger, errors.New("user unauthorized"), http.StatusUnauthorized)
+		helpers.WriteError(w, http.StatusUnauthorized)
 		return
 	}
-	c.hub.AddClient(conn)
+	web := websocket.Upgrader{}
+	web.Subprotocols = []string{r.Header.Get("Sec-WebSocket-Protocol")}
+	web.CheckOrigin = func(r *http.Request) bool { return true }
+	conn, err := web.Upgrade(w, r, nil)
+	if err != nil {
+		log.LogHandlerError(logger, err, http.StatusForbidden)
+		return
+	}
+	c.hub.AddClient(userID, conn)
 }
 
 // GetPromoFilm godoc
@@ -375,6 +382,7 @@ func (c *FilmHandler) GetFilm(w http.ResponseWriter, r *http.Request) {
 		IsLiked:          film.IsLiked,
 		GenreID:          uuid.FromStringOrNil(film.GenreId),
 		IsOut:            film.IsOut,
+		FilmURL:          film.FilmUrl,
 	}
 
 	if film.UserRating != nil {

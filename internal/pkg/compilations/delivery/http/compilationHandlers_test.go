@@ -41,6 +41,128 @@ func testContextWithUser(userID uuid.UUID) context.Context {
 	return context.WithValue(ctx, auth.UserKey, user)
 }
 
+func TestGetCompilation(t *testing.T) {
+	compilationID := uuid.NewV4()
+	compilationIDStr := compilationID.String()
+
+	expectedCompilation := models.Compilation{
+		ID:          compilationID,
+		Title:       "Лучшие фильмы 2024",
+		Description: "Подборка самых популярных фильмов 2024 года",
+		Icon:        "/icons/best2024.png",
+	}
+
+	tests := []struct {
+		name                string
+		varsID              string
+		mockSetup           func(mockClient *mocks.MockFilmsClient)
+		expectedStatus      int
+		expectBody          bool
+		expectedCompilation models.Compilation
+	}{
+		{
+			name:   "Success",
+			varsID: compilationIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetCompilation(gomock.Any(), &gen.GetCompilationRequest{CompilationId: compilationIDStr}).
+					Return(&gen.GetCompilationResponse{
+						Compilation: &gen.Compilation{
+							Id:          compilationIDStr,
+							Name:        "Лучшие фильмы 2024",
+							Description: "Подборка самых популярных фильмов 2024 года",
+							Icon:        "/icons/best2024.png",
+						},
+					}, nil)
+			},
+			expectedStatus:      http.StatusOK,
+			expectBody:          true,
+			expectedCompilation: expectedCompilation,
+		},
+		{
+			name:           "Invalid ID - empty string",
+			varsID:         "",
+			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:           "Invalid ID - not a uuid",
+			varsID:         "not-a-uuid",
+			mockSetup:      func(mockClient *mocks.MockFilmsClient) {},
+			expectedStatus: http.StatusBadRequest,
+			expectBody:     false,
+		},
+		{
+			name:   "Compilation Not Found",
+			varsID: compilationIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetCompilation(gomock.Any(), &gen.GetCompilationRequest{CompilationId: compilationIDStr}).
+					Return(nil, status.Error(codes.NotFound, "compilation not found"))
+			},
+			expectedStatus: http.StatusNotFound,
+			expectBody:     false,
+		},
+		{
+			name:   "Internal Server Error",
+			varsID: compilationIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetCompilation(gomock.Any(), &gen.GetCompilationRequest{CompilationId: compilationIDStr}).
+					Return(nil, status.Error(codes.Internal, "internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectBody:     false,
+		},
+		{
+			name:   "Unknown gRPC Error",
+			varsID: compilationIDStr,
+			mockSetup: func(mockClient *mocks.MockFilmsClient) {
+				mockClient.EXPECT().
+					GetCompilation(gomock.Any(), &gen.GetCompilationRequest{CompilationId: compilationIDStr}).
+					Return(nil, errors.New("unknown error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+			expectBody:     false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockClient := mocks.NewMockFilmsClient(ctrl)
+			handler := NewCompilationHandler(mockClient)
+
+			if tt.mockSetup != nil {
+				tt.mockSetup(mockClient)
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/compilations/"+tt.varsID, nil).WithContext(testContext())
+			rec := httptest.NewRecorder()
+
+			router := mux.NewRouter()
+			router.HandleFunc("/compilations/{id}", handler.GetCompilation)
+
+			if tt.varsID != "" {
+				req = mux.SetURLVars(req, map[string]string{"id": tt.varsID})
+			}
+			router.ServeHTTP(rec, req)
+
+			assert.Equal(t, tt.expectedStatus, rec.Code)
+
+			if tt.expectBody {
+				var decoded models.Compilation
+				err := json.Unmarshal(rec.Body.Bytes(), &decoded)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedCompilation, decoded)
+			}
+		})
+	}
+}
+
 func TestGetCompilations(t *testing.T) {
 	expectedCompilations := []models.Compilation{
 		{

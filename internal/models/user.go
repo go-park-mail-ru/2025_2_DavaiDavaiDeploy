@@ -16,6 +16,7 @@ type User struct {
 	CreatedAt    time.Time `json:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"`
 	Has2FA       bool      `json:"has_2fa" binding:"required"`
+	IsForeign    bool      `json:"is_foreign" binding:"required"`
 }
 
 func (u *User) Sanitize() {

@@ -199,6 +199,7 @@ func main() {
 	authRouter := apiRouter.PathPrefix("/auth").Subrouter()
 	authRouter.HandleFunc("/signup", authHandler.SignupUser).Methods(http.MethodPost, http.MethodOptions)
 	authRouter.HandleFunc("/signin", authHandler.SignInUser).Methods(http.MethodPost, http.MethodOptions)
+	authRouter.HandleFunc("/vk", authHandler.VKAuth).Methods(http.MethodPost, http.MethodOptions)
 
 	protectedAuthRouter := authRouter.PathPrefix("").Subrouter()
 	protectedAuthRouter.Use(authHandler.Middleware)
@@ -223,10 +224,13 @@ func main() {
 	// Film routes
 	filmRouter := apiRouter.PathPrefix("/films").Subrouter()
 	filmRouter.Use(filmHandler.Middleware)
+	WSRouter := filmRouter.PathPrefix("").Subrouter()
+	WSRouter.Use(userHandler.JWTMiddleware)
+	WSRouter.HandleFunc("/ws", filmHandler.Subscribe)
+
 	filmRouter.HandleFunc("/", filmHandler.GetFilms).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/promo", filmHandler.GetPromoFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/calendar", filmHandler.GetFilmsForCalendar).Methods(http.MethodGet)
-	filmRouter.HandleFunc("/ws", filmHandler.Subscribe)
 	filmRouter.HandleFunc("/{id}", filmHandler.GetFilm).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/feedbacks", filmHandler.GetFilmFeedbacks).Methods(http.MethodGet)
 	filmRouter.HandleFunc("/{id}/similar", filmHandler.GetSimilarFilms).Methods(http.MethodGet)

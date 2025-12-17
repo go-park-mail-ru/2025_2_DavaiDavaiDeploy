@@ -19,6 +19,7 @@ type FilmPage struct {
 	Budget           int       `json:"budget" binding:"required"`
 	WorldwideFees    int       `json:"worldwide_fees" binding:"required"`
 	TrailerURL       *string   `json:"trailer_url" binding:"required"`
+	FilmURL          string    `json:"film_url" binding:"required"`
 	NumberOfRatings  int       `json:"number_of_ratings" binding:"required"`
 	Year             int       `json:"year" binding:"required"`
 	Rating           float64   `json:"rating" binding:"required"`

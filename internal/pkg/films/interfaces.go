@@ -45,6 +45,6 @@ type FilmRepo interface {
 	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
 	GetFilmsWithCursorPagination(ctx context.Context, cursor time.Time, offset int) ([]models.MainPageFilm, error)
 	GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error)
-	GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool)
+	GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool)
 	GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error)
 }

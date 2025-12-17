@@ -2,8 +2,10 @@ package authHandlers
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"io"
 	"kinopoisk/internal/models"
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/auth/delivery/grpc/gen"
@@ -11,7 +13,9 @@ import (
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	uuid "github.com/satori/go.uuid"
@@ -114,10 +118,189 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := models.User{
-		ID:      uuid.FromStringOrNil(user.User.ID),
-		Version: int(user.User.Version),
-		Login:   user.User.Login,
-		Avatar:  user.User.Avatar,
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		IsForeign: false,
+	}
+
+	w.Header().Set("X-CSRF-Token", user.CSRFToken)
+	helpers.WriteJSON(w, response)
+	log.LogHandlerInfo(logger, "success", http.StatusOK)
+}
+
+func (a *AuthHandler) VKAuth(w http.ResponseWriter, r *http.Request) {
+	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	var req models.VKAuthRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("invalid input"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	req.Sanitize()
+
+	if req.AccessToken == "" {
+		log.LogHandlerError(logger, errors.New("Access Token is required"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	apiURL := "https://id.vk.ru/oauth2/user_info"
+
+	form := url.Values{}
+	form.Add("access_token", req.AccessToken)
+	form.Add("client_id", os.Getenv("VK_CLIENT_ID"))
+
+	vkReq, err := http.NewRequestWithContext(r.Context(), "POST", apiURL, strings.NewReader(form.Encode()))
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("Unable to send request"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	vkReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(vkReq)
+	if err != nil {
+		log.LogHandlerError(logger, err, http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		log.LogHandlerError(logger, errors.New("VK API error: "+string(body)), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	var vkUser models.VKAuthResponse
+	err = json.NewDecoder(resp.Body).Decode(&vkUser)
+	if err != nil {
+		log.LogHandlerError(logger, errors.New("Decoding error"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	if vkUser.User.UserID == "" {
+		log.LogHandlerError(logger, errors.New("Unable to get users id"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	if req.Login != nil {
+		user, err := a.client.SignUpUserVK(r.Context(), &gen.SignupVKRequest{
+			Login: req.Login,
+			VkID:  vkUser.User.UserID,
+		})
+
+		if err != nil {
+			st, _ := status.FromError(err)
+			switch st.Code() {
+			case codes.InvalidArgument:
+				helpers.WriteError(w, http.StatusBadRequest)
+			case codes.Unauthenticated:
+				helpers.WriteError(w, http.StatusUnauthorized)
+			case codes.FailedPrecondition:
+				helpers.WriteError(w, http.StatusPreconditionFailed)
+			default:
+				helpers.WriteError(w, http.StatusInternalServerError)
+			}
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     CSRFCookieName,
+			Value:    user.CSRFToken,
+			HttpOnly: false,
+			Secure:   a.CookieSecure,
+			SameSite: a.CookieSamesite,
+			Expires:  time.Now().Add(12 * time.Hour),
+			Path:     "/",
+		})
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     CookieName,
+			Value:    user.JWTToken,
+			HttpOnly: true,
+			Secure:   a.CookieSecure,
+			SameSite: a.CookieSamesite,
+			Expires:  time.Now().Add(12 * time.Hour),
+			Path:     "/",
+		})
+
+		response := models.User{
+			ID:        uuid.FromStringOrNil(user.User.ID),
+			Version:   int(user.User.Version),
+			Login:     user.User.Login,
+			Avatar:    user.User.Avatar,
+			IsForeign: true,
+		}
+
+		w.Header().Set("X-CSRF-Token", user.CSRFToken)
+		helpers.WriteJSON(w, response)
+		log.LogHandlerInfo(logger, "success", http.StatusOK)
+		return
+	}
+
+	user, err := a.client.SignInUserVK(r.Context(), &gen.SignupVKRequest{
+		VkID: vkUser.User.UserID,
+	})
+
+	if err != nil {
+		st, _ := status.FromError(err)
+		switch st.Code() {
+		case codes.InvalidArgument:
+			helpers.WriteError(w, http.StatusBadRequest)
+		case codes.Unauthenticated:
+			helpers.WriteError(w, http.StatusUnauthorized)
+		case codes.FailedPrecondition:
+			helpers.WriteError(w, http.StatusPreconditionFailed)
+		default:
+			helpers.WriteError(w, http.StatusInternalServerError)
+		}
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CSRFCookieName,
+		Value:    user.CSRFToken,
+		HttpOnly: false,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     CookieName,
+		Value:    user.JWTToken,
+		HttpOnly: true,
+		Secure:   a.CookieSecure,
+		SameSite: a.CookieSamesite,
+		Expires:  time.Now().Add(12 * time.Hour),
+		Path:     "/",
+	})
+
+	response := models.User{
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		IsForeign: true,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
@@ -196,11 +379,12 @@ func (a *AuthHandler) SignInUser(w http.ResponseWriter, r *http.Request) {
 	})
 
 	response := models.User{
-		ID:      uuid.FromStringOrNil(user.User.ID),
-		Version: int(user.User.Version),
-		Login:   user.User.Login,
-		Avatar:  user.User.Avatar,
-		Has2FA:  user.User.Has2Fa,
+		ID:        uuid.FromStringOrNil(user.User.ID),
+		Version:   int(user.User.Version),
+		Login:     user.User.Login,
+		Avatar:    user.User.Avatar,
+		Has2FA:    user.User.Has2Fa,
+		IsForeign: false,
 	}
 
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
@@ -257,11 +441,12 @@ func (a *AuthHandler) Middleware(next http.Handler) http.Handler {
 			return
 		}
 		neededUser := models.User{
-			ID:      uuid.FromStringOrNil(user.ID),
-			Version: int(user.Version),
-			Login:   user.Login,
-			Avatar:  user.Avatar,
-			Has2FA:  user.Has2Fa,
+			ID:        uuid.FromStringOrNil(user.ID),
+			Version:   int(user.Version),
+			Login:     user.Login,
+			Avatar:    user.Avatar,
+			Has2FA:    user.Has2Fa,
+			IsForeign: user.IsForeign,
 		}
 		ctx := context.WithValue(r.Context(), auth.UserKey, neededUser)
 		next.ServeHTTP(w, r.WithContext(ctx))

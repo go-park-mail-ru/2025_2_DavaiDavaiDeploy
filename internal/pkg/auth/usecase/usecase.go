@@ -71,6 +71,59 @@ func (uc *AuthUsecase) ParseToken(token string) (*jwt.Token, error) {
 	})
 }
 
+func (uc *AuthUsecase) SignInVKUser(ctx context.Context, vkid string) (models.User, string, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	vkUser, err := uc.authRepo.GetVKUser(ctx, vkid)
+	if err != nil {
+		return models.User{}, "", auth.ErrorPreconditionFailed
+	}
+
+	token, err := uc.GenerateToken(vkUser.ID, vkUser.Login, vkUser.Version)
+	if err != nil {
+		logger.Error("cannot generate token")
+		return models.User{}, "", auth.ErrorInternalServerError
+	}
+
+	return vkUser, token, nil
+}
+
+func (uc *AuthUsecase) SignUpVKUser(ctx context.Context, vkid string, login string) (models.User, string, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	passwordHash := HashPass("basic-vk-password")
+
+	id := uuid.NewV4()
+	defaultAvatar := "avatars/default.png"
+
+	is_registred, _ := uc.authRepo.CheckUserExists(ctx, login)
+	if is_registred {
+		logger.Error("Such login already taken")
+		return models.User{}, "", auth.ErrorBadRequest
+	}
+
+	user := models.User{
+		ID:           id,
+		Login:        login,
+		PasswordHash: passwordHash,
+		Avatar:       defaultAvatar,
+		Version:      1,
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
+	}
+
+	err := uc.authRepo.CreateVKUser(ctx, user, vkid)
+	if err != nil {
+		return models.User{}, "", err
+	}
+
+	token, err := uc.GenerateToken(id, login, user.Version)
+	if err != nil {
+		logger.Error("cannot generate token")
+		return models.User{}, "", auth.ErrorInternalServerError
+	}
+
+	return user, token, nil
+}
+
 func (uc *AuthUsecase) SignUpUser(ctx context.Context, req models.SignUpInput) (models.User, string, error) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
 

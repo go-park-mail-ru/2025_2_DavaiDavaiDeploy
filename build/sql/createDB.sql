@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS film (
     budget bigint,
     worldwide_fees bigint,
     trailer_url text,
+	film_url text DEFAULT '',
     year integer NOT NULL,
     country_id uuid NOT NULL,
     cluster_id integer,
@@ -119,6 +120,7 @@ CREATE TABLE IF NOT EXISTS user_table (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     version integer DEFAULT 1 NOT NULL,
     login text NOT NULL,
+    vkid text DEFAULT '',
     password_hash bytea NOT NULL,
     avatar text DEFAULT 'avatars/default.png',
     has_2fa boolean DEFAULT false, 
@@ -133,6 +135,8 @@ CREATE TABLE IF NOT EXISTS news_table (
     id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
     title text,
     text text,
+    film_id uuid NOT NULL,
+    scheduled_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
@@ -222,6 +226,10 @@ ALTER TABLE ONLY film_feedback
 
 ALTER TABLE ONLY film
     ADD CONSTRAINT film_genre_fk FOREIGN KEY (genre_id) REFERENCES genre(id) ON DELETE RESTRICT;
+
+ALTER TABLE ONLY news_table
+    ADD CONSTRAINT news_film_fk FOREIGN KEY (film_id) REFERENCES film(id) ON DELETE RESTRICT;
+
 
 
 CREATE TABLE IF NOT EXISTS fav_films (
@@ -377,8 +385,8 @@ BEGIN
                     END;
     END IF;
 
-    INSERT INTO news_table (title, text)
-    VALUES (news_title, news_text);
+    INSERT INTO news_table (title, text, film_id)
+    VALUES (news_title, news_text, NEW.id);
     
     RETURN NEW;
 END;
@@ -389,3 +397,36 @@ CREATE TRIGGER trg_add_film_news
     AFTER INSERT ON film
     FOR EACH ROW
     EXECUTE FUNCTION add_film_news();
+
+
+CREATE OR REPLACE FUNCTION released_film_news()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.release_date >= CURRENT_DATE THEN 
+        IF NOT EXISTS (
+            SELECT 1 FROM news_table 
+            WHERE film_id = NEW.id 
+            AND title LIKE 'Сегодня премьера фильма%'
+        ) THEN
+            INSERT INTO news_table (title, text, film_id, scheduled_at) VALUES (
+                'Сегодня премьера фильма "' || COALESCE(NEW.title, NEW.original_title) || '"! 🎬 ',
+                COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
+                NEW.id,
+                (NEW.release_date::timestamp + INTERVAL '16 hours')
+            );
+        ELSE 
+            UPDATE news_table SET 
+                text = COALESCE(NEW.short_description, 'Скоро будет больше информации.'),
+                scheduled_at = (NEW.release_date::timestamp + INTERVAL '16 hours')
+                WHERE film_id = NEW.id;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_released_film_news ON film;
+CREATE TRIGGER trg_released_film_news
+    AFTER INSERT OR UPDATE ON film
+    FOR EACH ROW
+    EXECUTE FUNCTION released_film_news();

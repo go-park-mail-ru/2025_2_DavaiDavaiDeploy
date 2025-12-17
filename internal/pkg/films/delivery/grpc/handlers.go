@@ -246,6 +246,7 @@ func (g GrpcFilmsHandler) GetFilm(ctx context.Context, in *gen.GetFilmRequest) (
 		GenreId:          film.GenreID.String(),
 		IsLiked:          film.IsLiked,
 		IsOut:            film.IsOut,
+		FilmUrl:          film.FilmURL,
 	}, nil
 }
 func (g GrpcFilmsHandler) GetFilmFeedbacks(ctx context.Context, in *gen.GetFilmFeedbacksRequest) (*gen.GetFilmFeedbacksResponse, error) {

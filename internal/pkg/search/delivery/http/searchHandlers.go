@@ -15,8 +15,12 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 
+	"github.com/go-audio/audio"
+	"github.com/go-audio/wav"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -111,6 +115,7 @@ func (s *SearchHandler) GetFilmsAndActorsFromSearch(w http.ResponseWriter, r *ht
 
 func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 	logger := log.GetLoggerFromContext(r.Context()).With(slog.String("func", log.GetFuncName()))
+	var twoChannels bool
 
 	voiceData, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -126,11 +131,96 @@ func (s *SearchHandler) VoiceSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	voiceRequest, err := http.NewRequest("POST", s.voiceVKURL, bytes.NewReader(voiceData))
+	reader := bytes.NewReader(voiceData)
+	decoder := wav.NewDecoder(reader)
+
+	ddbuff, err := decoder.FullPCMBuffer()
 	if err != nil {
-		log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
+		log.LogHandlerError(logger, errors.New("failed to read voice data"), http.StatusBadRequest)
+		helpers.WriteError(w, http.StatusBadRequest)
+		return
+	}
+
+	_, filename, _, _ := runtime.Caller(0)
+	currentDir := filepath.Dir(filename)
+	tempDir := filepath.Join(currentDir, "tmp")
+
+	if err := os.MkdirAll(tempDir, 0755); err != nil {
+		log.LogHandlerError(logger,
+			fmt.Errorf("failed to create temp dir %s: %w", tempDir, err),
+			http.StatusInternalServerError,
+		)
 		helpers.WriteError(w, http.StatusInternalServerError)
 		return
+	}
+
+	convertedFile, err := os.CreateTemp(tempDir, "voice-*.wav")
+	if err != nil {
+		log.LogHandlerError(logger, err, http.StatusInternalServerError)
+		helpers.WriteError(w, http.StatusInternalServerError)
+		return
+	}
+	defer os.Remove(convertedFile.Name())
+	defer convertedFile.Close()
+
+	if ddbuff.Format.NumChannels != 1 {
+		twoChannels = true
+		numSamples := len(ddbuff.Data) / 2
+		monoData := make([]int, numSamples)
+
+		for i := 0; i < numSamples; i++ {
+			left := ddbuff.Data[i*2]
+			right := ddbuff.Data[i*2+1]
+			monoData[i] = (left + right) / 2
+		}
+
+		encoder := wav.NewEncoder(convertedFile, int(ddbuff.Format.SampleRate), 16, 1, 1)
+
+		monobuff := &audio.IntBuffer{
+			Format: &audio.Format{
+				SampleRate:  ddbuff.Format.SampleRate,
+				NumChannels: 1,
+			},
+			Data:           monoData,
+			SourceBitDepth: 16,
+		}
+
+		err = encoder.Write(monobuff)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to read voice data"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+
+		err = encoder.Close()
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to read voice data"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusBadRequest)
+			return
+		}
+	}
+
+	var voiceRequest *http.Request
+	if twoChannels == false {
+		voiceRequest, err = http.NewRequest("POST", s.voiceVKURL, bytes.NewReader(voiceData))
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusInternalServerError)
+			return
+		}
+	} else {
+		_, err = convertedFile.Seek(0, 0)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to seek to beginning of file"), http.StatusInternalServerError)
+			helpers.WriteError(w, http.StatusInternalServerError)
+			return
+		}
+		voiceRequest, err = http.NewRequest("POST", s.voiceVKURL, convertedFile)
+		if err != nil {
+			log.LogHandlerError(logger, errors.New("failed to create request"), http.StatusBadRequest)
+			helpers.WriteError(w, http.StatusInternalServerError)
+			return
+		}
 	}
 
 	voiceRequest.Header.Set("Authorization", fmt.Sprintf("Bearer %s", s.voiceToken))

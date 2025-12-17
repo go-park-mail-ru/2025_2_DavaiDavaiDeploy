@@ -169,7 +169,7 @@ func (r *FilmRepository) GetFilmPage(ctx context.Context, filmID uuid.UUID) (mod
 		&result.ShortDescription, &result.Description, &result.AgeCategory, &result.Budget,
 		&result.WorldwideFees, &result.TrailerURL, &result.Year,
 		&result.Slogan, &result.Duration, &result.Image1, &result.Image2, &result.Image3,
-		&result.Genre, &result.GenreID, &result.Country, &result.NumberOfRatings, &result.IsOut,
+		&result.Genre, &result.GenreID, &result.Country, &result.FilmURL, &result.NumberOfRatings, &result.IsOut,
 	)
 
 	if err != nil {
@@ -509,9 +509,9 @@ func (r *FilmRepository) GetSimilarFilms(ctx context.Context, filmID uuid.UUID) 
 	return films, nil
 }
 
-func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]models.News, bool) {
+func (r *FilmRepository) GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool) {
 	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
-	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset)
+	rows, err := r.db.Query(ctx, GetUpdatesQuery, offset, userID)
 	if err != nil {
 		logger.Error("failed to get rows: " + err.Error())
 		return []models.News{}, false
@@ -525,7 +525,8 @@ func (r *FilmRepository) GetUpdates(ctx context.Context, offset time.Time) ([]mo
 			&news.ID,
 			&news.Title,
 			&news.Text,
-			&news.CreatedAt,
+			&news.FilmID,
+			&news.ScheduledAt,
 		); err != nil {
 			logger.Error("failed to scan news: " + err.Error())
 			continue
@@ -574,6 +575,6 @@ func (r *FilmRepository) GetUsersRecommendations(ctx context.Context, userID uui
 		}
 		films = append(films, film)
 	}
-	logger.Info("succesfully got films from db")
+	logger.Info(fmt.Sprintf("succesfully got %d films from db", len(films)))
 	return films, nil
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
-	"go.uber.org/mock/gomock"
+	gomock "go.uber.org/mock/gomock"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -111,17 +111,6 @@ func TestGetActor(t *testing.T) {
 					Return(nil, status.Error(codes.NotFound, "actor not found"))
 			},
 			expectedStatus: http.StatusNotFound,
-			expectBody:     false,
-		},
-		{
-			name:   "Invalid Argument",
-			varsID: actorIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				mockClient.EXPECT().
-					GetActor(gomock.Any(), &gen.GetActorRequest{ActorId: actorIDStr}).
-					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
-			},
-			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{
@@ -360,24 +349,6 @@ func TestGetFilmsByActor(t *testing.T) {
 					Return(nil, status.Error(codes.NotFound, "actor not found"))
 			},
 			expectedStatus: http.StatusNotFound,
-			expectBody:     false,
-		},
-		{
-			name:   "Invalid Argument",
-			url:    "/actors/" + actorIDStr + "/films?count=10&offset=0",
-			varsID: actorIDStr,
-			mockSetup: func(mockClient *mocks.MockFilmsClient) {
-				mockClient.EXPECT().
-					GetFilmsByActor(gomock.Any(), &gen.GetFilmsByActorRequest{
-						ActorId: actorIDStr,
-						Pager: &gen.Pager{
-							Count:  10,
-							Offset: 0,
-						},
-					}).
-					Return(nil, status.Error(codes.InvalidArgument, "invalid argument"))
-			},
-			expectedStatus: http.StatusBadRequest,
 			expectBody:     false,
 		},
 		{

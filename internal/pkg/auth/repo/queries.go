@@ -31,3 +31,9 @@ var CheckUserTwoFactorQuery string
 
 //go:embed sql/checkUserSecretCodeQuery.sql
 var CheckUserSecretCodeQuery string
+
+//go:embed sql/checkVKUserExistsQuery.sql
+var CheckVKUserExistsQuery string
+
+//go:embed sql/createVKUserQuery.sql
+var CreateVKUserQuery string
