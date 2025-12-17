@@ -10526,3 +10526,6 @@ WHERE title IN (
     'Пеле: Рождение легенды'
 );
 
+UPDATE films 
+SET age_category = '18+'
+WHERE age_category IS NULL OR age_category = '';
