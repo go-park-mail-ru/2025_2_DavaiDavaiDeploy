@@ -53,7 +53,7 @@ jobs:
 
   deploy:
     name: Deploy DDFilms
-    needs: linters-act 
+    needs: tests-act 
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
