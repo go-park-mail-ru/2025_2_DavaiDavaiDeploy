@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS film (
     CONSTRAINT film_image3_check CHECK (((image3 IS NULL) OR ((length(image3) > 0) AND (length(image3) <= 100)))),
     CONSTRAINT film_original_title_check CHECK (((original_title IS NULL) OR ((length(original_title) > 0) AND (length(original_title) <= 100)))),
     CONSTRAINT film_poster_check CHECK (((poster IS NULL) OR ((length(poster) > 0) AND (length(poster) <= 100)))),
-    CONSTRAINT film_short_description_check CHECK (((short_description IS NULL) OR ((length(short_description) > 0) AND (length(short_description) <= 500)))),
+    CONSTRAINT film_short_description_check CHECK (((short_description IS NULL) OR ((length(short_description) > 0) AND (length(short_description) <= 50000)))),
     CONSTRAINT film_slogan_check CHECK (((slogan IS NULL) OR ((length(slogan) > 0) AND (length(slogan) <= 200)))),
     CONSTRAINT film_title_check CHECK (((length(title) > 0) AND (length(title) <= 100))),
     CONSTRAINT film_trailer_url_check CHECK (((trailer_url IS NULL) OR ((length(trailer_url) > 0) AND (length(trailer_url) <= 200)))),
