@@ -497,7 +497,6 @@ func (re *RecommendationEngine) calculateFeatures() {
 	}
 
 	minYear, maxYear := re.findMinMaxYear()
-	minDuration, maxDuration := re.findMinMaxDuration()
 
 	maxGenreOrder := 24.0
 	maxAgeOrder := 4.0
@@ -507,28 +506,21 @@ func (re *RecommendationEngine) calculateFeatures() {
 		var features []float64
 
 		genreNum := float64(genreOrder[film.GenreID.String()])
-		if genreNum == 0 {
-			genreNum = 12.5
-		}
 
 		normalizedGenre := genreNum / maxGenreOrder
-		for j := 0; j < 10; j++ {
+		for j := 0; j < 6; j++ {
 			features = append(features, normalizedGenre)
 		}
 
 		ageNum := float64(ageOrder[film.AgeCategory])
-		features = append(features, ageNum/maxAgeOrder)
+		for j := 0; j < 2; j++ {
+			features = append(features, ageNum/maxAgeOrder)
+		}
 
 		normalizedYear := float64(film.Year-minYear) / float64(maxYear-minYear)
 		features = append(features, normalizedYear)
 
-		normalizedDuration := float64(film.Duration-minDuration) / float64(maxDuration-minDuration)
-		features = append(features, normalizedDuration)
-
 		countryNum := float64(countryOrder[film.CountryID.String()])
-		if countryNum == 0 {
-			countryNum = 5.5
-		}
 		features = append(features, countryNum/maxCountryOrder)
 
 		re.films[i].Features = features
@@ -551,24 +543,9 @@ func (re *RecommendationEngine) findMinMaxYear() (int, int) {
 	return min, max
 }
 
-func (re *RecommendationEngine) findMinMaxDuration() (int, int) {
-	if len(re.films) == 0 {
-		return 0, 0
-	}
-	min, max := re.films[0].Duration, re.films[0].Duration
-	for _, film := range re.films {
-		if film.Duration < min {
-			min = film.Duration
-		}
-		if film.Duration > max {
-			max = film.Duration
-		}
-	}
-	return min, max
-}
-
 func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 	n := len(re.films)
+	fmt.Println(n)
 	similarity := make([][]float64, n)
 
 	for i := 0; i < n; i++ {
@@ -587,25 +564,16 @@ func (re *RecommendationEngine) buildSimilarityMatrix() [][]float64 {
 }
 
 func (re *RecommendationEngine) weightedSimilarity(a, b []float64) float64 {
-	if len(a) != len(b) || len(a) != 14 {
+	if len(a) != len(b) || len(a) != 10 {
 		return 0
 	}
 
 	var weightedDot, weightedNormA, weightedNormB float64
 
-	genreWeights := 10.0
-	otherWeight := 1.0
-
-	weights := []float64{
-		genreWeights, genreWeights, genreWeights, genreWeights, genreWeights,
-		genreWeights, genreWeights, genreWeights, genreWeights, genreWeights,
-		otherWeight, otherWeight, otherWeight, otherWeight,
-	}
-
 	for idx := range a {
-		weightedDot += a[idx] * b[idx] * weights[idx]
-		weightedNormA += a[idx] * a[idx] * weights[idx]
-		weightedNormB += b[idx] * b[idx] * weights[idx]
+		weightedDot += a[idx] * b[idx]
+		weightedNormA += a[idx] * a[idx]
+		weightedNormB += b[idx] * b[idx]
 	}
 
 	if weightedNormA == 0 || weightedNormB == 0 {
@@ -672,6 +640,11 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 				scores[i], scores[j] = scores[j], scores[i]
 			}
 		}
+	}
+
+	limit := 100
+	if len(unratedFilms) < limit {
+		limit = len(unratedFilms)
 	}
 
 	if len(unratedFilms) > n {

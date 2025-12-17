@@ -52,8 +52,8 @@ jobs:
         run: go test -v ./...
 
   deploy:
-    name: Deploy MyApp
-    needs: tests-act
+    name: Deploy DDFilms
+    needs: linters-act 
     timeout-minutes: 30
     runs-on: ubuntu-latest
 
@@ -85,3 +85,19 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PRIVATE_KEY }}
           script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && sudo docker compose down -v && sudo docker compose up -d --build
+
+  film-clustering:
+    name: Run Film Clustering
+    needs: deploy  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Run film clustering script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy
+            /home/ubuntu/backend/2025_2_DavaiDavaiDeploy/venv/bin/python film_clustering.py
