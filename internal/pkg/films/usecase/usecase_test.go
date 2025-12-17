@@ -12,6 +12,7 @@ import (
 	"kinopoisk/internal/pkg/films/mocks"
 	"kinopoisk/internal/pkg/middleware/logger"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
 	"github.com/stretchr/testify/assert"
 	gomock "go.uber.org/mock/gomock"
@@ -708,6 +709,554 @@ func TestFilmUsecase_GetFilmsForCalendar(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, len(tt.expected), len(result))
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_GetPromoFilm(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	promoID := uuid.FromStringOrNil("8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c")
+	expectedPromo := models.PromoFilm{
+		ID:               promoID,
+		Image:            "promo.jpg",
+		Title:            "Promo Film",
+		Rating:           8.5,
+		ShortDescription: "Short description",
+		Year:             2024,
+		Genre:            "Action",
+		Duration:         120,
+	}
+
+	tests := []struct {
+		name        string
+		setupMock   func()
+		expected    models.PromoFilm
+		expectError bool
+	}{
+		{
+			name: "Success",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetPromoFilmByID(gomock.Any(), gomock.Any()).
+					Return(models.PromoFilm{
+						ID:               promoID,
+						Image:            "promo.jpg",
+						Title:            "Promo Film",
+						ShortDescription: "Short description",
+						Year:             2024,
+						Genre:            "Action",
+						Duration:         120,
+					}, nil)
+				mockRepo.EXPECT().
+					GetFilmAvgRating(gomock.Any(), promoID).
+					Return(8.5, nil)
+			},
+			expected:    expectedPromo,
+			expectError: false,
+		},
+		{
+			name: "Error - repository error",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetPromoFilmByID(gomock.Any(), gomock.Any()).
+					Return(models.PromoFilm{}, films.ErrorInternalServerError)
+			},
+			expected:    models.PromoFilm{},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.GetPromoFilm(testContext())
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_GetUsersFavFilms(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	expectedFilms := []models.FavFilm{
+		{
+			ID:    uuid.NewV4(),
+			Title: "Favorite Film 1",
+			Image: "cover1.jpg",
+			Year:  2024,
+		},
+		{
+			ID:    uuid.NewV4(),
+			Title: "Favorite Film 2",
+			Image: "cover2.jpg",
+			Year:  2023,
+		},
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.EXPECT().
+			GetUsersFavFilms(gomock.Any(), userID).
+			Return(expectedFilms, nil)
+
+		result, err := usecase.GetUsersFavFilms(testContext(), userID)
+		assert.NoError(t, err)
+		assert.Equal(t, expectedFilms, result)
+	})
+
+	t.Run("Empty list", func(t *testing.T) {
+		mockRepo.EXPECT().
+			GetUsersFavFilms(gomock.Any(), userID).
+			Return([]models.FavFilm{}, nil)
+
+		result, err := usecase.GetUsersFavFilms(testContext(), userID)
+		assert.NoError(t, err)
+		assert.Empty(t, result)
+	})
+}
+
+func TestFilmUsecase_SaveFilm(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	filmID := uuid.NewV4()
+
+	tests := []struct {
+		name        string
+		setupMock   func()
+		expectError bool
+	}{
+		{
+			name: "Success",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					SaveFilm(gomock.Any(), userID, filmID).
+					Return(nil)
+			},
+			expectError: false,
+		},
+		{
+			name: "Error",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					SaveFilm(gomock.Any(), userID, filmID).
+					Return(films.ErrorInternalServerError)
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			err := usecase.SaveFilm(testContext(), userID, filmID)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_RemoveFilm(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	filmID := uuid.NewV4()
+	expectedFilms := []models.FavFilm{
+		{
+			ID:    uuid.NewV4(),
+			Title: "Remaining Film",
+			Image: "cover.jpg",
+			Year:  2024,
+		},
+	}
+
+	tests := []struct {
+		name        string
+		setupMock   func()
+		expected    []models.FavFilm
+		expectError bool
+	}{
+		{
+			name: "Success",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					RemoveFilm(gomock.Any(), userID, filmID).
+					Return(nil)
+				mockRepo.EXPECT().
+					GetUsersFavFilms(gomock.Any(), userID).
+					Return(expectedFilms, nil)
+			},
+			expected:    expectedFilms,
+			expectError: false,
+		},
+		{
+			name: "Error - get fav films failed",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					RemoveFilm(gomock.Any(), userID, filmID).
+					Return(nil)
+				mockRepo.EXPECT().
+					GetUsersFavFilms(gomock.Any(), userID).
+					Return([]models.FavFilm{}, films.ErrorInternalServerError)
+			},
+			expected:    []models.FavFilm{},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.RemoveFilm(testContext(), userID, filmID)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_GetSimilarFilms(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	filmID := uuid.NewV4()
+	expectedFilms := []models.MainPageFilm{
+		{
+			ID:     uuid.NewV4(),
+			Cover:  "similar1.jpg",
+			Title:  "Similar Film 1",
+			Rating: 8.0,
+			Year:   2024,
+			Genre:  "Action",
+		},
+	}
+
+	tests := []struct {
+		name        string
+		setupMock   func()
+		expected    []models.MainPageFilm
+		expectError bool
+	}{
+		{
+			name: "Success",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetSimilarFilms(gomock.Any(), filmID).
+					Return(expectedFilms, nil)
+			},
+			expected:    expectedFilms,
+			expectError: false,
+		},
+		{
+			name: "Error - no films",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetSimilarFilms(gomock.Any(), filmID).
+					Return([]models.MainPageFilm{}, nil)
+			},
+			expected:    []models.MainPageFilm{},
+			expectError: true,
+		},
+		{
+			name: "Error - repository error",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetSimilarFilms(gomock.Any(), filmID).
+					Return(nil, films.ErrorInternalServerError)
+			},
+			expected:    []models.MainPageFilm{},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.GetSimilarFilms(testContext(), filmID)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, result)
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_SiteMap(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	mainFilms := []models.MainPageFilm{
+		{
+			ID:    uuid.NewV4(),
+			Title: "Film 1",
+		},
+		{
+			ID:    uuid.NewV4(),
+			Title: "Film 2",
+		},
+	}
+
+	expectedUrlSet := models.Urlset{
+		Xmlns: "https://www.sitemaps.org/schemas/sitemap/0.9/",
+		URL: []models.URLItem{
+			{Loc: "https://ddfilms.online/"},
+			{Loc: "https://ddfilms.online/films/" + mainFilms[0].ID.String(), Priority: 1.0},
+			{Loc: "https://ddfilms.online/films/" + mainFilms[1].ID.String(), Priority: 1.0},
+		},
+	}
+
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.EXPECT().
+			GetFilmsWithPagination(gomock.Any(), 10, 0).
+			Return(mainFilms, nil)
+
+		result, err := usecase.SiteMap(testContext())
+		assert.NoError(t, err)
+		assert.Equal(t, expectedUrlSet.Xmlns, result.Xmlns)
+		assert.Len(t, result.URL, 3)
+	})
+
+	t.Run("Error - repository error", func(t *testing.T) {
+		mockRepo.EXPECT().
+			GetFilmsWithPagination(gomock.Any(), 10, 0).
+			Return(nil, films.ErrorInternalServerError)
+
+		_, err := usecase.SiteMap(testContext())
+		assert.Error(t, err)
+	})
+}
+
+func TestFilmUsecase_ValidateAndGetUser(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	// Сохраняем оригинальное значение и устанавливаем новое
+	originalSecret := os.Getenv("JWT_SECRET")
+	os.Setenv("JWT_SECRET", "test-secret-key-for-jwt-validation-2024")
+	defer os.Setenv("JWT_SECRET", originalSecret) // Восстанавливаем после теста
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	validUser := models.User{
+		ID:      uuid.NewV4(),
+		Login:   "testuser",
+		Version: 1,
+	}
+
+	// Создаем валидный токен
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"login":   "testuser",
+		"exp":     time.Now().Add(time.Hour).Unix(),
+		"version": float64(1),
+	})
+	validToken, _ := token.SignedString([]byte("test-secret-key-for-jwt-validation-2024"))
+
+	// Токен с истекшим сроком
+	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"login":   "testuser",
+		"exp":     time.Now().Add(-time.Hour).Unix(),
+		"version": float64(1),
+	})
+	expiredTokenStr, _ := expiredToken.SignedString([]byte("test-secret-key-for-jwt-validation-2024"))
+
+	tests := []struct {
+		name        string
+		token       string
+		setupMock   func()
+		expectError bool
+	}{
+		{
+			name:  "Success",
+			token: validToken,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUserByLogin(gomock.Any(), "testuser").
+					Return(validUser, nil)
+			},
+			expectError: false,
+		},
+		{
+			name:        "Error - empty token",
+			token:       "",
+			setupMock:   func() {},
+			expectError: true,
+		},
+		{
+			name:        "Error - invalid token",
+			token:       "invalid.token.here",
+			setupMock:   func() {},
+			expectError: true,
+		},
+		{
+			name:        "Error - expired token",
+			token:       expiredTokenStr,
+			setupMock:   func() {},
+			expectError: true,
+		},
+		{
+			name:  "Error - user not found",
+			token: validToken,
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUserByLogin(gomock.Any(), "testuser").
+					Return(models.User{}, films.ErrorNotFound)
+			},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.ValidateAndGetUser(testContext(), tt.token)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, validUser.ID, result.ID)
+				assert.Equal(t, validUser.Login, result.Login)
+			}
+		})
+	}
+}
+
+func TestFilmUsecase_GetUsersRecommendations(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := mocks.NewMockFilmRepo(ctrl)
+	usecase := NewFilmUsecase(mockRepo)
+
+	userID := uuid.NewV4()
+	genreID := uuid.NewV4()
+	countryID := uuid.FromStringOrNil("a0eebc77-7c0b-4ef6-bb6d-6bb9bd360a12")
+
+	recFilms := []models.RecFilm{
+		{
+			ID:              uuid.NewV4(),
+			Cover:           "film1.jpg",
+			Title:           "Film 1",
+			Rating:          8.5,
+			Year:            2024,
+			GenreID:         genreID,
+			AgeCategory:     "16+",
+			Duration:        120,
+			CountryID:       countryID,
+			UserRating:      9,
+			AmountOfReviews: 100,
+			Features:        []float64{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.75, 1.0, 0.5, 0.1},
+		},
+		{
+			ID:              uuid.NewV4(),
+			Cover:           "film2.jpg",
+			Title:           "Film 2",
+			Rating:          7.8,
+			Year:            2023,
+			GenreID:         genreID,
+			AgeCategory:     "12+",
+			Duration:        110,
+			CountryID:       countryID,
+			UserRating:      0,
+			AmountOfReviews: 80,
+			Features:        []float64{0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.9, 0.45, 0.1},
+		},
+	}
+
+	expectedFilms := []models.MainPageFilm{
+		{
+			ID:     recFilms[1].ID,
+			Cover:  "film2.jpg",
+			Title:  "Film 2",
+			Rating: 7.8,
+			Year:   2023,
+			Genre:  "Action",
+		},
+	}
+
+	tests := []struct {
+		name        string
+		setupMock   func()
+		expectedLen int
+		expectError bool
+	}{
+		{
+			name: "Error - no recommendations",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUsersRecommendations(gomock.Any(), userID).
+					Return([]models.RecFilm{}, nil)
+			},
+			expectedLen: 0,
+			expectError: true,
+		},
+		{
+			name: "Error - repository error",
+			setupMock: func() {
+				mockRepo.EXPECT().
+					GetUsersRecommendations(gomock.Any(), userID).
+					Return(nil, films.ErrorInternalServerError)
+			},
+			expectedLen: 0,
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tt.setupMock()
+			result, err := usecase.GetUsersRecommendations(testContext(), userID)
+
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Len(t, result, tt.expectedLen)
+				if tt.expectedLen > 0 {
+					assert.Equal(t, expectedFilms[0].Genre, result[0].Genre)
+				}
 			}
 		})
 	}
