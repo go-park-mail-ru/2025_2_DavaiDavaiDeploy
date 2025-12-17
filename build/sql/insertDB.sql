@@ -10529,3 +10529,33 @@ WHERE title IN (
 UPDATE film 
 SET age_category = '18+'
 WHERE age_category IS NULL OR age_category = '';
+
+
+CREATE OR REPLACE FUNCTION extract_pic_number(pic_path text) 
+RETURNS integer AS $$
+DECLARE
+    pic_num integer;
+    pic_name text;
+BEGIN
+    IF pic_path IS NULL THEN
+        RETURN NULL;
+    END IF;
+    
+    pic_name := substring(pic_path from '([^/]+)$');
+    
+    pic_num := CAST(substring(pic_name from 'pic([0-9]+)\.') AS integer);
+    
+    RETURN pic_num;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+UPDATE actor 
+SET photo = 'actors/pic0.webp',
+    updated_at = CURRENT_TIMESTAMP
+WHERE photo LIKE 'actors/pic%.webp'
+  AND extract_pic_number(photo) > 1529;
+
+DROP FUNCTION extract_pic_number(text);
