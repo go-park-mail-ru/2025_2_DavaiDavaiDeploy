@@ -1,0 +1,76 @@
+package usecase
+
+import (
+	"context"
+	"kinopoisk/internal/models"
+	"kinopoisk/internal/pkg/actors"
+	"kinopoisk/internal/pkg/utils/log"
+	"log/slog"
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+)
+
+type ActorUsecase struct {
+	actorRepo actors.ActorRepo
+}
+
+func NewActorUsecase(repo actors.ActorRepo) *ActorUsecase {
+	return &ActorUsecase{
+		actorRepo: repo,
+	}
+}
+
+func (uc *ActorUsecase) GetActor(ctx context.Context, id uuid.UUID) (models.ActorPage, error) {
+	actor, err := uc.actorRepo.GetActorByID(ctx, id)
+	if err != nil {
+		return models.ActorPage{}, err
+	}
+
+	var endDate time.Time
+
+	if actor.DeathDate == nil || actor.DeathDate.IsZero() {
+		endDate = time.Now()
+	} else {
+		endDate = *actor.DeathDate
+	}
+
+	age := endDate.Year() - actor.BirthDate.Year()
+	if endDate.YearDay() < actor.BirthDate.YearDay() {
+		age--
+	}
+
+	filmsNumber, err := uc.actorRepo.GetActorFilmsCount(ctx, id)
+	if err != nil {
+		return models.ActorPage{}, err
+	}
+
+	result := models.ActorPage{
+		ID:            actor.ID,
+		RussianName:   actor.RussianName,
+		OriginalName:  actor.OriginalName,
+		Photo:         actor.Photo,
+		Height:        actor.Height,
+		BirthDate:     actor.BirthDate,
+		Age:           age,
+		ZodiacSign:    actor.ZodiacSign,
+		BirthPlace:    actor.BirthPlace,
+		MaritalStatus: actor.MaritalStatus,
+		FilmsNumber:   filmsNumber,
+	}
+	return result, nil
+}
+
+func (uc *ActorUsecase) GetFilmsByActor(ctx context.Context, id uuid.UUID, pager models.Pager) ([]models.MainPageFilm, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	films, err := uc.actorRepo.GetFilmsByActor(ctx, id, pager.Count, pager.Offset)
+	if err != nil {
+		return []models.MainPageFilm{}, err
+	}
+
+	if len(films) == 0 {
+		logger.Error("actor has no films")
+		return []models.MainPageFilm{}, actors.ErrorNotFound
+	}
+	return films, nil
+}

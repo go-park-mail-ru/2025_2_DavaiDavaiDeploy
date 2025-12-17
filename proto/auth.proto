@@ -1,0 +1,100 @@
+syntax = "proto3";
+package auth; 
+option go_package = "./internal/pkg/auth/delivery/grpc/gen/;gen";
+
+service Auth {
+  rpc SignupUser(SignupRequest) returns (AuthResponse) {}
+  rpc SignInUser(SignInRequest) returns (AuthResponse) {}
+  rpc LogOutUser(LogOutUserRequest) returns (LogOutUserResponse) {}
+  rpc GetUser(GetUserRequest) returns (UserResponse) {}
+  rpc ChangePassword(ChangePasswordRequest) returns (AuthResponse) {}
+  rpc ChangeAvatar(ChangeAvatarRequest) returns (AuthResponse) {}
+  rpc ValidateAndGetUser(ValidateAndGetUserRequest) returns (UserResponse) {}
+
+  rpc Enable2fa(Enable2faRequest) returns (Enable2faResponse) {}
+  rpc Disable2fa(Disable2faRequest) returns (Disable2faResponse) {}
+  rpc SignUpUserVK(SignupVKRequest) returns (AuthResponse) {}
+  rpc SignInUserVK(SignupVKRequest) returns (AuthResponse) {}
+}
+
+message SignupVKRequest {
+  optional string Login = 1;
+  string VkID = 2;
+}
+
+message Enable2faRequest {
+  string ID = 1;
+  bool Has2fa = 2;
+}
+
+message Enable2faResponse {
+  bool Has2fa = 1;
+  bytes QrCode = 2;
+}
+
+message Disable2faRequest {
+  string ID = 1;
+  bool Has2fa = 2;
+}
+
+message Disable2faResponse {
+  bool Has2fa = 1;
+}
+
+message EmptyResponse {}
+
+message UserResponse {
+  string ID = 1;       
+  int32 Version = 2;  
+  string Login = 3;
+  string Avatar = 4;
+  bool Has2fa = 5;
+  bool IsForeign = 6;
+}
+
+message SignupRequest {
+  string Login = 1;
+  string Password = 2;
+}
+
+message SignInRequest {  
+  string Login = 1;
+  string Password = 2;
+  optional string TwoFactorCode = 3;
+}
+
+message AuthResponse {  
+  UserResponse User = 1;
+  string JWTToken = 2;
+  string CSRFToken = 3;
+}
+
+
+message GetUserRequest {
+  string ID = 1;
+}
+
+message ChangePasswordRequest {
+  string OldPassword = 1;
+  string NewPassword = 2;
+  string UserID = 3;
+}
+
+message ChangeAvatarRequest {
+  bytes Avatar = 1; 
+  string FileFormat = 2;
+  string UserID = 3;
+}
+
+message LogOutUserRequest{
+  string ID = 1;       
+  int32 Version = 2;  
+  string Login = 3;
+  string Avatar = 4;
+}
+
+message LogOutUserResponse{}
+
+message ValidateAndGetUserRequest{
+  string Token = 1;
+}

@@ -1,0 +1,1 @@
+SELECT EXISTS(SELECT 1 FROM user_table WHERE login = $1)

@@ -1,0 +1,50 @@
+package films
+
+import (
+	"context"
+	"kinopoisk/internal/models"
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+)
+
+type FilmUsecase interface {
+	GetPromoFilm(ctx context.Context) (models.PromoFilm, error)
+	GetFilms(ctx context.Context, pager models.CursorPager) ([]models.MainPageFilm, error)
+	GetFilm(ctx context.Context, id uuid.UUID, userID uuid.UUID) (models.FilmPage, error)
+	GetFilmFeedbacks(ctx context.Context, id uuid.UUID, userID uuid.UUID, pager models.Pager) ([]models.FilmFeedback, error)
+	SendFeedback(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
+	SetRating(ctx context.Context, req models.FilmFeedbackInput, filmID uuid.UUID, userID uuid.UUID) (models.FilmFeedback, error)
+	ValidateAndGetUser(ctx context.Context, token string) (models.User, error)
+	SiteMap(ctx context.Context) (models.Urlset, error)
+	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) ([]models.FavFilm, error)
+	GetFilmsForCalendar(ctx context.Context, pager models.Pager, userID uuid.UUID) ([]models.FilmInCalendar, error)
+	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
+	GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error)
+	GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.MainPageFilm, error)
+}
+
+type FilmRepo interface {
+	GetFilmByID(ctx context.Context, id uuid.UUID) (models.Film, error)
+	GetGenreTitle(ctx context.Context, genreID uuid.UUID) (string, error)
+	GetFilmAvgRating(ctx context.Context, filmID uuid.UUID) (float64, error)
+	GetFilmsWithPagination(ctx context.Context, limit, offset int) ([]models.MainPageFilm, error)
+	GetFilmPage(ctx context.Context, filmID uuid.UUID) (models.FilmPage, error)
+	GetFilmFeedbacks(ctx context.Context, filmID uuid.UUID, limit, offset int) ([]models.FilmFeedback, error)
+	CheckUserFeedbackExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
+	UpdateFeedback(ctx context.Context, feedback models.FilmFeedback) error
+	CreateFeedback(ctx context.Context, feedback models.FilmFeedback) error
+	SetRating(ctx context.Context, feedback models.FilmFeedback) error
+	GetPromoFilmByID(ctx context.Context, id uuid.UUID) (models.PromoFilm, error)
+	GetUserByLogin(ctx context.Context, login string) (models.User, error)
+	SaveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	RemoveFilm(ctx context.Context, userID uuid.UUID, filmID uuid.UUID) error
+	CheckUserLikeExists(ctx context.Context, userID, filmID uuid.UUID) (models.FilmFeedback, error)
+	GetFilmsForCalendar(ctx context.Context, limit, offset int) ([]models.FilmInCalendar, error)
+	GetUsersFavFilms(ctx context.Context, id uuid.UUID) ([]models.FavFilm, error)
+	GetFilmsWithCursorPagination(ctx context.Context, cursor time.Time, offset int) ([]models.MainPageFilm, error)
+	GetSimilarFilms(ctx context.Context, filmID uuid.UUID) ([]models.MainPageFilm, error)
+	GetUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) ([]models.News, bool)
+	GetUsersRecommendations(ctx context.Context, userID uuid.UUID) ([]models.RecFilm, error)
+}

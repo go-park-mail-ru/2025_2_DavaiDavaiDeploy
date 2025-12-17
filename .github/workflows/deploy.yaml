@@ -1,0 +1,103 @@
+name: Kinopoisk deploy
+
+on:
+  push:
+    branches:
+      - main  
+      - develop 
+
+jobs:
+  govulncheck:
+    name: Run govulncheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+
+      - name: Run govulncheck
+        uses: golang/govulncheck-action@v1
+
+  linters-act: 
+    name: linters
+    runs-on: ubuntu-latest
+    needs: govulncheck
+    steps:
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+      - uses: actions/checkout@v3 
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          args: --disable-all -E staticcheck --skip-files=".*" --exclude="SA1019"
+          
+  tests-act:
+    name: tests 
+    needs: linters-act 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.7'
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./...
+
+  deploy:
+    name: Deploy DDFilms
+    needs: linters-act 
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull code 
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }} 
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && git stash && git pull 
+
+      - name: Build containers 
+        uses: appleboy/ssh-action@master
+        with:
+          timeout: 30m
+          command_timeout: 30m
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy 
+
+      - name: Restart service 
+        uses: appleboy/ssh-action@master
+        with:
+          timeout: 30m
+          command_timeout: 30m
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy && sudo docker compose down -v && sudo docker compose up -d --build
+
+  film-clustering:
+    name: Run Film Clustering
+    needs: deploy  
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Run film clustering script
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ubuntu
+          key: ${{ secrets.PRIVATE_KEY }}
+          script: |
+            cd /home/ubuntu/backend/2025_2_DavaiDavaiDeploy
+            /home/ubuntu/backend/2025_2_DavaiDavaiDeploy/venv/bin/python film_clustering.py

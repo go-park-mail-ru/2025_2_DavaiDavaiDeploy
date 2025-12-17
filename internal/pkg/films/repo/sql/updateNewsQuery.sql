@@ -1,0 +1,1 @@
+update news_table set scheduled_at=$1 where film_id=$2;
