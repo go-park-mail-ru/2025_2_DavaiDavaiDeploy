@@ -612,7 +612,7 @@ func (re *RecommendationEngine) contentBasedRecommendation(n int) []models.RecFi
 	userPreferences := make([]float64, len(re.films))
 	for i, film := range re.films {
 		if film.UserRating > 0 {
-			normalizedRating := float64(film.UserRating-1) / 9.0
+			normalizedRating := -1 + 2*(float64(film.UserRating-1)/9.0)
 			for j := range re.films {
 				userPreferences[j] += re.similarityMatrix[i][j] * normalizedRating
 			}
