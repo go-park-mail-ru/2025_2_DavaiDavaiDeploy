@@ -160,11 +160,12 @@ func main() {
 	authClient := authGen.NewAuthClient(authConn)
 	searchClient := searchGen.NewSearchClient(searchConn)
 	filmRepo := filmRepo.NewFilmRepository(dbpool)
-	hubNew := &hub.Hub{Repo: filmRepo}
-	go hubNew.Run(context.Background())
 
 	authRepo := authRepo.NewAuthRepository(dbpool)
 	authUsecase := authUsecase.NewAuthUsecase(authRepo)
+
+	hubNew := &hub.Hub{Repo: filmRepo, AuthRepo: authRepo}
+	go hubNew.Run(context.Background())
 
 	authHandler := authHandlers.NewAuthHandler(authClient, authUsecase)
 	userHandler := userHandlers.NewUserHandler(authClient)
