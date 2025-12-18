@@ -1,0 +1,1 @@
+insert into news_password_table user_id = $1;

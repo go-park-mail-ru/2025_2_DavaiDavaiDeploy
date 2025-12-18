@@ -19,6 +19,7 @@ import (
 	"time"
 
 	uuid "github.com/satori/go.uuid"
+	gohibp "github.com/wneessen/go-hibp"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -33,14 +34,18 @@ type AuthHandler struct {
 	CookieSecure   bool
 	CookieSamesite http.SameSite
 	client         gen.AuthClient
+	usecase        auth.AuthUsecase
+	gohibpClient   gohibp.Client
 }
 
-func NewAuthHandler(client gen.AuthClient) *AuthHandler {
+func NewAuthHandler(client gen.AuthClient, usecase auth.AuthUsecase) *AuthHandler {
 	secure := false
 	cookieValue := os.Getenv("COOKIE_SECURE")
 	if cookieValue == "true" {
 		secure = true
 	}
+
+	pwndAPIKey := os.Getenv("PWN_API_KEY")
 
 	samesite := http.SameSiteLaxMode
 	samesiteValue := os.Getenv("COOKIE_SAMESITE")
@@ -48,11 +53,14 @@ func NewAuthHandler(client gen.AuthClient) *AuthHandler {
 		samesite = http.SameSiteStrictMode
 	}
 
+	gopwned := gohibp.New(gohibp.WithAPIKey(pwndAPIKey))
+
 	return &AuthHandler{
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		CookieSecure:   secure,
 		CookieSamesite: samesite,
 		client:         client,
+		gohibpClient:   gopwned,
 	}
 }
 
@@ -125,6 +133,14 @@ func (a *AuthHandler) SignupUser(w http.ResponseWriter, r *http.Request) {
 		IsForeign: false,
 	}
 
+	password, _, err := a.gohibpClient.PwnedPassAPI.CheckPassword(req.Password)
+	if err == nil && password.Present() {
+		logger.Info("password is leaked")
+		err := a.usecase.AddNotification(r.Context(), response.ID)
+		if err != nil {
+			logger.Warn("Unable to add notification to db")
+		}
+	}
 	w.Header().Set("X-CSRF-Token", user.CSRFToken)
 	helpers.WriteJSON(w, response)
 	log.LogHandlerInfo(logger, "success", http.StatusOK)

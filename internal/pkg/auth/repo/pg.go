@@ -7,6 +7,7 @@ import (
 	"kinopoisk/internal/pkg/auth"
 	"kinopoisk/internal/pkg/utils/log"
 	"log/slog"
+	"time"
 
 	"github.com/jackc/pgtype/pgxtype"
 	"github.com/jackc/pgx/v4"
@@ -260,4 +261,36 @@ func (r *AuthRepository) CreateVKUser(ctx context.Context, user models.User, vki
 	}
 	logger.Info("succesfully created vk user")
 	return nil
+}
+
+func (r *AuthRepository) AddNotification(ctx context.Context, userID uuid.UUID) error {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Exec(
+		ctx,
+		AddNotification,
+	)
+	if err != nil {
+		logger.Error("failed to create notification: " + err.Error())
+		return auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully created notification")
+	return nil
+}
+
+func (r *AuthRepository) GetPasswordUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) (bool, error) {
+	logger := log.GetLoggerFromContext(ctx).With(slog.String("func", log.GetFuncName()))
+	_, err := r.db.Query(
+		ctx,
+		GetUpdatesPassword,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.Error("no updates")
+			return false, auth.ErrorBadRequest
+		}
+		logger.Error("failed to scan news table for password: " + err.Error())
+		return false, auth.ErrorInternalServerError
+	}
+	logger.Info("succesfully get updates")
+	return true, nil
 }

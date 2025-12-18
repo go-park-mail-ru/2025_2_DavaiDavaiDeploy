@@ -37,3 +37,9 @@ var CheckVKUserExistsQuery string
 
 //go:embed sql/createVKUserQuery.sql
 var CreateVKUserQuery string
+
+//go:embed sql/addNotificationQuery.sql
+var AddNotification string
+
+//go:embed sql/getUpdatesPasswordQuery.sql
+var GetUpdatesPassword string
