@@ -10530,6 +10530,7 @@ UPDATE film
 SET age_category = '18+'
 WHERE age_category IS NULL OR age_category = '';
 
+update film set trailer_url='trailers/trailer247.mov' where title='Крепкий орешек';
 
 CREATE OR REPLACE FUNCTION extract_pic_number(pic_path text) 
 RETURNS integer AS $$

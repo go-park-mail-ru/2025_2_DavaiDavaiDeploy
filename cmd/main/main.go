@@ -18,6 +18,8 @@ import (
 
 	actorHandlers "kinopoisk/internal/pkg/actors/delivery/http"
 	authHandlers "kinopoisk/internal/pkg/auth/delivery/http"
+	authRepo "kinopoisk/internal/pkg/auth/repo"
+	authUsecase "kinopoisk/internal/pkg/auth/usecase"
 	compilationHandlers "kinopoisk/internal/pkg/compilations/delivery/http"
 	filmHandlers "kinopoisk/internal/pkg/films/delivery/http"
 	filmRepo "kinopoisk/internal/pkg/films/repo"
@@ -161,7 +163,10 @@ func main() {
 	hubNew := &hub.Hub{Repo: filmRepo}
 	go hubNew.Run(context.Background())
 
-	authHandler := authHandlers.NewAuthHandler(authClient)
+	authRepo := authRepo.NewAuthRepository(dbpool)
+	authUsecase := authUsecase.NewAuthUsecase(authRepo)
+
+	authHandler := authHandlers.NewAuthHandler(authClient, authUsecase)
 	userHandler := userHandlers.NewUserHandler(authClient)
 	genreHandler := genreHandlers.NewGenreHandler(filmClient)
 	actorHandler := actorHandlers.NewActorHandler(filmClient)

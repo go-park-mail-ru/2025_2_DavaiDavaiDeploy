@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"kinopoisk/internal/models"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	uuid "github.com/satori/go.uuid"
@@ -21,6 +22,7 @@ type AuthUsecase interface {
 	VerifyOTPCode(ctx context.Context, login, secretCode string, userCode string) error
 	SignUpVKUser(ctx context.Context, vkid string, login string) (models.User, string, error)
 	SignInVKUser(ctx context.Context, vkid string) (models.User, string, error)
+	AddNotification(ctx context.Context, userID uuid.UUID) error
 }
 
 type AuthRepo interface {
@@ -35,4 +37,6 @@ type AuthRepo interface {
 	GetUserSecretCode(ctx context.Context, userID uuid.UUID) string
 	CreateVKUser(ctx context.Context, user models.User, vkid string) error
 	GetVKUser(ctx context.Context, vkid string) (models.User, error)
+	AddNotification(ctx context.Context, userID uuid.UUID) error
+	GetPasswordUpdates(ctx context.Context, userID uuid.UUID, offset time.Time) (bool, error)
 }

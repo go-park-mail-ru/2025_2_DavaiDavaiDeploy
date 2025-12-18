@@ -141,6 +141,11 @@ CREATE TABLE IF NOT EXISTS news_table (
     updated_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS news_password_table (
+    id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
+    user_id uuid,
+    created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP
+);
 
 ALTER TABLE ONLY actor_in_film
     ADD CONSTRAINT actor_in_film_pkey PRIMARY KEY (id);
@@ -208,6 +213,8 @@ CREATE TRIGGER set_genre_timestamps BEFORE INSERT OR UPDATE ON genre FOR EACH RO
 CREATE TRIGGER set_user_timestamps BEFORE INSERT OR UPDATE ON user_table FOR EACH ROW EXECUTE FUNCTION set_timestamps();
 
 CREATE TRIGGER set_news_timestamps BEFORE INSERT OR UPDATE ON news_table FOR EACH ROW EXECUTE FUNCTION set_timestamps();
+
+CREATE TRIGGER set_news_password_timestamps BEFORE INSERT OR UPDATE ON news_password_table FOR EACH ROW EXECUTE FUNCTION set_timestamps();
 
 ALTER TABLE ONLY actor_in_film
     ADD CONSTRAINT actor_in_film_actor_fk FOREIGN KEY (actor_id) REFERENCES actor(id) ON DELETE CASCADE;
