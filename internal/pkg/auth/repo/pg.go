@@ -282,6 +282,7 @@ func (r *AuthRepository) GetPasswordUpdates(ctx context.Context, userID uuid.UUI
 	_, err := r.db.Query(
 		ctx,
 		GetUpdatesPassword,
+		offset, userID,
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
