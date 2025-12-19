@@ -66,8 +66,11 @@ func (h *Hub) Run(ctx context.Context) {
 			h.connect.Range(func(key, value interface{}) bool {
 				conn := key.(*websocket.Conn)
 				userID := value.(uuid.UUID)
-				news, _ := h.AuthRepo.GetPasswordUpdates(ctx, userID, h.currentOffset)
-				if news {
+				hasPasswordNews, err := h.AuthRepo.GetPasswordUpdates(ctx, userID, h.passwordOffset)
+				if err != nil {
+					return true
+				}
+				if hasPasswordNews {
 					conn.WriteJSON("Password found")
 				}
 
