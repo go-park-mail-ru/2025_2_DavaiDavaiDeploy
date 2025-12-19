@@ -71,7 +71,7 @@ func (h *Hub) Run(ctx context.Context) {
 					return true
 				}
 				if hasPasswordNews {
-					conn.WriteJSON("Password found")
+					conn.WriteJSON(models.PasswordNews{Text: "Ваш пароль обнаружен в базе украденных, смените его"})
 				}
 
 				return true
