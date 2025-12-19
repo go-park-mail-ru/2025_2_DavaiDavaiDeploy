@@ -1,6 +1,7 @@
 # 2025_2_DavaiDavaiDeploy
 
 Репозиторий команды "Davai Davai Deploy". Проект: Кинопоиск
+Ссылка на деплой: https://ddfilms.online/
 
 ### Участники команды
 1. [Старкин Александр](https://github.com/Robocotik)
