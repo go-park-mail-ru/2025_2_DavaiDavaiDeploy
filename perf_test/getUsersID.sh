@@ -3,7 +3,6 @@ set -e
 
 echo "=== Получаем 100k ID пользователей из базы ==="
 
-# Просто загружаем .env
 source ../.env
 
 export PGPASSWORD=$DB_PASS
