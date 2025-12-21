@@ -2,14 +2,8 @@ wrk.method = "POST"
 local counter = 0
 local total_users = 100000
 
-function random_string(len)
-    local chars = "abcdefghijklmnopqrstuvwxyz"
-    local res = {}
-    for i = 1, len do
-        res[i] = chars:sub(math.random(1, #chars), math.random(1, #chars))
-    end
-    return table.concat(res)
-end
+local unique_prefix = tostring(math.random(1000000000, 9999999999))
+math.randomseed(os.time() * 1000)
 
 request = function()
     counter = counter + 1
@@ -17,7 +11,17 @@ request = function()
         return nil
     end
     
-    local login = "user_" .. counter .. "_" .. random_string(6)
+    local login = string.format("%s_%d_%d", 
+        unique_prefix, 
+        counter, 
+        math.random(1000, 9999))
+    
+
+    login = login:sub(1, 20)
+    
+    if #login < 6 then
+        login = login .. string.rep("x", 6 - #login)
+    end
     
     local body = string.format('{"login": "%s", "password": "password123"}', login)
     
@@ -30,5 +34,5 @@ request = function()
 end
 
 done = function(summary, latency, requests)
-    print(string.format("\n✓ Created %d users", counter - 1))
+    print(string.format("\nCreated %d users", counter - 1))
 end
