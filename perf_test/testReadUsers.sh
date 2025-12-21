@@ -23,7 +23,7 @@ echo ""
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 wrk -t4 -c100 -d30s \
-    -s ./read_users.lua \
+    -s ./readUsers.lua \
     --timeout 10s \
     --latency \
     "$TARGET_URL" 2>&1 | tee "$RESULTS_DIR/read_test_$TIMESTAMP.txt"
